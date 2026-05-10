@@ -1,16 +1,19 @@
 # petrescuemobile
 
-React native mobile for pet rescue system
-src/
-├── app/ # entry + navigation root
-├── screens/ # màn hình (pages)
-├── components/ # UI components tái sử dụng
-├── features/ # business logic theo domain
-├── services/ # API, socket, external services
-├── store/ # state management
-├── hooks/ # custom hooks
-├── utils/ # helper functions
-├── constants/ # config, enum
-├── assets/ # images, fonts
-├── types/ # TypeScript types
-└── config/ # env, setup lib
+## Architecture
+
+- Expo Router (file-based routing) under `app/`
+- Clean Architecture folder layout under `src/`:
+  - `src/presentation`: UI/theme/hooks/components
+  - `src/domain`: domain models & rules (base)
+  - `src/application`: use-cases (base)
+  - `src/infrastructure`: external integrations (base)
+  - `src/libs`: shared utilities (base)
+
+## Tech Stack
+
+- Expo + React Native + TypeScript (strict)
+- Expo Router for navigation
+- NativeWind (TailwindCSS) for styling + `global.css`
+- Gluestack UI components
+- react-native-reanimated
