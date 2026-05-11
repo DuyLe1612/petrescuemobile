@@ -1,5 +1,4 @@
 import { Button, ButtonText } from "@/components/ui/button";
-import { Toast, ToastDescription, ToastTitle } from "@/components/ui/toast";
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
 import { useLogin } from "@/src/presentation/hooks/use-login";
 import { router } from "expo-router";
@@ -9,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   Text,
   TextInput,
   View,
@@ -17,6 +17,8 @@ import {
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const { mutate, isPending, error } = useLogin();
 
@@ -25,31 +27,27 @@ export default function LoginScreen() {
   }, [email, password, isPending]);
 
   const onSubmit = () => {
+    setFormError(null);
+    if (email.trim().length === 0) {
+      setFormError("Vui lòng nhập email hoặc tên người dùng.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setFormError("Mật khẩu phải có ít nhất 6 ký tự.");
+      return;
+    }
+
     mutate(
       { emailOrUsername: email.trim(), password },
       {
-        onSuccess(data) {
-          console.log("Login successful! Access Token:", data);
-
-          alert("Login successful! Access Token: " + data.accessToken);
-          debugger;
-          tokenStorage.set(data.accessToken, data.refreshToken);
-          <Toast action="success">
-            <ToastTitle>Welcome</ToastTitle>
-            <ToastDescription>
-              This is a customized toast message.
-            </ToastDescription>
-          </Toast>;
-          debugger;
+        async onSuccess(data) {
+          await tokenStorage.set(data.accessToken, data.refreshToken);
           router.replace("/(tabs)");
         },
-        onError(error: any) {
-          <Toast action="error">
-            <ToastTitle>Welcome</ToastTitle>
-            <ToastDescription>
-              This is a customized toast message.
-            </ToastDescription>
-          </Toast>;
+        onError() {
+          setFormError("Đăng nhập thất bại. Vui lòng kiểm tra thông tin.");
+          console.error("Login failed");
         },
       },
     );
@@ -86,20 +84,35 @@ export default function LoginScreen() {
             <Text className="text-sm font-medium text-foreground">
               Mật khẩu
             </Text>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholder="••••••••"
-              placeholderTextColor="rgb(125 125 125)"
-              className="h-12 rounded-lg border border-input bg-background px-4 text-foreground"
-            />
+            <View className="flex-row items-center h-12 rounded-lg border border-input bg-background px-4">
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholder="••••••••"
+                placeholderTextColor="rgb(125 125 125)"
+                className="flex-1 text-foreground"
+              />
+              <Pressable
+                onPress={() => setShowPassword(v => !v)}
+                className="ml-3 px-2 py-1"
+                accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                <Text className="text-sm text-primary">
+                  {showPassword ? "Ẩn" : "Hiện"}
+                </Text>
+              </Pressable>
+            </View>
             <Text className="text-xs text-muted-foreground">
               Tối thiểu 6 ký tự.
             </Text>
           </View>
 
-          {error ? (
+          {formError ? (
+            <View className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
+              <Text className="text-sm text-destructive">{formError}</Text>
+            </View>
+          ) : error ? (
             <View className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
               <Text className="text-sm text-destructive">
                 Đăng nhập thất bại. Vui lòng thử lại.

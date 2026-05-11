@@ -69,10 +69,13 @@ module.exports = {
         "sidebar-ring": "rgb(var(--sidebar-ring) / <alpha-value>)",
       },
       borderRadius: {
-        sm: "calc(var(--radius) - 4px)",
-        md: "calc(var(--radius) - 2px)",
-        lg: "var(--radius)",
-        xl: "calc(var(--radius) + 4px)",
+        // Use numeric values for React Native (NativeWind) compatibility.
+        // CSS variable expressions like "calc(...)" produce strings that break
+        // native Android views (AndroidTextInput) when applied to borderRadius.
+        sm: 6,
+        md: 8,
+        lg: 12,
+        xl: 16,
       },
       fontFamily: {
         heading: undefined,

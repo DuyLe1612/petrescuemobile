@@ -1,5 +1,10 @@
-import { AuthResponse, LoginRequest } from "../entities/auth";
+import {
+    AuthResponse,
+    LoginRequest,
+    RefreshTokenRequest,
+} from "../entities/auth";
 
-export interface AuthRepository {
+export interface IAuthRepository {
   login(data: LoginRequest): Promise<AuthResponse>;
+  refreshToken(data: RefreshTokenRequest): Promise<AuthResponse>;
 }
