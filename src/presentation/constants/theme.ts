@@ -1,29 +1,22 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import { Platform } from "react-native";
-
-const tintColorLight = "#0a7ea4";
-const tintColorDark = "#fff";
+import { Platform } from 'react-native';
+import { semanticColorValues } from '@/components/ui/gluestack-ui-provider/tokens';
 
 export const Colors = {
   light: {
-    text: "#11181C",
-    background: "#fff",
-    tint: tintColorLight,
-    icon: "#687076",
-    tabIconDefault: "#687076",
-    tabIconSelected: tintColorLight,
+    text: semanticColorValues.light.foreground,
+    background: semanticColorValues.light.background,
+    tint: semanticColorValues.light.primary,
+    icon: semanticColorValues.light.mutedForeground,
+    tabIconDefault: semanticColorValues.light.mutedForeground,
+    tabIconSelected: semanticColorValues.light.primary,
   },
   dark: {
-    text: "#ECEDEE",
-    background: "#151718",
-    tint: tintColorDark,
-    icon: "#9BA1A6",
-    tabIconDefault: "#9BA1A6",
-    tabIconSelected: tintColorDark,
+    text: semanticColorValues.dark.foreground,
+    background: semanticColorValues.dark.background,
+    tint: semanticColorValues.dark.primary,
+    icon: semanticColorValues.dark.mutedForeground,
+    tabIconDefault: semanticColorValues.dark.mutedForeground,
+    tabIconSelected: semanticColorValues.dark.primary,
   },
 };
 
