@@ -54,8 +54,6 @@ try {
   // ignore
 }
 
-// Example:
-// EXPO_PUBLIC_API_URL=https://api.yourdomain.com
 
 /* ===============================
    HTTP CLIENT

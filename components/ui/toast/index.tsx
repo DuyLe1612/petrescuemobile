@@ -2,17 +2,17 @@
 import React from 'react';
 import { createToastHook } from '@gluestack-ui/core/toast/creator';
 import { AccessibilityInfo, Text, View, ViewStyle } from 'react-native';
-import { tva } from '@gluestack-ui/utils/nativewind-utils';
+import {
+  tva,
+  withStyleContext,
+  useStyleContext,
+} from '@gluestack-ui/utils/nativewind-utils';
 import { cssInterop } from 'nativewind';
 import {
   Motion,
   AnimatePresence,
   MotionComponentProps,
 } from '@legendapp/motion';
-import {
-  withStyleContext,
-  useStyleContext,
-} from '@gluestack-ui/utils/nativewind-utils';
 import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 
 type IMotionViewProps = React.ComponentProps<typeof View> &
@@ -26,25 +26,25 @@ const SCOPE = 'TOAST';
 cssInterop(MotionView, { className: 'style' });
 
 const toastStyle = tva({
-  base: 'p-4 m-1 rounded-md gap-1 web:pointer-events-auto shadow-hard-5 border-outline-100',
+  base: 'm-1 gap-1 rounded-lg border p-4 shadow-hard-5 web:pointer-events-auto',
   variants: {
     action: {
-      error: 'bg-error-800',
-      warning: 'bg-warning-700',
-      success: 'bg-success-700',
-      info: 'bg-info-700',
-      muted: 'bg-background-800',
+      error: 'border-destructive bg-destructive',
+      warning: 'border-primary bg-primary',
+      success: 'border-accent bg-accent',
+      info: 'border-secondary bg-secondary',
+      muted: 'border-border bg-card',
     },
 
     variant: {
       solid: '',
-      outline: 'border bg-background-0',
+      outline: 'bg-card',
     },
   },
 });
 
 const toastTitleStyle = tva({
-  base: 'text-typography-0 font-medium font-body tracking-md text-left',
+  base: 'text-left font-medium text-card-foreground',
   variants: {
     isTruncated: {
       true: '',
@@ -89,33 +89,58 @@ const toastTitleStyle = tva({
     {
       variant: 'outline',
       action: 'error',
-      class: 'text-error-800',
+      class: 'text-destructive',
     },
     {
       variant: 'outline',
       action: 'warning',
-      class: 'text-warning-800',
+      class: 'text-primary',
     },
     {
       variant: 'outline',
       action: 'success',
-      class: 'text-success-800',
+      class: 'text-accent',
     },
     {
       variant: 'outline',
       action: 'info',
-      class: 'text-info-800',
+      class: 'text-secondary-foreground',
     },
     {
       variant: 'outline',
       action: 'muted',
-      class: 'text-background-800',
+      class: 'text-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'error',
+      class: 'text-destructive-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'warning',
+      class: 'text-primary-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'success',
+      class: 'text-accent-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'info',
+      class: 'text-secondary-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'muted',
+      class: 'text-card-foreground',
     },
   ],
 });
 
 const toastDescriptionStyle = tva({
-  base: 'font-normal font-body tracking-md text-left',
+  base: 'text-left font-normal',
   variants: {
     isTruncated: {
       true: '',
@@ -145,10 +170,69 @@ const toastDescriptionStyle = tva({
   },
   parentVariants: {
     variant: {
-      solid: 'text-typography-50',
-      outline: 'text-typography-900',
+      solid: '',
+      outline: 'text-muted-foreground',
+    },
+    action: {
+      error: '',
+      warning: '',
+      success: '',
+      info: '',
+      muted: '',
     },
   },
+  parentCompoundVariants: [
+    {
+      variant: 'solid',
+      action: 'error',
+      class: 'text-destructive-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'warning',
+      class: 'text-primary-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'success',
+      class: 'text-accent-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'info',
+      class: 'text-secondary-foreground',
+    },
+    {
+      variant: 'solid',
+      action: 'muted',
+      class: 'text-muted-foreground',
+    },
+    {
+      variant: 'outline',
+      action: 'error',
+      class: 'text-destructive',
+    },
+    {
+      variant: 'outline',
+      action: 'warning',
+      class: 'text-primary',
+    },
+    {
+      variant: 'outline',
+      action: 'success',
+      class: 'text-accent',
+    },
+    {
+      variant: 'outline',
+      action: 'info',
+      class: 'text-secondary-foreground',
+    },
+    {
+      variant: 'outline',
+      action: 'muted',
+      class: 'text-muted-foreground',
+    },
+  ],
 });
 
 const Root = withStyleContext(View, SCOPE);
@@ -217,7 +301,7 @@ const ToastDescription = React.forwardRef<
   React.ComponentRef<typeof Text>,
   IToastDescriptionProps
 >(function ToastDescription({ className, size = 'md', ...props }, ref) {
-  const { variant: parentVariant } = useStyleContext(SCOPE);
+  const { variant: parentVariant, action: parentAction } = useStyleContext(SCOPE);
   return (
     <Text
       ref={ref}
@@ -227,6 +311,7 @@ const ToastDescription = React.forwardRef<
         class: className,
         parentVariants: {
           variant: parentVariant,
+          action: parentAction,
         },
       })}
     />

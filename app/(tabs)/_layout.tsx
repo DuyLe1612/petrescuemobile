@@ -1,53 +1,29 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/tokens";
 import { Tabs } from "expo-router";
 import { useColorScheme } from "react-native";
 
-// Nếu bạn đã có hook useColorScheme trong src/presentation/hooks thì dùng cái đó cũng được.
-// import { useColorScheme } from "@/src/presentation/hooks/use-color-scheme";
-
-const THEME = {
-  light: {
-    headerBg: "rgb(255 255 255)",
-    headerText: "rgb(23 23 23)",
-
-    tabBg: "rgb(255 255 255)",
-    tabActive: "rgb(38 38 38)", // --primary
-    tabInactive: "rgb(125 125 125)", // --muted-foreground
-  },
-  dark: {
-    headerBg: "rgb(23 23 23)",
-    headerText: "rgb(252 252 252)",
-
-    tabBg: "rgb(23 23 23)",
-    tabActive: "rgb(252 252 252)", // --primary (dark)
-    tabInactive: "rgb(176 176 176)", // --muted-foreground (dark)
-  },
-};
-
 export default function TabLayout() {
   const scheme = useColorScheme();
-  const t = scheme === "dark" ? THEME.dark : THEME.light;
+  const t = scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
 
   return (
     <Tabs
       screenOptions={{
-        // Header: vẫn là style object, nhưng màu theo theme tokens
-        headerStyle: { backgroundColor: t.headerBg },
-        headerTintColor: t.headerText,
+        headerStyle: { backgroundColor: t.background },
+        headerTintColor: t.foreground,
         headerShadowVisible: false,
 
-        // Tint icon/label theo semantic tokens
-        tabBarActiveTintColor: t.tabActive,
-        tabBarInactiveTintColor: t.tabInactive,
+        tabBarActiveTintColor: t.primary,
+        tabBarInactiveTintColor: t.mutedForeground,
 
-        // Tab bar: phần “shape” vẫn là style object,
-        // còn layout spacing có thể chuyển bớt sang className nếu bạn tự render tabBar.
         tabBarStyle: {
-          backgroundColor: t.tabBg,
+          backgroundColor: t.background,
           height: 72,
           paddingTop: 8,
           paddingBottom: 10,
-          borderTopWidth: 0,
+          borderTopWidth: 1,
+          borderTopColor: t.border,
           elevation: 10,
           shadowOpacity: 0.08,
           shadowRadius: 10,
