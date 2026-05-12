@@ -2,15 +2,19 @@ import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/token
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
 import { TouchableOpacity, useColorScheme } from "react-native";
+import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/tokens";
 
 export default function TabLayout() {
   const scheme = useColorScheme();
   const t =
     scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
+  const t = scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
 
   return (
     <Tabs
       screenOptions={{
+        headerStyle: { backgroundColor: t.background },
+        headerTintColor: t.foreground,
         headerStyle: { backgroundColor: t.background },
         headerTintColor: t.foreground,
         headerShadowVisible: false,
@@ -26,11 +30,18 @@ export default function TabLayout() {
         tabBarActiveTintColor: t.primary,
         tabBarInactiveTintColor: t.mutedForeground,
 
+
+        tabBarActiveTintColor: t.primary,
+        tabBarInactiveTintColor: t.mutedForeground,
+
         tabBarStyle: {
+          backgroundColor: t.background,
           backgroundColor: t.background,
           height: 72,
           paddingTop: 8,
           paddingBottom: 10,
+          borderTopWidth: 1,
+          borderTopColor: t.border,
           borderTopWidth: 1,
           borderTopColor: t.border,
           elevation: 10,
