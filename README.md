@@ -60,5 +60,6 @@ See `ARCHITECTURE.md` for a compact checklist and conventions.
 ## Team Dev (No Mac)
 
 - Android dev: `expo start --android` for Expo Go, `expo run:android` for Dev Client.
+  adb reverse tcp:8081 tcp:8081
 - iOS dev without Mac: use EAS Build to produce a Dev Client and install via TestFlight/OTA.
 - CI/Team builds: EAS Build with shared Apple credentials (managed by EAS).

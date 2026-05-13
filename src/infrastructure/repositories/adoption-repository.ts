@@ -1,20 +1,25 @@
-import { AdoptionSummary, AdoptionStatus } from "@/src/domain/entities/adoption";
 import {
-  IAdoptionRepository,
-  GetMyAdoptionsParams,
-} from "@/src/domain/repositories/adoption-repository";
+    AdoptionStatus,
+    AdoptionSummary,
+} from "@/src/domain/entities/adoption";
 import {
-  getByUserId,
-  getCurrentUser,
-} from "@/src/infrastructure/api/generated/pet-rescue-api";
+    GetMyAdoptionsParams,
+    IAdoptionRepository,
+} from "@/src/domain/repositories/I-adoption-repository";
 import type { AdoptionSummaryResponseDto } from "@/src/infrastructure/api/generated/model";
+import {
+    getByUserId,
+    getCurrentUser,
+} from "@/src/infrastructure/api/generated/pet-rescue-api";
 
 const normalizeStatus = (status?: AdoptionStatus): AdoptionStatus => {
   return status ?? "PENDING";
 };
 
 export class ApiAdoptionRepository implements IAdoptionRepository {
-  async getMyAdoptions(params?: GetMyAdoptionsParams): Promise<AdoptionSummary[]> {
+  async getMyAdoptions(
+    params?: GetMyAdoptionsParams,
+  ): Promise<AdoptionSummary[]> {
     const user = await getCurrentUser();
     const userId = user.data?.userId;
 

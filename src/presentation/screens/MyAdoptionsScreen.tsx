@@ -67,7 +67,9 @@ const getStepIndex = (status: AdoptionSummary["status"]) => {
 const StatusPill = ({ status }: { status: AdoptionSummary["status"] }) => {
   const cfg = STATUS_STYLE[status];
   return (
-    <View className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${cfg.pill}`}>
+    <View
+      className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${cfg.pill}`}
+    >
       <Feather name="clock" size={12} className={cfg.text} />
       <Text className={`text-[11px] font-bold ${cfg.text}`}>
         {STATUS_LABELS[status]}
@@ -105,7 +107,10 @@ const AdoptionCard = ({
               </View>
               <StatusPill status={item.status} />
             </View>
-            <Text className="text-sm font-bold text-foreground" numberOfLines={2}>
+            <Text
+              className="text-sm font-bold text-foreground"
+              numberOfLines={2}
+            >
               {item.petName ?? "Chưa có tên thú cưng"}
             </Text>
             <Text className="text-[11px] text-muted-foreground">
@@ -140,29 +145,36 @@ const AdoptionCard = ({
             {STEPS.map((step, index) => {
               const isDone = index < stepIndex || item.status === "APPROVED";
               const isActive = index === stepIndex && item.status === "PENDING";
-              const isRejected = item.status === "REJECTED" && index === stepIndex;
+              const isRejected =
+                item.status === "REJECTED" && index === stepIndex;
               const dotClass = isRejected
                 ? "bg-rose-500"
                 : isDone
-                ? "bg-emerald-500"
-                : isActive
-                ? "bg-orange-500"
-                : "bg-muted";
+                  ? "bg-emerald-500"
+                  : isActive
+                    ? "bg-orange-500"
+                    : "bg-muted";
 
               const textClass = isRejected
                 ? "text-rose-600"
                 : isDone
-                ? "text-emerald-600"
-                : isActive
-                ? "text-orange-600"
-                : "text-muted-foreground";
+                  ? "text-emerald-600"
+                  : isActive
+                    ? "text-orange-600"
+                    : "text-muted-foreground";
 
               return (
                 <View key={step} className="flex-row gap-3">
                   <View className="items-center">
-                    <View className={`h-6 w-6 items-center justify-center rounded-full ${dotClass}`}>
+                    <View
+                      className={`h-6 w-6 items-center justify-center rounded-full ${dotClass}`}
+                    >
                       {isDone ? (
-                        <Feather name="check" size={12} className="text-white" />
+                        <Feather
+                          name="check"
+                          size={12}
+                          className="text-white"
+                        />
                       ) : isRejected ? (
                         <Feather name="x" size={12} className="text-white" />
                       ) : (
@@ -172,7 +184,9 @@ const AdoptionCard = ({
                       )}
                     </View>
                     {index < STEPS.length - 1 ? (
-                      <View className={`mt-1 h-6 w-0.5 ${isDone ? dotClass : "bg-muted"}`} />
+                      <View
+                        className={`mt-1 h-6 w-0.5 ${isDone ? dotClass : "bg-muted"}`}
+                      />
                     ) : null}
                   </View>
                   <View className="flex-1 pb-4">
@@ -181,8 +195,12 @@ const AdoptionCard = ({
                     </Text>
                     {isActive ? (
                       <View className="mt-1 flex-row items-center gap-2">
-                        <View className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
-                        <Text className={`text-[10px] ${textClass}`}>Đang xử lý...</Text>
+                        <View
+                          className={`h-1.5 w-1.5 rounded-full ${dotClass}`}
+                        />
+                        <Text className={`text-[10px] ${textClass}`}>
+                          Đang xử lý...
+                        </Text>
                       </View>
                     ) : null}
                   </View>
@@ -193,13 +211,21 @@ const AdoptionCard = ({
 
           <View className="mt-2 gap-2 rounded-xl bg-muted p-3">
             <View className="flex-row items-center gap-2">
-              <Feather name="info" size={14} className="text-muted-foreground" />
+              <Feather
+                name="info"
+                size={14}
+                className="text-muted-foreground"
+              />
               <Text className="text-[11px] text-muted-foreground">
                 Kinh nghiệm: {item.experience ?? "Chưa cung cấp"}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Feather name="home" size={14} className="text-muted-foreground" />
+              <Feather
+                name="home"
+                size={14}
+                className="text-muted-foreground"
+              />
               <Text className="text-[11px] text-muted-foreground">
                 Điều kiện sống: {item.liveCondition ?? "Chưa cung cấp"}
               </Text>
@@ -220,9 +246,12 @@ const AdoptionCard = ({
 };
 
 export default function MyAdoptionsScreen() {
-  const [filter, setFilter] = useState<"all" | AdoptionSummary["status"]>("all");
+  const [filter, setFilter] = useState<"all" | AdoptionSummary["status"]>(
+    "all",
+  );
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-  const { data, loading, refreshing, error, counts, refresh } = useMyAdoptions();
+  const { data, loading, refreshing, error, counts, refresh } =
+    useMyAdoptions();
 
   const filtered = useMemo(() => {
     if (filter === "all") return data;
@@ -238,16 +267,16 @@ export default function MyAdoptionsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <View className="bg-primary px-4 pb-3 pt-12">
+      <View className="bg-card px-4 pb-3 pt-12">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity onPress={() => router.back()}>
             <Feather name="chevron-left" size={22} className="text-white" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-lg font-extrabold text-primary-foreground">
+            <Text className="text-lg font-extrabold text-primary">
               📋 Hồ sơ nhận nuôi
             </Text>
-            <Text className="text-xs text-primary-foreground/80">
+            <Text className="text-xs text-primary/80">
               Theo dõi trạng thái đơn của bạn
             </Text>
           </View>
@@ -264,29 +293,35 @@ export default function MyAdoptionsScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 12, paddingBottom: 6, gap: 8 }}
         >
-          {([
-            { key: "all", label: "Tất cả" },
-            { key: "PENDING", label: "⏳ Chờ duyệt" },
-            { key: "APPROVED", label: "✅ Đã duyệt" },
-            { key: "REJECTED", label: "❌ Từ chối" },
-            { key: "CANCELLED", label: "⏹ Đã hủy" },
-          ] as const).map((item) => {
+          {(
+            [
+              { key: "all", label: "Tất cả" },
+              { key: "PENDING", label: "⏳ Chờ duyệt" },
+              { key: "APPROVED", label: "✅ Đã duyệt" },
+              { key: "REJECTED", label: "❌ Từ chối" },
+              { key: "CANCELLED", label: "⏹ Đã hủy" },
+            ] as const
+          ).map((item) => {
             const isActive = filter === item.key;
             const count = counts[item.key as keyof typeof counts];
             return (
               <TouchableOpacity
+                activeOpacity={1}
                 key={item.key}
                 onPress={() => setFilter(item.key as typeof filter)}
                 className={`rounded-full px-3 py-1.5 ${
-                  isActive ? "bg-primary-foreground" : "bg-white/20"
+                  isActive ? "bg-primary" : "bg-muted"
                 }`}
               >
                 <Text
                   className={`text-[11px] font-semibold ${
-                    isActive ? "text-primary" : "text-primary-foreground"
+                    isActive
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground"
                   }`}
                 >
-                  {item.label}{count ? ` (${count})` : ""}
+                  {item.label}
+                  {count ? ` (${count})` : ""}
                 </Text>
               </TouchableOpacity>
             );
@@ -311,11 +346,18 @@ export default function MyAdoptionsScreen() {
         >
           {error ? (
             <View className="items-center gap-2 rounded-2xl bg-card p-5">
-              <Feather name="alert-circle" size={28} className="text-muted-foreground" />
+              <Feather
+                name="alert-circle"
+                size={28}
+                className="text-muted-foreground"
+              />
               <Text className="text-sm font-semibold text-foreground">
                 {error}
               </Text>
-              <TouchableOpacity className="mt-2 rounded-full border border-primary px-4 py-2" onPress={refresh}>
+              <TouchableOpacity
+                className="mt-2 rounded-full border border-primary px-4 py-2"
+                onPress={refresh}
+              >
                 <Text className="text-xs font-bold text-primary">Thử lại</Text>
               </TouchableOpacity>
             </View>
@@ -323,7 +365,11 @@ export default function MyAdoptionsScreen() {
 
           {!error && filtered.length === 0 ? (
             <View className="items-center gap-2 rounded-2xl bg-card p-5">
-              <Feather name="file-text" size={32} className="text-muted-foreground" />
+              <Feather
+                name="file-text"
+                size={32}
+                className="text-muted-foreground"
+              />
               <Text className="text-sm font-semibold text-foreground">
                 Chưa có hồ sơ nhận nuôi
               </Text>

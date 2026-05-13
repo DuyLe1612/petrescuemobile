@@ -1,8 +1,8 @@
 import { setRefreshHandler } from "@/src/infrastructure/api/client/http";
 import { container } from "@/src/infrastructure/di";
 import {
-  tokenStorage,
-  addTokenChangeListener,
+    addTokenChangeListener,
+    tokenStorage,
 } from "@/src/infrastructure/storage/token-storage";
 import { useEffect, useState } from "react";
 

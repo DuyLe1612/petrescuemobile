@@ -1,7 +1,7 @@
 import {
-  IAdoptionRepository,
-  GetMyAdoptionsParams,
-} from "@/src/domain/repositories/adoption-repository";
+    GetMyAdoptionsParams,
+    IAdoptionRepository,
+} from "@/src/domain/repositories/I-adoption-repository";
 
 export class GetMyAdoptionsUseCase {
   constructor(private repo: IAdoptionRepository) {}

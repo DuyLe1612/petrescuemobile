@@ -1,7 +1,7 @@
 import {
-    AuthResponse,
-    LoginRequest,
-    RefreshTokenRequest,
+  AuthResponse,
+  LoginRequest,
+  RefreshTokenRequest,
 } from "../entities/auth";
 
 export interface IAuthRepository {

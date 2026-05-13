@@ -5,13 +5,13 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 
 export default function LoginScreen() {
@@ -94,9 +94,11 @@ export default function LoginScreen() {
                 className="flex-1 text-foreground"
               />
               <Pressable
-                onPress={() => setShowPassword(v => !v)}
+                onPress={() => setShowPassword((v) => !v)}
                 className="ml-3 px-2 py-1"
-                accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                accessibilityLabel={
+                  showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                }
               >
                 <Text className="text-sm text-primary">
                   {showPassword ? "Ẩn" : "Hiện"}

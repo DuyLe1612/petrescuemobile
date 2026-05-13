@@ -1,6 +1,6 @@
 import { LoginRequestDto } from "@/src/application/dto/auth/login-dto";
 import { LoginRequest } from "@/src/domain/entities/auth";
-import { IAuthRepository } from "@/src/domain/repositories/auth-repository";
+import { IAuthRepository } from "@/src/domain/repositories/I-auth-repository";
 
 export class LoginUseCase {
   constructor(private repo: IAuthRepository) {}
