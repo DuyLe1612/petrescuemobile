@@ -5,7 +5,7 @@ import {
 import {
     GetMyAdoptionsParams,
     IAdoptionRepository,
-} from "@/src/domain/repositories/I-adoption-repository";
+} from "@/src/domain/repositories/adoption-repository";
 import type { AdoptionSummaryResponseDto } from "@/src/infrastructure/api/generated/model";
 import {
     getByUserId,

@@ -4,7 +4,7 @@ import {
     RefreshTokenRequest,
 } from "@/src/domain/entities/auth";
 import { UserEntity } from "@/src/domain/entities/user";
-import { IAuthRepository } from "@/src/domain/repositories/I-auth-repository";
+import { IAuthRepository } from "@/src/domain/repositories/auth-repository";
 import {
     ApiLoginRequest,
     ApiLoginResponse,

@@ -1,7 +1,6 @@
-import MapView, { Marker, type Region } from "react-native-maps";
-import { useMemo, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { MapMarkerCard } from "@/src/presentation/components/map/MapMarkerCard";
+import { MapSidebar } from "@/src/presentation/components/map/MapSidebar";
+import { MapSourceToggle } from "@/src/presentation/components/map/MapSourceToggle";
 import {
   DEFAULT_MAP_BOUNDS,
   DEFAULT_MAP_SOURCE,
@@ -12,15 +11,12 @@ import {
   type MapSourceKey,
 } from "@/src/presentation/constants/map-config";
 import { useMapMarkers } from "@/src/presentation/hooks/use-map-markers";
-import { MapSidebar } from "@/src/presentation/components/map/MapSidebar";
-import { MapMarkerCard } from "@/src/presentation/components/map/MapMarkerCard";
-import { MapSourceToggle } from "@/src/presentation/components/map/MapSourceToggle";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Platform, Pressable, Text, View } from "react-native";
+import MapView, { Marker, type Region } from "react-native-maps";
 
-const FILTERS: {[]
-  key: MapSourceKey | "all";
-  label: string;
-  emoji: string;
-}> = [
+const FILTERS: { key: MapSourceKey | "all"; label: string; emoji: string }[] = [
   { key: "all", label: "Tất cả", emoji: "🗺️" },
   { key: "rescue", label: "Cần cứu hộ", emoji: "🆘" },
   { key: "organization", label: "Trung tâm", emoji: "🏥" },
