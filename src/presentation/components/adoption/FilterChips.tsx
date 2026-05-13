@@ -2,7 +2,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 import { PetFilterStatus } from "@/src/domain/entities/adoption-pet";
 
-const CHIP_OPTIONS: Array<{ key: PetFilterStatus; label: string }> = [
+const CHIP_OPTIONS: { key: PetFilterStatus; label: string }[] = [
   { key: "all", label: "Tất cả" },
   { key: "vaccinated", label: "Đã tiêm phòng" },
   { key: "adult", label: "Trưởng thành" },

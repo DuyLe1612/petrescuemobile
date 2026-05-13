@@ -15,8 +15,12 @@ export interface AdoptionPet {
   imageUrl: string;
   vaccinated: boolean;
   adult: boolean;
+  favorite: boolean;
   badge: string;
   description: string;
+  shelterName: string;
+  healthBadges: string[];
+  story: string;
 }
 
 export interface PetFilters {

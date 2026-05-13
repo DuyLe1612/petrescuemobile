@@ -1,6 +1,6 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 import { AdoptionPet } from "@/src/domain/entities/adoption-pet";
 
@@ -21,12 +21,15 @@ const genderLabel: Record<AdoptionPet["gender"], string> = {
 const RawPetListItem = ({
   pet,
   width,
+  onPress,
 }: {
   pet: AdoptionPet;
   width: number;
+  onPress: () => void;
 }) => {
   return (
-    <View
+    <TouchableOpacity
+      onPress={onPress}
       accessible
       accessibilityRole="button"
       accessibilityLabel={`Thú cưng ${pet.name}, ${pet.breed}, ${pet.ageLabel}, ${pet.location}`}
@@ -88,7 +91,7 @@ const RawPetListItem = ({
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

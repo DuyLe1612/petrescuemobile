@@ -2,7 +2,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 import { PetSpecies } from "@/src/domain/entities/adoption-pet";
 
-const CATEGORIES: Array<{ key: PetSpecies; label: string; icon: string }> = [
+const CATEGORIES: { key: PetSpecies; label: string; icon: string }[] = [
   { key: "all", label: "Tất cả", icon: "🐾" },
   { key: "dog", label: "Chó", icon: "🐶" },
   { key: "cat", label: "Mèo", icon: "🐱" },
