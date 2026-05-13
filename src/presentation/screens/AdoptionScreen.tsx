@@ -1,4 +1,6 @@
+import { queryClient } from "@/app/_layout";
 import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useMemo } from "react";
 import {
   ActivityIndicator,
@@ -12,11 +14,11 @@ import {
   View,
 } from "react-native";
 
-import { PetListItem, PET_CARD_HEIGHT } from "@/src/presentation/components/adoption/PetListItem";
 import { CategoryList } from "@/src/presentation/components/adoption/CategoryList";
 import { EmptyState } from "@/src/presentation/components/adoption/EmptyState";
 import { ErrorState } from "@/src/presentation/components/adoption/ErrorState";
 import { FilterChips } from "@/src/presentation/components/adoption/FilterChips";
+import { PetListItem, PET_CARD_HEIGHT } from "@/src/presentation/components/adoption/PetListItem";
 import { SearchBar } from "@/src/presentation/components/adoption/SearchBar";
 import { SkeletonLoading } from "@/src/presentation/components/adoption/SkeletonLoading";
 import { useAdoptionPets } from "@/src/presentation/hooks/use-adoption-pets";
@@ -159,7 +161,19 @@ export default function AdoptionScreen() {
             <EmptyState onClearFilters={resetFilters} />
           )
         }
-        renderItem={({ item }) => <PetListItem pet={item} width={cardWidth} />}
+        renderItem={({ item }) => (
+          <PetListItem
+            pet={item}
+            width={cardWidth}
+            onPress={() => {
+              queryClient.setQueryData(["pet-detail", item.id], item);
+              router.push({
+                pathname: "/pet/[id]",
+                params: { id: item.id },
+              });
+            }}
+          />
+        )}
         columnWrapperStyle={
           columnCount > 1 ? { gap: GRID_GAP, paddingHorizontal: HORIZONTAL_PADDING } : undefined
         }

@@ -1,13 +1,12 @@
-import { Stack, useRouter, useSegments } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
-
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
-import "./../global.css";
-
 import { useSessionBootstrap } from "@/src/presentation/hooks/use-session-bootstrap";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import "react-native-reanimated";
+
+import "./../global.css";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -43,6 +42,7 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
+          <Stack.Screen name="pet/[id]" options={{ headerShown: false }} />
         </Stack>
       </QueryClientProvider>
 
