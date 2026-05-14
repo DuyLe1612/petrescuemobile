@@ -41,6 +41,8 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
           <Stack.Screen name="register" options={{ title: "Đăng ký" }} />
           <Stack.Screen name="pet/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="post/create" options={{ headerShown: false }} />
+          <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
         </Stack>
       </QueryClientProvider>
 
