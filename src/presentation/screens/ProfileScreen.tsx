@@ -533,7 +533,7 @@ const LoggedInProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "Danh sách thú cưng của bạn sẽ được nối sau.")}
+            onPress={() => router.push("/my-pets/index")}
           />
           <GuestMenuRow
             icon={<Ionicons name="document-text-outline" size={16} color={primaryColor} />}
