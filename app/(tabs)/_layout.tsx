@@ -2,13 +2,11 @@ import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/token
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
 import { TouchableOpacity, useColorScheme } from "react-native";
-import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/tokens";
 
 export default function TabLayout() {
   const scheme = useColorScheme();
   const t =
     scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
-  const t = scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
 
   return (
     <Tabs
