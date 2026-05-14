@@ -1,12 +1,9 @@
 import { Feather } from "@expo/vector-icons";
 import { Button, ButtonText } from "@/components/ui/button";
-import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
-import { useLogin } from "@/src/presentation/hooks/use-login";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { router } from "expo-router";
 import { type ComponentProps, type ReactNode, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,19 +13,19 @@ import {
   View,
 } from "react-native";
 
-const LOGIN_TOKENS = {
+const REGISTER_TOKENS = {
   spacing: {
     screenX: 24,
     top: 20,
     section: 24,
-    field: 18,
+    field: 14,
     inputX: 16,
   },
   size: {
     backButton: 36,
     icon: 18,
     input: 52,
-    button: 52,
+    button: 54,
   },
   radius: {
     hero: 32,
@@ -45,13 +42,16 @@ const LOGIN_TOKENS = {
   },
 } as const;
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  const { mutate, isPending, error } = useLogin();
+  const [formNotice, setFormNotice] = useState<string | null>(null);
 
   const primaryColor = useThemeColor({}, "tint");
   const backgroundColor = useThemeColor({}, "background");
@@ -65,14 +65,31 @@ export default function LoginScreen() {
   );
 
   const canSubmit = useMemo(() => {
-    return email.trim().length > 0 && password.length >= 6 && !isPending;
-  }, [email, password, isPending]);
+    return (
+      fullName.trim().length > 0 &&
+      email.trim().length > 0 &&
+      phone.trim().length > 0 &&
+      password.length >= 6 &&
+      confirmPassword.length >= 6
+    );
+  }, [confirmPassword, email, fullName, password, phone]);
 
   const onSubmit = () => {
     setFormError(null);
+    setFormNotice(null);
 
-    if (email.trim().length === 0) {
-      setFormError("Vui lòng nhập email hoặc tên người dùng.");
+    if (fullName.trim().length < 2) {
+      setFormError("Vui lòng nhập họ và tên hợp lệ.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setFormError("Vui lòng nhập email hợp lệ.");
+      return;
+    }
+
+    if (phone.trim().length < 9) {
+      setFormError("Vui lòng nhập số điện thoại hợp lệ.");
       return;
     }
 
@@ -81,19 +98,12 @@ export default function LoginScreen() {
       return;
     }
 
-    mutate(
-      { emailOrUsername: email.trim(), password },
-      {
-        async onSuccess(data) {
-          await tokenStorage.set(data.accessToken, data.refreshToken);
-          router.replace("/(tabs)");
-        },
-        onError() {
-          setFormError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
-          console.error("Login failed");
-        },
-      },
-    );
+    if (password !== confirmPassword) {
+      setFormError("Xác nhận mật khẩu chưa khớp.");
+      return;
+    }
+
+    setFormNotice("UI đăng ký đã sẵn sàng. Bước tiếp theo là nối API tạo tài khoản.");
   };
 
   return (
@@ -109,18 +119,18 @@ export default function LoginScreen() {
         <View
           style={{
             flex: 1,
-            paddingHorizontal: LOGIN_TOKENS.spacing.screenX,
+            paddingHorizontal: REGISTER_TOKENS.spacing.screenX,
             paddingTop: 64,
             paddingBottom: 32,
           }}
         >
           <View
             style={{
-              borderRadius: LOGIN_TOKENS.radius.hero,
+              borderRadius: REGISTER_TOKENS.radius.hero,
               backgroundColor: primaryColor,
-              paddingHorizontal: LOGIN_TOKENS.spacing.screenX,
-              paddingTop: LOGIN_TOKENS.spacing.top,
-              paddingBottom: 96,
+              paddingHorizontal: REGISTER_TOKENS.spacing.screenX,
+              paddingTop: REGISTER_TOKENS.spacing.top,
+              paddingBottom: 104,
             }}
           >
             <Pressable
@@ -128,9 +138,9 @@ export default function LoginScreen() {
               accessibilityRole="button"
               accessibilityLabel="Quay lại"
               style={{
-                width: LOGIN_TOKENS.size.backButton,
-                height: LOGIN_TOKENS.size.backButton,
-                borderRadius: LOGIN_TOKENS.radius.pill,
+                width: REGISTER_TOKENS.size.backButton,
+                height: REGISTER_TOKENS.size.backButton,
+                borderRadius: REGISTER_TOKENS.radius.pill,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "rgba(255,255,255,0.12)",
@@ -139,7 +149,7 @@ export default function LoginScreen() {
               <Feather name="chevron-left" size={20} color="rgb(246 252 252)" />
             </Pressable>
 
-            <View style={{ marginTop: LOGIN_TOKENS.spacing.section }}>
+            <View style={{ marginTop: REGISTER_TOKENS.spacing.section }}>
               <Text
                 style={{
                   color: "rgb(246 252 252)",
@@ -147,7 +157,7 @@ export default function LoginScreen() {
                   fontWeight: "800",
                 }}
               >
-                Đăng nhập
+                Tạo tài khoản
               </Text>
               <Text
                 style={{
@@ -156,23 +166,37 @@ export default function LoginScreen() {
                   fontSize: 15,
                 }}
               >
-                Chào mừng bạn quay lại.
+                Tham gia cộng đồng yêu thú cưng.
               </Text>
             </View>
           </View>
 
           <View
             style={{
-              marginTop: -56,
-              borderRadius: LOGIN_TOKENS.radius.card,
+              marginTop: -66,
+              borderRadius: REGISTER_TOKENS.radius.card,
               backgroundColor: cardColor,
-              padding: LOGIN_TOKENS.spacing.screenX,
-              ...LOGIN_TOKENS.elevation,
+              padding: REGISTER_TOKENS.spacing.screenX,
+              ...REGISTER_TOKENS.elevation,
             }}
           >
-            <View style={{ gap: LOGIN_TOKENS.spacing.field }}>
+            <View style={{ gap: REGISTER_TOKENS.spacing.field }}>
+              <Field
+                label="Họ và tên"
+                required
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder="Nguyễn Văn An"
+                icon="user"
+                textColor={textColor}
+                mutedColor={mutedColor}
+                surfaceColor={mutedSurfaceColor}
+                borderColor={borderColor}
+              />
+
               <Field
                 label="Email"
+                required
                 value={email}
                 onChangeText={setEmail}
                 placeholder="email@gmail.com"
@@ -186,10 +210,25 @@ export default function LoginScreen() {
               />
 
               <Field
+                label="Số điện thoại"
+                required
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="0921 345 678"
+                keyboardType="phone-pad"
+                icon="phone"
+                textColor={textColor}
+                mutedColor={mutedColor}
+                surfaceColor={mutedSurfaceColor}
+                borderColor={borderColor}
+              />
+
+              <Field
                 label="Mật khẩu"
+                required
                 value={password}
                 onChangeText={setPassword}
-                placeholder="••••••••"
+                placeholder="Ít nhất 6 ký tự"
                 secureTextEntry={!showPassword}
                 icon="lock"
                 textColor={textColor}
@@ -197,22 +236,32 @@ export default function LoginScreen() {
                 surfaceColor={mutedSurfaceColor}
                 borderColor={borderColor}
                 rightAction={
-                  <Pressable
+                  <PasswordToggle
+                    visible={showPassword}
                     onPress={() => setShowPassword((value) => !value)}
-                    accessibilityRole="button"
-                    accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                    hitSlop={8}
-                  >
-                    <Text
-                      style={{
-                        color: primaryColor,
-                        fontSize: 13,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {showPassword ? "Ẩn" : "Hiện"}
-                    </Text>
-                  </Pressable>
+                    color={mutedColor}
+                  />
+                }
+              />
+
+              <Field
+                label="Xác nhận mật khẩu"
+                required
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Nhập lại mật khẩu"
+                secureTextEntry={!showConfirmPassword}
+                icon="lock"
+                textColor={textColor}
+                mutedColor={mutedColor}
+                surfaceColor={mutedSurfaceColor}
+                borderColor={borderColor}
+                rightAction={
+                  <PasswordToggle
+                    visible={showConfirmPassword}
+                    onPress={() => setShowConfirmPassword((value) => !value)}
+                    color={mutedColor}
+                  />
                 }
               />
             </View>
@@ -224,24 +273,29 @@ export default function LoginScreen() {
                 borderColor="rgba(218,65,47,0.24)"
                 textColor="rgb(218 65 47)"
               />
-            ) : error ? (
+            ) : formNotice ? (
               <MessageBox
-                text="Đăng nhập thất bại. Vui lòng thử lại."
-                backgroundColor="rgba(218,65,47,0.08)"
-                borderColor="rgba(218,65,47,0.24)"
-                textColor="rgb(218 65 47)"
+                text={formNotice}
+                backgroundColor="rgba(39,127,143,0.08)"
+                borderColor="rgba(39,127,143,0.2)"
+                textColor={primaryColor}
               />
-            ) : (
-              <Text
-                style={{
-                  marginTop: 14,
-                  color: mutedColor,
-                  fontSize: 12,
-                }}
-              >
-                Tối thiểu 6 ký tự cho mật khẩu.
-              </Text>
-            )}
+            ) : null}
+
+            <Text
+              style={{
+                marginTop: 14,
+                color: mutedColor,
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              Bằng cách đăng ký, bạn đồng ý với{" "}
+              <Text style={{ color: primaryColor, fontWeight: "700" }}>Điều khoản sử dụng</Text>
+              {" "}và{" "}
+              <Text style={{ color: primaryColor, fontWeight: "700" }}>Chính sách bảo mật</Text>
+              {" "}của PA.
+            </Text>
 
             <Button
               variant="solid"
@@ -249,32 +303,28 @@ export default function LoginScreen() {
               action="primary"
               disabled={!canSubmit}
               onPress={onSubmit}
-              className="mt-6 rounded-2xl"
-              style={{ height: LOGIN_TOKENS.size.button }}
+              className="mt-5 rounded-2xl"
+              style={{ height: REGISTER_TOKENS.size.button }}
             >
-              <ButtonText className="font-bold">
-                {isPending ? "Đang đăng nhập..." : "Đăng nhập"}
-              </ButtonText>
+              <ButtonText className="font-bold">Tạo tài khoản</ButtonText>
             </Button>
 
-            {isPending ? (
-              <View style={{ marginTop: 16, alignItems: "center" }}>
-                <ActivityIndicator color={primaryColor} />
-              </View>
-            ) : null}
+            <View style={{ alignItems: "center", marginTop: 14 }}>
+              <Text style={{ color: mutedColor, fontSize: 12 }}>hoặc</Text>
+            </View>
 
             <View
               style={{
-                marginTop: 18,
+                marginTop: 14,
                 flexDirection: "row",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: mutedColor, fontSize: 13 }}>Chưa có tài khoản? </Text>
-              <Pressable onPress={() => router.push("/register")}>
+              <Text style={{ color: mutedColor, fontSize: 13 }}>Đã có tài khoản? </Text>
+              <Pressable onPress={() => router.push("/login")}>
                 <Text style={{ color: primaryColor, fontSize: 13, fontWeight: "700" }}>
-                  Đăng ký
+                  Đăng nhập
                 </Text>
               </Pressable>
             </View>
@@ -287,6 +337,7 @@ export default function LoginScreen() {
 
 type FieldProps = ComponentProps<typeof TextInput> & {
   label: string;
+  required?: boolean;
   icon: keyof typeof Feather.glyphMap;
   textColor: string;
   mutedColor: string;
@@ -297,6 +348,7 @@ type FieldProps = ComponentProps<typeof TextInput> & {
 
 function Field({
   label,
+  required = false,
   icon,
   textColor,
   mutedColor,
@@ -316,22 +368,23 @@ function Field({
         }}
       >
         {label}
+        {required ? <Text style={{ color: "rgb(218 65 47)" }}> *</Text> : null}
       </Text>
 
       <View
         style={{
-          height: LOGIN_TOKENS.size.input,
-          borderRadius: LOGIN_TOKENS.radius.input,
+          height: REGISTER_TOKENS.size.input,
+          borderRadius: REGISTER_TOKENS.radius.input,
           borderWidth: 1,
           borderColor,
           backgroundColor: surfaceColor,
-          paddingHorizontal: LOGIN_TOKENS.spacing.inputX,
+          paddingHorizontal: REGISTER_TOKENS.spacing.inputX,
           flexDirection: "row",
           alignItems: "center",
           gap: 12,
         }}
       >
-        <Feather name={icon} size={LOGIN_TOKENS.size.icon} color={mutedColor} />
+        <Feather name={icon} size={REGISTER_TOKENS.size.icon} color={mutedColor} />
         <TextInput
           {...inputProps}
           placeholderTextColor={mutedColor}
@@ -345,6 +398,27 @@ function Field({
         {rightAction}
       </View>
     </View>
+  );
+}
+
+function PasswordToggle({
+  visible,
+  onPress,
+  color,
+}: {
+  visible: boolean;
+  onPress: () => void;
+  color: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+      hitSlop={8}
+    >
+      <Feather name={visible ? "eye" : "eye-off"} size={16} color={color} />
+    </Pressable>
   );
 }
 

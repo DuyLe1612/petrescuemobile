@@ -27,9 +27,7 @@ export default function TabLayout() {
           elevation: 10,
           shadowOpacity: 0.08,
           shadowRadius: 10,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
-          position: "absolute",
+          
           overflow: "hidden",
         },
 
