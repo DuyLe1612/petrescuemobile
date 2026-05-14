@@ -18,7 +18,7 @@ export type ProvinceApiDetail = ProvinceApiProvince & {
   wards?: ProvinceApiWard[];
 };
 
-const BASE_URL = "https://provinces.open-api.vn/api";
+const BASE_URL = "https://provinces.open-api.vn/api/v2";
 
 export const provinceApi = {
   async listProvinces() {

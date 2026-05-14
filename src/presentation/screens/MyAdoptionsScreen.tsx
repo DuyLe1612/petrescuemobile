@@ -273,9 +273,6 @@ export default function MyAdoptionsScreen() {
             <Feather name="chevron-left" size={22} className="text-white" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-lg font-extrabold text-primary">
-              📋 Hồ sơ nhận nuôi
-            </Text>
             <Text className="text-xs text-primary/80">
               Theo dõi trạng thái đơn của bạn
             </Text>

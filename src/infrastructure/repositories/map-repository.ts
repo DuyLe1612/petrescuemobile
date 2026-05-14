@@ -2,7 +2,7 @@ import type { MapMarker } from "@/src/domain/entities/map";
 import type {
     GetMapMarkersParams,
     IMapRepository,
-} from "@/src/domain/repositories/I-map-repository";
+} from "@/src/domain/repositories/map-repository";
 import type {
     OrganizationMapMarkerDto,
     RescueMapMarkerDto,

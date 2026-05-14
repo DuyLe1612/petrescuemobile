@@ -1,8 +1,8 @@
 import type { MapMarker } from "@/src/domain/entities/map";
 import type {
-  GetMapMarkersParams,
-  IMapRepository,
-} from "@/src/domain/repositories/I-map-repository";
+    GetMapMarkersParams,
+    IMapRepository,
+} from "@/src/domain/repositories/map-repository";
 
 export class GetMapMarkersUseCase {
   constructor(private readonly repo: IMapRepository) {}

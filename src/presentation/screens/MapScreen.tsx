@@ -1,3 +1,4 @@
+import { Input } from "@/components/ui";
 import { httpAxios } from "@/src/infrastructure/api/client/http";
 import type { CreateRescueCaseRequestDto } from "@/src/infrastructure/api/generated/model";
 import { report } from "@/src/infrastructure/api/generated/pet-rescue-api";
@@ -24,7 +25,6 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import MapView, {
@@ -92,7 +92,9 @@ const formatDetailValue = (value: unknown): string | null => {
 };
 
 export default function MapScreen() {
-  const [filter, setFilter] = useState<HeaderFilter>("rescue");
+  const [selectedFilters, setSelectedFilters] = useState<Set<HeaderFilter>>(
+    new Set(["rescue"]),
+  );
   const [viewportBounds, setViewportBounds] =
     useState<MapBounds>(DEFAULT_MAP_BOUNDS);
   const [appliedBounds, setAppliedBounds] = useState<MapBounds | undefined>(
@@ -136,29 +138,67 @@ export default function MapScreen() {
   );
   const provinceLoadInitiatedRef = useRef(false);
 
-  const markerQuery = useMemo(() => {
-    if (filter === "rescue") {
-      return {
-        source: "rescue" as MapSourceKey,
-      };
+  const toggleFilter = useCallback((key: HeaderFilter) => {
+    setSelectedFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
+
+  // Build queries based on selected filters
+  const hasRescue = selectedFilters.has("rescue");
+  const hasVet = selectedFilters.has("vet");
+  const hasCenter = selectedFilters.has("center");
+  const showAll = selectedFilters.size === 0;
+
+  // Determine org types to fetch
+  const orgTypes: string[] = [];
+  if (showAll || hasVet) orgTypes.push("VET_CENTER");
+  if (showAll || hasCenter) orgTypes.push("SHELTER");
+
+  // Fetch rescue markers (when rescue is selected or showing all)
+  const rescueMarkersQuery = useMapMarkers(
+    showAll || hasRescue
+      ? { source: "rescue", bounds: appliedBounds }
+      : { source: "rescue", bounds: undefined },
+  );
+
+  // Fetch organization markers (when org filters are selected or showing all)
+  const orgMarkersQuery = useMapMarkers(
+    orgTypes.length > 0
+      ? {
+          source: "organization",
+          bounds: appliedBounds,
+          organizationTypes: orgTypes,
+        }
+      : { source: "organization", bounds: undefined },
+  );
+
+  // Merge markers from both queries
+  const markers = useMemo(() => {
+    const combined: any[] = [];
+    if ((showAll || hasRescue) && rescueMarkersQuery.data) {
+      combined.push(...rescueMarkersQuery.data);
     }
+    if (orgTypes.length > 0 && orgMarkersQuery.data) {
+      combined.push(...orgMarkersQuery.data);
+    }
+    return combined;
+  }, [
+    showAll,
+    hasRescue,
+    orgTypes.length,
+    rescueMarkersQuery.data,
+    orgMarkersQuery.data,
+  ]);
 
-    return {
-      source: "organization" as MapSourceKey,
-      organizationTypes: [filter === "vet" ? "VET_CENTER" : "SHELTER"],
-    };
-  }, [filter]);
-
-  const {
-    data: markers = [],
-    isLoading,
-    error,
-  } = useMapMarkers({
-    source: markerQuery.source,
-    bounds: appliedBounds,
-    organizationTypes: markerQuery.organizationTypes,
-  });
-
+  const isLoading = rescueMarkersQuery.isLoading || orgMarkersQuery.isLoading;
+  const error = rescueMarkersQuery.error || orgMarkersQuery.error;
   const visibleMarkers = markers;
 
   const selectedMarker = useMemo(
@@ -223,11 +263,20 @@ export default function MapScreen() {
 
   const loadProvinces = useCallback(async () => {
     try {
+      console.log("🏗️ [Province API] Loading provinces...");
       const items = await container.location.getProvincesUseCase.execute();
+      console.log(
+        `✅ [Province API] Loaded ${items.length} provinces:`,
+        items.map((item) => ({ code: item.code, name: item.name })),
+      );
       setProvincesList(
         items.map((item) => ({ code: item.code, name: item.name })),
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "❌ [Province API] Error loading provinces:",
+        error instanceof Error ? error.message : error,
+      );
       setProvincesList([]);
     }
   }, []);
@@ -236,13 +285,22 @@ export default function MapScreen() {
     if (!code) return;
     setLoadingWards(true);
     try {
+      console.log(`🏘️ [Ward API] Loading wards for province: ${code}`);
       const data =
         await container.location.getProvinceDetailUseCase.execute(code);
+      console.log(
+        `✅ [Ward API] Loaded ${data.wards.length} wards:`,
+        data.wards.map((ward) => ({ code: ward.code, name: ward.name })),
+      );
       setProvinceName(data.name ?? "");
       setWardsList(
         data.wards.map((ward) => ({ code: ward.code, name: ward.name })),
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "❌ [Ward API] Error loading wards:",
+        error instanceof Error ? error.message : error,
+      );
       setWardsList([]);
     } finally {
       setLoadingWards(false);
@@ -265,16 +323,34 @@ export default function MapScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setProvinceSearch(provinceSearchRaw);
+      if (provinceSearchRaw) {
+        const matches = provincesList.filter((p) =>
+          p.name.toLowerCase().includes(provinceSearchRaw.toLowerCase()),
+        );
+        console.log(
+          `🔍 [Province Search] "${provinceSearchRaw}" → ${matches.length} matches:`,
+          matches.map((m) => m.name),
+        );
+      }
     }, 300);
     return () => clearTimeout(timer);
-  }, [provinceSearchRaw]);
+  }, [provinceSearchRaw, provincesList]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setWardSearch(wardSearchRaw);
+      if (wardSearchRaw && wardsList.length > 0) {
+        const matches = wardsList.filter((w) =>
+          w.name.toLowerCase().includes(wardSearchRaw.toLowerCase()),
+        );
+        console.log(
+          `🔍 [Ward Search] "${wardSearchRaw}" → ${matches.length} matches:`,
+          matches.map((m) => m.name),
+        );
+      }
     }, 300);
     return () => clearTimeout(timer);
-  }, [wardSearchRaw]);
+  }, [wardSearchRaw, wardsList]);
 
   const pickImage = useCallback(async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -465,21 +541,21 @@ export default function MapScreen() {
                   resizeMode="contain"
                 >
                 </Image> */}
-                <MapPinMarker source={marker.source} filter={filter} />
+                <MapPinMarker source={marker.source} />
               </Marker>
             ))}
           </MapView>
         )}
 
         <View className="absolute left-0 right-0 top-0">
-          <View className="bg-primary px-4 pb-3 pt-12">
+          <View className="bg-background px-4 pb-3  border-t border-border">
             <View className="mt-3 flex-row gap-2">
               {FILTERS.map((item) => {
-                const active = filter === item.key;
+                const active = selectedFilters.has(item.key);
                 return (
                   <Pressable
                     key={item.key}
-                    onPress={() => setFilter(item.key)}
+                    onPress={() => toggleFilter(item.key)}
                     className={`flex-1 flex-row items-center justify-center gap-1 rounded-full border px-3 py-2 ${
                       active
                         ? "border-transparent bg-white"
@@ -575,261 +651,330 @@ export default function MapScreen() {
           <Pressable className="flex-1" onPress={closeCreateModal} />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="max-h-[92%] rounded-t-3xl bg-card"
+            className="max-h-[92%] rounded-t-3xl bg-background"
           >
             <ScrollView
-              className="px-4 pt-4 pb-5"
+              className="px-4 pt-5 pb-6"
               showsVerticalScrollIndicator={false}
             >
-              <Text className="text-lg font-extrabold text-foreground">
-                Báo cứu hộ mới
-              </Text>
-              <Text className="mt-1 text-xs text-muted-foreground">
-                Nhấn giữ trên bản đồ để chọn điểm, hoặc dùng nút + để lấy tâm
-                màn hình hiện tại.
-              </Text>
-
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Tiêu đề
+              {/* Header Section */}
+              <View className="mb-5">
+                <Text className="text-2xl font-bold text-foreground">
+                  🆘 Báo cứu hộ mới
                 </Text>
-                <TextInput
-                  value={createTitle}
-                  onChangeText={setCreateTitle}
-                  placeholder="Ví dụ: Chó bị lạc"
-                  className="rounded-xl border border-border px-3 py-2 text-foreground"
-                />
+                <Text className="mt-2 text-sm text-muted-foreground">
+                  Nhấn giữ bản đồ chọn vị trí hoặc dùng nút + để lấy tâm hiện
+                  tại
+                </Text>
               </View>
 
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Chi tiết
+              {/* Basic Info Card */}
+              <View className="mb-5 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-sm font-bold uppercase text-muted-foreground">
+                  Thông tin cơ bản
                 </Text>
-                <TextInput
-                  value={createDescription}
-                  onChangeText={setCreateDescription}
-                  placeholder="Mô tả tình trạng"
-                  multiline
-                  className="min-h-[84px] rounded-xl border border-border px-3 py-2 text-foreground"
-                />
-              </View>
 
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Màu
-                </Text>
-                <TextInput
-                  value={createColor}
-                  onChangeText={setCreateColor}
-                  placeholder="Ví dụ: brown"
-                  className="rounded-xl border border-border px-3 py-2 text-foreground"
-                />
-              </View>
+                <View className="mb-4">
+                  <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Loại động vật
+                  </Text>
+                  <Input
+                    value={createTitle}
+                    onChangeText={setCreateTitle}
+                    placeholder="Ví dụ: Chó, Mèo, Chim..."
+                  />
+                </View>
 
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Mức ưu tiên
-                </Text>
-                <View className="flex-row gap-2">
-                  {PRIORITIES.map((p) => (
-                    <Pressable
-                      key={p}
-                      onPress={() => setCreatePriority(p)}
-                      className={`px-3 py-2 rounded-full ${createPriority === p ? "bg-primary" : "bg-muted/20"}`}
-                    >
-                      <Text
-                        className={`${createPriority === p ? "text-primary-foreground" : "text-foreground"}`}
-                      >
-                        {p}
-                      </Text>
-                    </Pressable>
-                  ))}
+                <View>
+                  <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Mô tả chi tiết
+                  </Text>
+                  <Input
+                    value={createDescription}
+                    onChangeText={setCreateDescription}
+                    placeholder="Mô tả tình trạng, địa điểm, hành vi..."
+                    multiline
+                  />
                 </View>
               </View>
 
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Số điện thoại liên hệ
+              {/* Appearance Card */}
+              <View className="mb-5 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-sm font-bold uppercase text-muted-foreground">
+                  Đặc điểm
                 </Text>
-                <TextInput
+
+                <View className="mb-4">
+                  <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Màu sắc
+                  </Text>
+                  <Input
+                    value={createColor}
+                    onChangeText={setCreateColor}
+                    placeholder="Ví dụ: Trắng đen, Nâu..."
+                  />
+                </View>
+
+                <View>
+                  <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Mức ưu tiên
+                  </Text>
+                  <View className="flex-row gap-2">
+                    {PRIORITIES.map((p) => (
+                      <Pressable
+                        key={p}
+                        onPress={() => setCreatePriority(p)}
+                        className={`flex-1 items-center rounded-lg py-2.5 ${
+                          createPriority === p
+                            ? "bg-primary"
+                            : "border border-border bg-muted/20"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-bold ${
+                            createPriority === p
+                              ? "text-primary-foreground"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {p}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </View>
+
+              {/* Photos Card */}
+              <View className="mb-5 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-sm font-bold uppercase text-muted-foreground">
+                  Ảnh minh họa
+                </Text>
+
+                <Pressable
+                  onPress={() => void pickImage()}
+                  className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-4 py-8"
+                >
+                  <Text className="text-center font-semibold text-foreground">
+                    📸 Thêm ảnh từ thư viện
+                  </Text>
+                </Pressable>
+
+                {selectedImages.length > 0 && (
+                  <View className="mt-4">
+                    <Text className="mb-3 text-xs font-semibold text-muted-foreground">
+                      Đã chọn ({selectedImages.length})
+                    </Text>
+                    <View className="flex-row flex-wrap gap-3">
+                      {selectedImages.map((image, index) => (
+                        <View
+                          key={`${image.uri}-${index}`}
+                          className="relative w-[30%] overflow-hidden rounded-xl bg-muted"
+                        >
+                          <ExpoImage
+                            source={{ uri: image.uri }}
+                            style={{ width: "100%", aspectRatio: 1 }}
+                            contentFit="cover"
+                          />
+                          <Pressable
+                            onPress={() => removeImage(index)}
+                            className="absolute right-2 top-2 h-6 w-6 items-center justify-center rounded-full bg-black/70"
+                          >
+                            <Text className="text-[10px] font-bold text-white">
+                              ✕
+                            </Text>
+                          </Pressable>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {/* Location Card */}
+              <View className="mb-5 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-sm font-bold uppercase text-muted-foreground">
+                  Vị trí
+                </Text>
+
+                <View className="mb-4">
+                  <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Tỉnh/Thành phố
+                  </Text>
+                  <Input
+                    value={provinceSearchRaw}
+                    onChangeText={setProvinceSearchRaw}
+                    placeholder="Tìm kiếm tỉnh..."
+                  />
+                  {provincesList.length > 0 && (
+                    <View className="mt-2 max-h-32 rounded-lg border border-border bg-muted/20 p-2">
+                      <ScrollView nestedScrollEnabled>
+                        {provincesList
+                          .filter((p) =>
+                            p.name
+                              .toLowerCase()
+                              .includes(provinceSearch.toLowerCase()),
+                          )
+                          .map((p) => (
+                            <Pressable
+                              key={p.code}
+                              onPress={() => {
+                                setProvinceCode(p.code);
+                                setProvinceName(p.name);
+                                setWardCode("");
+                                setWardName("");
+                                setWardSearchRaw("");
+                                void loadWardsForProvince(p.code);
+                                console.log(
+                                  `📍 [Province] Selected: ${p.name} (${p.code})`,
+                                );
+                              }}
+                              className={`rounded-lg px-3 py-2.5 ${
+                                provinceCode === p.code
+                                  ? "bg-primary"
+                                  : "bg-transparent"
+                              }`}
+                            >
+                              <Text
+                                className={`text-sm font-medium ${
+                                  provinceCode === p.code
+                                    ? "text-primary-foreground"
+                                    : "text-foreground"
+                                }`}
+                              >
+                                {p.name}
+                              </Text>
+                            </Pressable>
+                          ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                <View className="mb-4">
+                  <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Phường/Xã
+                  </Text>
+                  <Input
+                    value={wardSearchRaw}
+                    onChangeText={setWardSearchRaw}
+                    placeholder="Tìm kiếm phường..."
+                    editable={Boolean(provinceCode)}
+                  />
+                  {!provinceCode && (
+                    <Text className="mt-2 text-xs text-muted-foreground">
+                      ℹ️ Chọn tỉnh/thành trước
+                    </Text>
+                  )}
+                  {loadingWards && (
+                    <Text className="mt-2 text-xs text-muted-foreground">
+                      ⏳ Đang tải...
+                    </Text>
+                  )}
+                  {wardsList.length > 0 && (
+                    <View className="mt-2 max-h-32 rounded-lg border border-border bg-muted/20 p-2">
+                      <ScrollView nestedScrollEnabled>
+                        {wardsList
+                          .filter((w) =>
+                            w.name
+                              .toLowerCase()
+                              .includes(wardSearch.toLowerCase()),
+                          )
+                          .map((w) => (
+                            <Pressable
+                              key={w.code}
+                              onPress={() => {
+                                setWardCode(w.code);
+                                setWardName(w.name);
+                                console.log(
+                                  `📍 [Ward] Selected: ${w.name} (${w.code})`,
+                                );
+                              }}
+                              className={`rounded-lg px-3 py-2.5 ${
+                                wardCode === w.code
+                                  ? "bg-primary"
+                                  : "bg-transparent"
+                              }`}
+                            >
+                              <Text
+                                className={`text-sm font-medium ${
+                                  wardCode === w.code
+                                    ? "text-primary-foreground"
+                                    : "text-foreground"
+                                }`}
+                              >
+                                {w.name}
+                              </Text>
+                            </Pressable>
+                          ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {(provinceName || wardName) && (
+                  <View className="mb-4 rounded-lg bg-primary/10 p-3">
+                    <Text className="text-xs font-semibold text-primary">
+                      📌 Địa điểm:{" "}
+                      {[wardName, provinceName].filter(Boolean).join(", ")}
+                    </Text>
+                  </View>
+                )}
+
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                      Latitude
+                    </Text>
+                    <Input
+                      value={createLat}
+                      onChangeText={setCreateLat}
+                      keyboardType="numeric"
+                      placeholder="0.000000"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="mb-2 text-xs font-semibold text-muted-foreground">
+                      Longitude
+                    </Text>
+                    <Input
+                      value={createLng}
+                      onChangeText={setCreateLng}
+                      keyboardType="numeric"
+                      placeholder="0.000000"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Contact Card */}
+              <View className="mb-5 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-sm font-bold uppercase text-muted-foreground">
+                  Liên hệ
+                </Text>
+
+                <Input
                   value={createContact}
                   onChangeText={setCreateContact}
                   keyboardType="phone-pad"
-                  placeholder="Số điện thoại"
-                  className="rounded-xl border border-border px-3 py-2 text-foreground"
+                  placeholder="Số điện thoại của bạn"
                 />
               </View>
 
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Ảnh báo cứu hộ
-                </Text>
-                <Pressable
-                  onPress={() => void pickImage()}
-                  className="flex-row items-center justify-center rounded-xl border border-dashed border-border px-3 py-3"
-                >
-                  <Text className="font-semibold text-foreground">
-                    Thêm ảnh từ máy
+              {/* Error Message */}
+              {createError && (
+                <View className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5">
+                  <Text className="text-sm font-medium text-destructive">
+                    ⚠️ {createError}
                   </Text>
-                </Pressable>
-                {selectedImages.length > 0 ? (
-                  <View className="mt-3 flex-row flex-wrap gap-3">
-                    {selectedImages.map((image, index) => (
-                      <View
-                        key={`${image.uri}-${index}`}
-                        className="w-[30%] overflow-hidden rounded-xl border border-border bg-muted/20"
-                      >
-                        <ExpoImage
-                          source={{ uri: image.uri }}
-                          style={{ width: "100%", aspectRatio: 1 }}
-                          contentFit="cover"
-                        />
-                        <Pressable
-                          onPress={() => removeImage(index)}
-                          className="absolute right-2 top-2 h-6 w-6 items-center justify-center rounded-full bg-black/65"
-                        >
-                          <Text className="text-[10px] font-bold text-white">
-                            x
-                          </Text>
-                        </Pressable>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Tỉnh/Thành
-                </Text>
-                <TextInput
-                  value={provinceSearchRaw}
-                  onChangeText={setProvinceSearchRaw}
-                  placeholder="Tìm tỉnh..."
-                  className="rounded-xl border border-border px-3 py-2 text-foreground"
-                />
-
-                {provincesList.length > 0 ? (
-                  <View className="mt-2 max-h-40 rounded-md border border-border bg-card p-2">
-                    {provincesList
-                      .filter((p) =>
-                        p.name
-                          .toLowerCase()
-                          .includes(provinceSearch.toLowerCase()),
-                      )
-                      .map((p) => (
-                        <Pressable
-                          key={p.code}
-                          onPress={() => {
-                            setProvinceCode(p.code);
-                            setProvinceName(p.name);
-                            setWardCode("");
-                            setWardName("");
-                            setWardSearchRaw("");
-                            void loadWardsForProvince(p.code);
-                          }}
-                          className="py-2"
-                        >
-                          <Text
-                            className={`text-sm ${provinceCode === p.code ? "font-bold text-primary" : "text-foreground"}`}
-                          >
-                            {p.name}
-                          </Text>
-                        </Pressable>
-                      ))}
-                  </View>
-                ) : null}
-              </View>
-
-              <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                  Phường/Xã
-                </Text>
-                <TextInput
-                  value={wardSearchRaw}
-                  onChangeText={setWardSearchRaw}
-                  placeholder="Tìm phường..."
-                  className="rounded-xl border border-border px-3 py-2 text-foreground"
-                  editable={Boolean(provinceCode)}
-                />
-                {!provinceCode ? (
-                  <Text className="mt-2 text-sm text-muted-foreground">
-                    Chọn tỉnh/thành trước để tải danh sách phường/xã.
-                  </Text>
-                ) : null}
-                {loadingWards ? (
-                  <Text className="mt-2 text-sm text-muted-foreground">
-                    Đang tải phường...
-                  </Text>
-                ) : null}
-                {wardsList.length > 0 ? (
-                  <View className="mt-2 max-h-40 rounded-md border border-border bg-card p-2">
-                    {wardsList
-                      .filter((w) =>
-                        w.name.toLowerCase().includes(wardSearch.toLowerCase()),
-                      )
-                      .map((w) => (
-                        <Pressable
-                          key={w.code}
-                          onPress={() => {
-                            setWardCode(w.code);
-                            setWardName(w.name);
-                          }}
-                          className="py-2"
-                        >
-                          <Text
-                            className={`text-sm ${wardCode === w.code ? "font-bold text-primary" : "text-foreground"}`}
-                          >
-                            {w.name}
-                          </Text>
-                        </Pressable>
-                      ))}
-                  </View>
-                ) : null}
-              </View>
-
-              <View className="mt-3 flex-row gap-3">
-                <View className="flex-1">
-                  <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                    Latitude
-                  </Text>
-                  <TextInput
-                    value={createLat}
-                    onChangeText={setCreateLat}
-                    keyboardType="numeric"
-                    className="rounded-xl border border-border px-3 py-2 text-foreground"
-                  />
                 </View>
+              )}
 
-                <View className="flex-1">
-                  <Text className="mb-1 text-xs font-semibold text-muted-foreground">
-                    Longitude
-                  </Text>
-                  <TextInput
-                    value={createLng}
-                    onChangeText={setCreateLng}
-                    keyboardType="numeric"
-                    className="rounded-xl border border-border px-3 py-2 text-foreground"
-                  />
-                </View>
-              </View>
-
-              {provinceName || wardName ? (
-                <Text className="mt-3 text-xs text-muted-foreground">
-                  Đã chọn: {[wardName, provinceName].filter(Boolean).join(", ")}
-                </Text>
-              ) : null}
-
-              {createError ? (
-                <Text className="mt-3 text-sm text-destructive">
-                  {createError}
-                </Text>
-              ) : null}
-
-              <View className="mt-4 flex-row gap-2">
+              {/* Action Buttons */}
+              <View className="flex-row gap-3">
                 <Pressable
                   onPress={closeCreateModal}
-                  className="flex-1 items-center rounded-full border border-border px-4 py-3"
+                  className="flex-1 items-center rounded-xl border border-border bg-muted px-4 py-3.5"
                 >
                   <Text className="font-bold text-foreground">Hủy</Text>
                 </Pressable>
@@ -837,13 +982,13 @@ export default function MapScreen() {
                 <Pressable
                   onPress={submitRescue}
                   disabled={createSending}
-                  className="flex-1 items-center rounded-full bg-primary px-4 py-3"
+                  className="flex-1 items-center rounded-xl bg-primary px-4 py-3.5"
                 >
                   {createSending ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text className="font-bold text-primary-foreground">
-                      Gửi báo cứu hộ
+                      🆘 Gửi báo cứu hộ
                     </Text>
                   )}
                 </Pressable>
@@ -859,79 +1004,105 @@ export default function MapScreen() {
         animationType="fade"
         onRequestClose={() => setMarkerDetailVisible(false)}
       >
-        <View className="flex-1 justify-center bg-black/50 px-4">
-          <View className="max-h-[85%] rounded-2xl bg-card p-4">
-            {markerDetailLoading ? (
-              <ActivityIndicator size="large" />
-            ) : markerDetailError ? (
-              <Text className="text-sm text-destructive">
-                {markerDetailError}
-              </Text>
-            ) : markerDetail ? (
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <Text className="text-lg font-bold text-foreground">
-                  {selectedMarker?.source === "rescue"
-                    ? "Chi tiet cuu ho"
-                    : "Chi tiet to chuc"}
-                </Text>
-
-                <View className="mt-3 gap-2">
-                  {detailRows.map((row) => (
-                    <View
-                      key={row.label}
-                      className="rounded-xl border border-border px-3 py-2"
-                    >
-                      <Text className="text-xs font-semibold text-muted-foreground">
-                        {row.label}
-                      </Text>
-                      <Text className="mt-1 text-sm text-foreground">
-                        {row.value}
-                      </Text>
-                    </View>
-                  ))}
+        <View className="flex-1 justify-center bg-black/50 px-4 py-6">
+          <View className="max-h-[90%] overflow-hidden rounded-3xl bg-card">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {markerDetailLoading ? (
+                <View className="items-center justify-center py-12">
+                  <ActivityIndicator size="large" />
                 </View>
-
-                {Array.isArray(markerDetail.imageUrls) &&
-                markerDetail.imageUrls.length > 0 ? (
-                  <View className="mt-3">
-                    <Text className="mb-2 text-xs font-semibold text-muted-foreground">
-                      Hinh anh
-                    </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {markerDetail.imageUrls.map((url: string, i: number) => (
-                        <ExpoImage
-                          key={`${url}-${i}`}
-                          source={{ uri: url }}
-                          style={{ width: 96, height: 96, borderRadius: 8 }}
-                          contentFit="cover"
-                        />
-                      ))}
+              ) : markerDetailError ? (
+                <View className="items-center justify-center p-6">
+                  <Text className="text-center text-sm text-destructive">
+                    {markerDetailError}
+                  </Text>
+                </View>
+              ) : markerDetail ? (
+                <>
+                  {/* Images Section - Displayed First */}
+                  {(Array.isArray(markerDetail.imageUrls) &&
+                    markerDetail.imageUrls.length > 0) ||
+                  (typeof markerDetail.imageUrl === "string" &&
+                    markerDetail.imageUrl.trim()) ? (
+                    <View>
+                      {Array.isArray(markerDetail.imageUrls) &&
+                      markerDetail.imageUrls.length > 0 ? (
+                        <View className="flex-row flex-wrap gap-2 bg-muted/30 p-4">
+                          {markerDetail.imageUrls
+                            .slice(0, 4)
+                            .map((url: string, i: number) => (
+                              <ExpoImage
+                                key={`${url}-${i}`}
+                                source={{ uri: url }}
+                                style={{
+                                  width: "48%",
+                                  height: 120,
+                                  borderRadius: 12,
+                                }}
+                                contentFit="cover"
+                              />
+                            ))}
+                        </View>
+                      ) : typeof markerDetail.imageUrl === "string" &&
+                        markerDetail.imageUrl.trim() ? (
+                        <View className="p-4 pb-0">
+                          <ExpoImage
+                            source={{ uri: markerDetail.imageUrl }}
+                            style={{
+                              width: "100%",
+                              height: 200,
+                              borderRadius: 12,
+                            }}
+                            contentFit="cover"
+                          />
+                        </View>
+                      ) : null}
                     </View>
-                  </View>
-                ) : null}
+                  ) : null}
 
-                {typeof markerDetail.imageUrl === "string" &&
-                markerDetail.imageUrl.trim() ? (
-                  <View className="mt-3">
-                    <Text className="mb-2 text-xs font-semibold text-muted-foreground">
-                      Hinh anh
+                  {/* Header Section */}
+                  <View className="border-b border-border px-4 py-4">
+                    <Text className="text-lg font-bold text-foreground">
+                      {selectedMarker?.source === "rescue"
+                        ? "Chi tiết cứu hộ"
+                        : "Chi tiết tổ chức"}
                     </Text>
-                    <ExpoImage
-                      source={{ uri: markerDetail.imageUrl }}
-                      style={{ width: "100%", height: 170, borderRadius: 8 }}
-                      contentFit="cover"
-                    />
+                    <Text className="mt-1 text-xs text-muted-foreground">
+                      {selectedMarker?.source === "rescue"
+                        ? "Thông tin chi tiết vụ cứu hộ động vật"
+                        : "Thông tin chi tiết tổ chức"}
+                    </Text>
                   </View>
-                ) : null}
-              </ScrollView>
-            ) : null}
 
-            <View className="mt-4 flex-row gap-2">
+                  {/* Details Section */}
+                  <View className="gap-0 p-4">
+                    {detailRows.map((row, idx) => (
+                      <View
+                        key={row.label}
+                        className={`border-b border-border/50 py-3 ${
+                          idx === detailRows.length - 1 ? "border-b-0" : ""
+                        }`}
+                      >
+                        <Text className="text-[11px] font-semibold uppercase text-muted-foreground">
+                          {row.label}
+                        </Text>
+                        <Text className="mt-2 text-sm font-medium text-foreground">
+                          {row.value}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              ) : null}
+            </ScrollView>
+
+            {/* Close Button */}
+            <View className="border-t border-border bg-card px-4 py-3">
               <Pressable
                 onPress={() => setMarkerDetailVisible(false)}
-                className="flex-1 items-center rounded-full bg-muted px-4 py-2"
+                className="items-center rounded-full bg-muted px-4 py-3"
               >
-                <Text className="font-semibold text-foreground">Dong</Text>
+                <Text className="font-semibold text-foreground">Đóng</Text>
               </Pressable>
             </View>
           </View>
@@ -941,19 +1112,10 @@ export default function MapScreen() {
   );
 }
 
-const MapPinMarker = ({
-  source,
-  filter,
-}: {
-  source: MapSourceKey;
-  filter: HeaderFilter;
-}) => {
+const MapPinMarker = ({ source }: { source: MapSourceKey }) => {
+  // For organizations, use a default icon since we don't have type info at render time
   const iconSource =
-    source === "rescue"
-      ? MARKER_ICONS.rescue
-      : filter === "vet"
-        ? MARKER_ICONS.vet
-        : MARKER_ICONS.center;
+    source === "rescue" ? MARKER_ICONS.rescue : MARKER_ICONS.center; // Default to center/shelter icon for all organizations
 
   return (
     <Image
