@@ -7,17 +7,25 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 export const useMapMarkers = (params: {
-  source: MapSourceKey | "all";
+  source: MapSourceKey;
   bounds?: MapBounds;
+  organizationTypes?: string[];
 }) => {
   const [debounced, setDebounced] = useState(params);
 
   useEffect(() => {
     // debounce param changes to avoid rapid API calls (e.g., when user pans map)
-    const t = setTimeout(() => setDebounced(params), 500);
+    const t = setTimeout(
+      () =>
+        setDebounced({
+          source: params.source,
+          bounds: params.bounds,
+          organizationTypes: params.organizationTypes,
+        }),
+      500,
+    );
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.source, JSON.stringify(params.bounds ?? {})]);
+  }, [params.source, params.bounds, params.organizationTypes]);
 
   const queryKey = useMemo(
     () => ["map-markers", debounced.source, debounced.bounds],
@@ -27,23 +35,10 @@ export const useMapMarkers = (params: {
   return useQuery({
     queryKey,
     queryFn: async () => {
-      if (debounced.source === "all") {
-        const [r1, r2] = await Promise.all([
-          container.map.getMapMarkersUseCase.execute({
-            source: "rescue",
-            bounds: debounced.bounds,
-          }),
-          container.map.getMapMarkersUseCase.execute({
-            source: "organization",
-            bounds: debounced.bounds,
-          }),
-        ]);
-        return [...r1, ...r2];
-      }
-
       return container.map.getMapMarkersUseCase.execute({
-        source: debounced.source as MapSourceKey,
+        source: debounced.source,
         bounds: debounced.bounds,
+        organizationTypes: debounced.organizationTypes,
       });
     },
     // keep previous data while fetching updated results

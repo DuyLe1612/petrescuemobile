@@ -1,31 +1,38 @@
 import type { MapMarker } from "@/src/domain/entities/map";
 import type {
-  GetMapMarkersParams,
-  IMapRepository,
+    GetMapMarkersParams,
+    IMapRepository,
 } from "@/src/domain/repositories/I-map-repository";
 import type {
-  OrganizationMapMarkerDto,
-  RescueMapMarkerDto,
+    OrganizationMapMarkerDto,
+    RescueMapMarkerDto,
 } from "@/src/infrastructure/api/generated/model";
 import {
-  getMapMarkers,
-  getMapMarkers1,
+    getMapMarkers,
+    getMapMarkers1,
 } from "@/src/infrastructure/api/generated/pet-rescue-api";
 
 export class ApiMapRepository implements IMapRepository {
   async getMarkers(params: GetMapMarkersParams): Promise<MapMarker[]> {
-    const queryParams = params.bounds
-      ? {
-          minLat: params.bounds.minLat,
-          minLng: params.bounds.minLng,
-          maxLat: params.bounds.maxLat,
-          maxLng: params.bounds.maxLng,
-        }
-      : undefined;
+    const queryParams = {
+      ...(params.bounds
+        ? {
+            minLat: params.bounds.minLat,
+            minLng: params.bounds.minLng,
+            maxLat: params.bounds.maxLat,
+            maxLng: params.bounds.maxLng,
+          }
+        : {}),
+      ...(params.source === "organization" && params.organizationTypes?.length
+        ? { type: params.organizationTypes }
+        : {}),
+    };
 
     const response =
       params.source === "rescue"
-        ? await getMapMarkers(queryParams)
+        ? await getMapMarkers(
+            Object.keys(queryParams).length > 0 ? queryParams : undefined,
+          )
         : await getMapMarkers1(queryParams);
 
     // normalize response shape: generated client may return array or wrapper

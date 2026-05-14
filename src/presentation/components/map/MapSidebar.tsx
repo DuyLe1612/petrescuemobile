@@ -1,30 +1,25 @@
 import type { MapMarker } from "@/src/domain/entities/map";
 import {
-  DEFAULT_MAP_BOUNDS,
-  MAP_PANEL_HEIGHT,
-  MAP_SOURCE_CONFIGS,
-  type MapBounds,
-  type MapSourceKey,
+    DEFAULT_MAP_BOUNDS,
+    MAP_PANEL_HEIGHT,
+    type MapBounds,
 } from "@/src/presentation/constants/map-config";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { MapMarkerCard } from "./MapMarkerCard";
-import { MapSourceToggle } from "./MapSourceToggle";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  source: MapSourceKey;
-  onSourceChange: (value: MapSourceKey) => void;
   bounds?: MapBounds | null;
   viewportBounds: MapBounds;
   onApplyViewportBounds: () => void;
@@ -37,8 +32,6 @@ type Props = {
 export function MapSidebar({
   visible,
   onClose,
-  source,
-  onSourceChange,
   bounds,
   viewportBounds,
   onApplyViewportBounds,
@@ -54,8 +47,6 @@ export function MapSidebar({
   useEffect(() => {
     setDraft(bounds ?? viewportBounds ?? DEFAULT_MAP_BOUNDS);
   }, [bounds, viewportBounds]);
-
-  const sourceConfig = MAP_SOURCE_CONFIGS[source];
 
   const counts = useMemo(
     () => ({
@@ -98,7 +89,7 @@ export function MapSidebar({
                 Bộ lọc bản đồ
               </Text>
               <Text className="text-xs text-muted-foreground">
-                {sourceConfig.label} · {counts.total} điểm hiển thị
+                {counts.total} điểm hiển thị
               </Text>
             </View>
 
@@ -108,10 +99,6 @@ export function MapSidebar({
             >
               <Feather name="x" size={16} color="#606479" />
             </Pressable>
-          </View>
-
-          <View className="mt-3">
-            <MapSourceToggle value={source} onChange={onSourceChange} />
           </View>
 
           <View className="mt-3 rounded-2xl bg-muted/40 p-3">
@@ -147,27 +134,19 @@ export function MapSidebar({
               />
             </View>
 
-            <View className="mt-3 flex-row gap-2">
+            <View className="mt-3">
               <Pressable
                 onPress={onApplyViewportBounds}
-                className="flex-1 rounded-full bg-primary px-4 py-3"
+                className="rounded-full bg-primary px-4 py-3"
               >
                 <Text className="text-center text-xs font-bold text-primary-foreground">
                   Lấy bbox khung hiện tại
                 </Text>
               </Pressable>
-              <Pressable
-                onPress={() => onSourceChange(source)}
-                className="flex-1 rounded-full border border-border px-4 py-3"
-              >
-                <Text className="text-center text-xs font-bold text-foreground">
-                  Giữ nguồn hiện tại
-                </Text>
-              </Pressable>
             </View>
 
             <View className="mt-3 flex-row items-center gap-2">
-              <Feather name="crosshair" size={13} color={sourceConfig.color} />
+              <Feather name="crosshair" size={13} color="#FF584F" />
               <Text className="text-[11px] text-muted-foreground">
                 Khung hiện tại: Min({viewportBounds.minLat.toFixed(3)},{" "}
                 {viewportBounds.minLng.toFixed(3)}) · Max(
