@@ -24,15 +24,11 @@ export default function RootLayout() {
       return;
     }
 
-    const isInAuthRoute = segments[0] === "login";
+    const route = segments[0];
+    const isInAuthRoute = route === "login" || route === "register";
 
     if (status === "authenticated" && isInAuthRoute) {
-      router.replace("/(tabs)");
-      return;
-    }
-
-    if (status === "unauthenticated" && !isInAuthRoute) {
-      router.replace("/login");
+      router.replace("/(tabs)/profile");
     }
   }, [router, segments, status]);
 
@@ -43,6 +39,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
+          <Stack.Screen name="register" options={{ title: "Đăng ký" }} />
           <Stack.Screen name="pet/[id]" options={{ headerShown: false }} />
         </Stack>
       </QueryClientProvider>
