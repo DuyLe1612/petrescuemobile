@@ -39,6 +39,9 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
           <Stack.Screen name="register" options={{ title: "Đăng ký" }} />
+          <Stack.Screen name="application/index" options={{ headerShown: false }} />
+          <Stack.Screen name="application/form" options={{ headerShown: false }} />
+          <Stack.Screen name="application/success" options={{ headerShown: false }} />
           <Stack.Screen name="my-pets/index" options={{ headerShown: false }} />
           <Stack.Screen name="my-pets/create" options={{ headerShown: false }} />
           <Stack.Screen name="my-pets/create-success" options={{ headerShown: false }} />
