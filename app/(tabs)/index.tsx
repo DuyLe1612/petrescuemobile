@@ -151,7 +151,7 @@ export default function HomeScreen() {
             </View>
 
             <Pressable
-              onPress={() => router.push("/profile")}
+              onPress={() => router.push("/news")}
               accessibilityRole="button"
               accessibilityLabel="Thông báo"
               style={{
@@ -451,7 +451,7 @@ function AuthenticatedFeed() {
                   <Ionicons name="search" size={18} color="white" />
                 </Pressable>
                 <Pressable
-                  onPress={() => router.push("/profile")}
+                  onPress={() => router.push("/news")}
                   accessibilityRole="button"
                   accessibilityLabel="Thông báo"
                   style={circleButtonStyle("rgba(255,255,255,0.14)")}
