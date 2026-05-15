@@ -84,11 +84,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="news"
         options={{
-          title: "Tin tức",
-          tabBarLabel: "Tin tức",
+          title: "Thong bao",
+          tabBarLabel: "Thong bao",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "newspaper" : "newspaper-outline"}
+              name={focused ? "notifications" : "notifications-outline"}
               size={size}
               color={color}
             />

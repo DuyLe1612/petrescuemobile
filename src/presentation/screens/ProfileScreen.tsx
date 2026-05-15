@@ -1,12 +1,11 @@
-import { MenuItem } from "@/src/presentation/components/profile/MenuItem";
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
 import { useSessionBootstrap } from "@/src/presentation/hooks/use-session-bootstrap";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { type ReactNode, useState } from "react";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator,
   Alert,
@@ -85,15 +84,24 @@ const GuestProfile = () => {
 
   const primaryColor = useThemeColor({}, "tint");
   const backgroundColor = useThemeColor({}, "background");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const cardColor = useThemeColor(
+    { light: "#ffffff", dark: "#232321" },
+    "background",
+  );
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
+  const borderColor = useThemeColor(
+    { light: "rgb(233 230 227)", dark: "rgb(58 58 58)" },
+    "icon",
+  );
   const subtleSurface = useThemeColor(
     { light: "rgb(243 242 240)", dark: "rgb(42 39 36)" },
     "background",
   );
-  const sectionTitle = useThemeColor({ light: "#a49a91", dark: mutedColor }, "icon");
+  const sectionTitle = useThemeColor(
+    { light: "#a49a91", dark: mutedColor },
+    "icon",
+  );
 
   return (
     <ScrollView
@@ -130,8 +138,16 @@ const GuestProfile = () => {
             </View>
 
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "white", fontSize: 24, fontWeight: "800" }}>Khách</Text>
-              <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 4 }}>
+              <Text style={{ color: "white", fontSize: 24, fontWeight: "800" }}>
+                Khách
+              </Text>
+              <Text
+                style={{
+                  color: "rgba(255,255,255,0.8)",
+                  fontSize: 13,
+                  marginTop: 4,
+                }}
+              >
                 Đăng nhập để sử dụng đầy đủ
               </Text>
               <Pressable
@@ -147,16 +163,18 @@ const GuestProfile = () => {
                   paddingVertical: 6,
                 }}
               >
-                <Text style={{ color: "white", fontSize: 12, fontWeight: "700" }}>Đăng nhập</Text>
+                <Text
+                  style={{ color: "white", fontSize: 12, fontWeight: "700" }}
+                >
+                  Đăng nhập
+                </Text>
               </Pressable>
             </View>
           </View>
         </GradientHeader>
 
         <Pressable
-          onPress={() =>
-            Alert.alert("Thông báo", "Tính năng tình nguyện viên sẽ được kết nối ở bước tiếp theo.")
-          }
+          onPress={() => router.push("/application" as never)}
           accessibilityRole="button"
           accessibilityLabel="Trở thành tình nguyện viên"
           style={{
@@ -199,27 +217,30 @@ const GuestProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={<Ionicons name="heart-outline" size={16} color={primaryColor} />}
-            label="Danh sách yêu thích"
-            badge="8"
-            textColor={textColor}
-            mutedColor={mutedColor}
-            subtleSurface={subtleSurface}
-            borderColor={borderColor}
-            onPress={() => router.push("/login")}
-          />
-          <GuestMenuRow
-            icon={<Ionicons name="notifications-outline" size={16} color={primaryColor} />}
+            icon={
+              <Ionicons
+                name="notifications-outline"
+                size={16}
+                color={primaryColor}
+              />
+            }
+            
             label="Thông báo"
             badge="3"
             textColor={textColor}
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => router.push("/login")}
+            onPress={() => router.push("/news")}
           />
           <GuestMenuRow
-            icon={<MaterialCommunityIcons name="hand-heart-outline" size={16} color={primaryColor} />}
+            icon={
+              <MaterialCommunityIcons
+                name="hand-heart-outline"
+                size={16}
+                color={primaryColor}
+              />
+            }
             label="Lịch sử ủng hộ"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -242,9 +263,7 @@ const GuestProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() =>
-              Alert.alert("Thông báo", "Mục này sẽ được kết nối nội dung ở bước tiếp theo.")
-            }
+            onPress={() => router.push("/application" as never)}
           />
           <GuestMenuRow
             icon={<Feather name="star" size={16} color={primaryColor} />}
@@ -254,7 +273,10 @@ const GuestProfile = () => {
             subtleSurface={subtleSurface}
             borderColor={borderColor}
             onPress={() =>
-              Alert.alert("Thông báo", "Đánh giá ứng dụng sẽ được triển khai ở bước tiếp theo.")
+              Alert.alert(
+                "Thông báo",
+                "Đánh giá ứng dụng sẽ được triển khai ở bước tiếp theo.",
+              )
             }
             isLast
           />
@@ -273,7 +295,10 @@ const GuestProfile = () => {
             subtleSurface={subtleSurface}
             borderColor={borderColor}
             onPress={() =>
-              Alert.alert("Thông báo", "FAQ sẽ được kết nối nội dung ở bước tiếp theo.")
+              Alert.alert(
+                "Thông báo",
+                "FAQ sẽ được kết nối nội dung ở bước tiếp theo.",
+              )
             }
           />
           <GuestMenuRow
@@ -284,7 +309,10 @@ const GuestProfile = () => {
             subtleSurface={subtleSurface}
             borderColor={borderColor}
             onPress={() =>
-              Alert.alert("Thông báo", "Chính sách bảo mật sẽ được kết nối ở bước tiếp theo.")
+              Alert.alert(
+                "Thông báo",
+                "Chính sách bảo mật sẽ được kết nối ở bước tiếp theo.",
+              )
             }
           />
           <GuestMenuRow
@@ -295,7 +323,10 @@ const GuestProfile = () => {
             subtleSurface={subtleSurface}
             borderColor={borderColor}
             onPress={() =>
-              Alert.alert("Thông báo", "Kênh liên hệ sẽ được kết nối ở bước tiếp theo.")
+              Alert.alert(
+                "Thông báo",
+                "Kênh liên hệ sẽ được kết nối ở bước tiếp theo.",
+              )
             }
             isLast
           />
@@ -324,9 +355,20 @@ const GuestProfile = () => {
               marginRight: 12,
             }}
           >
-            <Ionicons name="notifications-outline" size={16} color={primaryColor} />
+            <Ionicons
+              name="notifications-outline"
+              size={16}
+              color={primaryColor}
+            />
           </View>
-          <Text style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "600" }}>
+          <Text
+            style={{
+              flex: 1,
+              color: textColor,
+              fontSize: 14,
+              fontWeight: "600",
+            }}
+          >
             Thông báo đẩy
           </Text>
           <Switch
@@ -350,7 +392,13 @@ const GuestProfile = () => {
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: "rgb(246 252 252)", fontSize: 15, fontWeight: "800" }}>
+          <Text
+            style={{
+              color: "rgb(246 252 252)",
+              fontSize: 15,
+              fontWeight: "800",
+            }}
+          >
             Đăng nhập / Đăng ký
           </Text>
         </TouchableOpacity>
@@ -375,15 +423,24 @@ const LoggedInProfile = () => {
 
   const primaryColor = useThemeColor({}, "tint");
   const backgroundColor = useThemeColor({}, "background");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const cardColor = useThemeColor(
+    { light: "#ffffff", dark: "#232321" },
+    "background",
+  );
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
+  const borderColor = useThemeColor(
+    { light: "rgb(233 230 227)", dark: "rgb(58 58 58)" },
+    "icon",
+  );
   const subtleSurface = useThemeColor(
     { light: "rgb(243 242 240)", dark: "rgb(42 39 36)" },
     "background",
   );
-  const sectionTitle = useThemeColor({ light: "#a49a91", dark: mutedColor }, "icon");
+  const sectionTitle = useThemeColor(
+    { light: "#a49a91", dark: mutedColor },
+    "icon",
+  );
 
   return (
     <ScrollView
@@ -422,10 +479,23 @@ const LoggedInProfile = () => {
               <Text style={{ color: "white", fontSize: 18, fontWeight: "800" }}>
                 Nguyễn Văn An
               </Text>
-              <Text style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, marginTop: 2 }}>
+              <Text
+                style={{
+                  color: "rgba(255,255,255,0.82)",
+                  fontSize: 12,
+                  marginTop: 2,
+                }}
+              >
                 nguyenvana@example.com
               </Text>
-              <Text style={{ color: "#ffb36a", fontSize: 11, marginTop: 3, fontWeight: "700" }}>
+              <Text
+                style={{
+                  color: "#ffb36a",
+                  fontSize: 11,
+                  marginTop: 3,
+                  fontWeight: "700",
+                }}
+              >
                 Người dùng
               </Text>
             </View>
@@ -457,9 +527,19 @@ const LoggedInProfile = () => {
         >
           <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>
             Điểm uy tín: 340+
-            <Text style={{ color: mutedColor, fontWeight: "500" }}> | Tình nguyện viên</Text>
+            <Text style={{ color: mutedColor, fontWeight: "500" }}>
+              {" "}
+              | Tình nguyện viên
+            </Text>
           </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+              marginTop: 10,
+            }}
+          >
             <InterestChip label="Nuôi chó" color="#ff8c38" />
             <InterestChip label="Nhận nuôi" color="#d46474" />
             <InterestChip label="Mèo nhỏ" color="#1f9bd1" />
@@ -472,20 +552,15 @@ const LoggedInProfile = () => {
           cardColor={cardColor}
           titleColor={sectionTitle}
         >
+
           <GuestMenuRow
-            icon={<Ionicons name="heart-outline" size={16} color={primaryColor} />}
-            label="Danh sách yêu thích"
-            badge="3"
-            textColor={textColor}
-            mutedColor={mutedColor}
-            subtleSurface={subtleSurface}
-            borderColor={borderColor}
-            onPress={() =>
-              Alert.alert("Thông báo", "Danh sách yêu thích sẽ được kết nối ở bước tiếp theo.")
+            icon={
+              <Ionicons
+                name="notifications-outline"
+                size={16}
+                color={primaryColor}
+              />
             }
-          />
-          <GuestMenuRow
-            icon={<Ionicons name="notifications-outline" size={16} color={primaryColor} />}
             label="Thông báo"
             badge="2"
             textColor={textColor}
@@ -493,18 +568,30 @@ const LoggedInProfile = () => {
             subtleSurface={subtleSurface}
             borderColor={borderColor}
             onPress={() =>
-              Alert.alert("Thông báo", "Danh sách thông báo sẽ được kết nối ở bước tiếp theo.")
+              Alert.alert(
+                "Thông báo",
+                "Danh sách thông báo sẽ được kết nối ở bước tiếp theo.",
+              )
             }
           />
           <GuestMenuRow
-            icon={<MaterialCommunityIcons name="hand-heart-outline" size={16} color={primaryColor} />}
+            icon={
+              <MaterialCommunityIcons
+                name="hand-heart-outline"
+                size={16}
+                color={primaryColor}
+              />
+            }
             label="Lịch sử ủng hộ"
             textColor={textColor}
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
             onPress={() =>
-              Alert.alert("Thông báo", "Lịch sử ủng hộ sẽ được kết nối ở bước tiếp theo.")
+              Alert.alert(
+                "Thông báo",
+                "Lịch sử ủng hộ sẽ được kết nối ở bước tiếp theo.",
+              )
             }
             isLast
           />
@@ -516,14 +603,25 @@ const LoggedInProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={<MaterialCommunityIcons name="hand-coin-outline" size={16} color="#ff8c38" />}
+            icon={
+              <MaterialCommunityIcons
+                name="hand-coin-outline"
+                size={16}
+                color="#ff8c38"
+              />
+            }
             label="Ủng hộ HPA"
             badge="Tặng 1kg"
             textColor={textColor}
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "Luồng ủng hộ sẽ được kết nối ở bước tiếp theo.")}
+            onPress={() =>
+              Alert.alert(
+                "Thông báo",
+                "Luồng ủng hộ sẽ được kết nối ở bước tiếp theo.",
+              )
+            }
           />
           <GuestMenuRow
             icon={<Feather name="users" size={16} color="#44b882" />}
@@ -533,16 +631,22 @@ const LoggedInProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => router.push("/my-pets/index")}
+            onPress={() => router.push("/my-pets")}
           />
           <GuestMenuRow
-            icon={<Ionicons name="document-text-outline" size={16} color={primaryColor} />}
+            icon={
+              <Ionicons
+                name="document-text-outline"
+                size={16}
+                color={primaryColor}
+              />
+            }
             label="Đăng ký tình nguyện viên/trung tâm"
             textColor={textColor}
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "Mục đăng ký sẽ được kết nối ở bước tiếp theo.")}
+            onPress={() => router.push("/application" as never)}
           />
           <GuestMenuRow
             icon={<Feather name="star" size={16} color={primaryColor} />}
@@ -551,7 +655,12 @@ const LoggedInProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "Đánh giá ứng dụng sẽ được triển khai ở bước tiếp theo.")}
+            onPress={() =>
+              Alert.alert(
+                "Thông báo",
+                "Đánh giá ứng dụng sẽ được triển khai ở bước tiếp theo.",
+              )
+            }
             isLast
           />
         </ProfileSection>
@@ -568,7 +677,12 @@ const LoggedInProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "FAQ sẽ được kết nối nội dung ở bước tiếp theo.")}
+            onPress={() =>
+              Alert.alert(
+                "Thông báo",
+                "FAQ sẽ được kết nối nội dung ở bước tiếp theo.",
+              )
+            }
           />
           <GuestMenuRow
             icon={<Feather name="info" size={16} color={primaryColor} />}
@@ -577,7 +691,12 @@ const LoggedInProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "Chính sách bảo mật sẽ được kết nối ở bước tiếp theo.")}
+            onPress={() =>
+              Alert.alert(
+                "Thông báo",
+                "Chính sách bảo mật sẽ được kết nối ở bước tiếp theo.",
+              )
+            }
           />
           <GuestMenuRow
             icon={<Feather name="phone-call" size={16} color={primaryColor} />}
@@ -586,7 +705,12 @@ const LoggedInProfile = () => {
             mutedColor={mutedColor}
             subtleSurface={subtleSurface}
             borderColor={borderColor}
-            onPress={() => Alert.alert("Thông báo", "Kênh liên hệ sẽ được kết nối ở bước tiếp theo.")}
+            onPress={() =>
+              Alert.alert(
+                "Thông báo",
+                "Kênh liên hệ sẽ được kết nối ở bước tiếp theo.",
+              )
+            }
             isLast
           />
         </ProfileSection>
@@ -614,9 +738,20 @@ const LoggedInProfile = () => {
               marginRight: 12,
             }}
           >
-            <Ionicons name="notifications-outline" size={16} color={primaryColor} />
+            <Ionicons
+              name="notifications-outline"
+              size={16}
+              color={primaryColor}
+            />
           </View>
-          <Text style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "600" }}>
+          <Text
+            style={{
+              flex: 1,
+              color: textColor,
+              fontSize: 14,
+              fontWeight: "600",
+            }}
+          >
             Thông báo đẩy
           </Text>
           <Switch
@@ -645,7 +780,9 @@ const LoggedInProfile = () => {
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: "rgb(218 65 47)", fontSize: 14, fontWeight: "700" }}>
+          <Text
+            style={{ color: "rgb(218 65 47)", fontSize: 14, fontWeight: "700" }}
+          >
             Đăng xuất
           </Text>
         </TouchableOpacity>
@@ -676,8 +813,14 @@ function ProfileStat({ value, label }: { value: string; label: string }) {
         alignItems: "center",
       }}
     >
-      <Text style={{ color: "#ffb36a", fontSize: 18, fontWeight: "800" }}>{value}</Text>
-      <Text style={{ color: "rgba(255,255,255,0.82)", fontSize: 11, marginTop: 2 }}>{label}</Text>
+      <Text style={{ color: "#ffb36a", fontSize: 18, fontWeight: "800" }}>
+        {value}
+      </Text>
+      <Text
+        style={{ color: "rgba(255,255,255,0.82)", fontSize: 11, marginTop: 2 }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -703,7 +846,9 @@ function InterestChip({ label, color }: { label: string; color: string }) {
           marginRight: 6,
         }}
       />
-      <Text style={{ color: "#344054", fontSize: 11, fontWeight: "600" }}>{label}</Text>
+      <Text style={{ color: "#344054", fontSize: 11, fontWeight: "600" }}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -795,7 +940,11 @@ function GuestMenuRow({
       >
         {icon}
       </View>
-      <Text style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "600" }}>{label}</Text>
+      <Text
+        style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "600" }}
+      >
+        {label}
+      </Text>
       {badge ? (
         <View
           style={{
@@ -809,7 +958,9 @@ function GuestMenuRow({
             marginRight: 10,
           }}
         >
-          <Text style={{ color: "white", fontSize: 10, fontWeight: "700" }}>{badge}</Text>
+          <Text style={{ color: "white", fontSize: 10, fontWeight: "700" }}>
+            {badge}
+          </Text>
         </View>
       ) : null}
       <Feather name="chevron-right" size={16} color={mutedColor} />

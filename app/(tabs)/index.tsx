@@ -52,7 +52,7 @@ const ACTIONS = [
     icon: "gift-outline",
     iconSet: "material",
     surface: "rgba(255,159,67,0.12)",
-    onPress: () => router.push("/profile"),
+    onPress: () => router.push("/application/index" as never),
   },
   {
     title: "Tình nguyện",
@@ -154,7 +154,7 @@ function GuestHome() {
             </View>
 
             <Pressable
-              onPress={() => router.push("/profile")}
+              onPress={() => router.push("/news")}
               accessibilityRole="button"
               accessibilityLabel="Thông báo"
               style={circleButtonStyle("rgba(255,255,255,0.12)")}
@@ -352,7 +352,7 @@ function AuthenticatedFeed() {
                   <Ionicons name="search" size={18} color="white" />
                 </Pressable>
                 <Pressable
-                  onPress={() => router.push("/profile")}
+                  onPress={() => router.push("/news")}
                   accessibilityRole="button"
                   accessibilityLabel="Thông báo"
                   style={circleButtonStyle("rgba(255,255,255,0.14)")}
