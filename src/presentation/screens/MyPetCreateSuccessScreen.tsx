@@ -48,7 +48,7 @@ export default function MyPetCreateSuccessScreen() {
           marginTop: 10,
         }}
       >
-        Hồ sơ của bé đã được tạo dưới dạng UI. Bạn có thể quay lại danh sách để tiếp tục hoàn thiện chi tiết.
+        Hồ sơ của bé đã được tạo trên hệ thống. Bạn có thể quay lại danh sách để xem dữ liệu mới từ API.
       </Text>
 
       <View style={{ width: "100%", marginTop: 28 }}>

@@ -1,10 +1,11 @@
 import { FastImage } from "@/src/presentation/components/adoption/FastImage";
-import { findFeedPostById } from "@/src/presentation/mocks/feed-posts";
+import { fetchPostDetail } from "@/src/presentation/data/post-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import type { ComponentProps } from "react";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const POST_TOKENS = {
@@ -33,7 +34,20 @@ export default function PostDetailScreen() {
   const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
   const primaryColor = useThemeColor({}, "tint");
 
-  const post = useMemo(() => findFeedPostById(id ?? ""), [id]);
+  const postQuery = useQuery({
+    queryKey: ["post-detail", id],
+    queryFn: () => fetchPostDetail(id),
+  });
+
+  const post = postQuery.data;
+
+  if (postQuery.isLoading && !post) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor }}>
+        <ActivityIndicator color={primaryColor} />
+      </View>
+    );
+  }
 
   if (!post) {
     return (
@@ -81,7 +95,7 @@ export default function PostDetailScreen() {
               alignItems: "center",
             }}
           >
-            <Ionicons name="medical" size={12} color="#ff8250" />
+            <Ionicons name="pricetag-outline" size={12} color="#ff8250" />
             <Text style={{ color: "#ff8250", fontSize: 11, fontWeight: "700", marginLeft: 5 }}>
               {post.category}
             </Text>
@@ -125,17 +139,6 @@ export default function PostDetailScreen() {
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap" }}>
               <Text style={{ color: textColor, fontSize: 24, fontWeight: "800" }}>{post.author}</Text>
-              <View
-                style={{
-                  marginLeft: 8,
-                  borderRadius: POST_TOKENS.radius.pill,
-                  backgroundColor: "rgba(37,150,214,0.10)",
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                }}
-              >
-                <Text style={{ color: primaryColor, fontSize: 10, fontWeight: "700" }}>TNV xuất sắc</Text>
-              </View>
             </View>
             <Text style={{ color: mutedColor, fontSize: 12, marginTop: 4 }}>
               {post.time} <Text style={{ color: "#ff8c38" }}>{post.status}</Text>
@@ -147,15 +150,17 @@ export default function PostDetailScreen() {
           {post.title}
         </Text>
 
-        <FastImage
-          source={{ uri: post.imageUrl }}
-          style={{
-            width: "100%",
-            height: 310,
-            borderRadius: POST_TOKENS.radius.image,
-            marginTop: 14,
-          }}
-        />
+        {post.imageUrl ? (
+          <FastImage
+            source={{ uri: post.imageUrl }}
+            style={{
+              width: "100%",
+              height: 310,
+              borderRadius: POST_TOKENS.radius.image,
+              marginTop: 14,
+            }}
+          />
+        ) : null}
 
         <View
           style={{
@@ -197,8 +202,46 @@ export default function PostDetailScreen() {
             alignItems: "center",
           }}
         >
-          <MetaItem icon="heart-outline" label={`${post.comments}`} mutedColor={mutedColor} />
+          <MetaItem icon="heart-outline" label={`${post.likes}`} mutedColor={mutedColor} />
           <MetaItem icon="chatbubble-outline" label={post.commentLabel} mutedColor={mutedColor} />
+        </View>
+
+        <View style={{ marginTop: 18, gap: 10 }}>
+          <Text style={{ color: textColor, fontSize: 16, fontWeight: "800" }}>Bình luận mới nhất</Text>
+          {post.commentsList.length === 0 ? (
+            <View
+              style={{
+                borderRadius: POST_TOKENS.radius.card,
+                backgroundColor: cardColor,
+                padding: 14,
+                ...POST_TOKENS.shadow,
+              }}
+            >
+              <Text style={{ color: mutedColor, fontSize: 13 }}>Chưa có bình luận nào từ API.</Text>
+            </View>
+          ) : null}
+
+          {post.commentsList.map((comment) => (
+            <View
+              key={comment.commentId}
+              style={{
+                borderRadius: POST_TOKENS.radius.card,
+                backgroundColor: cardColor,
+                padding: 14,
+                ...POST_TOKENS.shadow,
+              }}
+            >
+              <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>
+                {comment.authorUsername ?? "Người dùng"}
+              </Text>
+              <Text style={{ color: mutedColor, fontSize: 11, marginTop: 4 }}>
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleString("vi-VN") : "Vừa xong"}
+              </Text>
+              <Text style={{ color: textColor, fontSize: 13, lineHeight: 20, marginTop: 8 }}>
+                {comment.content ?? ""}
+              </Text>
+            </View>
+          ))}
         </View>
       </ScrollView>
 
@@ -252,6 +295,7 @@ export default function PostDetailScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Gửi bình luận"
+            onPress={() => Alert.alert("Thông báo", "Luồng gửi bình luận chưa được nối trong app này.")}
             style={{
               marginLeft: 10,
               width: 38,
@@ -275,7 +319,7 @@ function MetaItem({
   label,
   mutedColor,
 }: {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: ComponentProps<typeof Ionicons>["name"];
   label: string;
   mutedColor: string;
 }) {

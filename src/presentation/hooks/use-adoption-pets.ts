@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { PetFilters } from "@/src/domain/entities/adoption-pet";
-import { fetchMockAdoptionPets } from "@/src/infrastructure/mocks/adoption-pets";
+import { fetchAvailablePets } from "@/src/presentation/data/pet-api";
 
 const PAGE_SIZE = 6;
 
@@ -10,12 +10,11 @@ export const useAdoptionPets = (filters: PetFilters) => {
   const query = useInfiniteQuery({
     queryKey: ["adoption-pets", filters],
     initialPageParam: 0,
-    queryFn: ({ pageParam, signal }) =>
-      fetchMockAdoptionPets({
+    queryFn: ({ pageParam }) =>
+      fetchAvailablePets({
         filters,
         page: pageParam,
         pageSize: PAGE_SIZE,
-        signal,
       }),
     getNextPageParam: (lastPage) => lastPage.nextPage,
     staleTime: 30_000,
