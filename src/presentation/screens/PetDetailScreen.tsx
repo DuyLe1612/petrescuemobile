@@ -1,52 +1,40 @@
-import { AdoptionPet } from "@/src/domain/entities/adoption-pet";
+import { queryClient } from "@/app/_layout";
+import type { AdoptionPet } from "@/src/domain/entities/adoption-pet";
 import { FastImage } from "@/src/presentation/components/adoption/FastImage";
-import {
-  fetchMockPetById,
-  toggleMockFavoritePet,
-} from "@/src/infrastructure/mocks/adoption-pets";
+import { fetchPetDetail } from "@/src/presentation/data/pet-api";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const InfoTile = ({ label, value }: { label: string; value: string }) => {
-  return (
-    <View className="flex-1 rounded-3xl bg-muted px-4 py-4">
-      <Text className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </Text>
-      <Text className="mt-2 text-base font-bold text-foreground">{value}</Text>
-    </View>
-  );
-};
+const InfoTile = ({ label, value }: { label: string; value: string }) => (
+  <View className="flex-1 rounded-3xl bg-muted px-4 py-4">
+    <Text className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+      {label}
+    </Text>
+    <Text className="mt-2 text-base font-bold text-foreground">{value}</Text>
+  </View>
+);
 
-const GradientButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.92} className="overflow-hidden rounded-full">
-      <View className="relative items-center justify-center px-6 py-4">
-        <Svg className="absolute inset-0 h-full w-full" width="100%" height="100%">
-          <Defs>
-            <SvgLinearGradient id="ctaGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset="0%" stopColor="#1f6f7b" />
-              <Stop offset="55%" stopColor="#277f8f" />
-              <Stop offset="100%" stopColor="#52a9b7" />
-            </SvgLinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#ctaGradient)" rx="999" />
-        </Svg>
-        <Text className="text-base font-extrabold text-white">{label}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
+const GradientButton = ({ label, onPress }: { label: string; onPress: () => void }) => (
+  <TouchableOpacity onPress={onPress} activeOpacity={0.92} className="overflow-hidden rounded-full">
+    <View className="relative items-center justify-center px-6 py-4">
+      <Svg className="absolute inset-0 h-full w-full" width="100%" height="100%">
+        <Defs>
+          <SvgLinearGradient id="ctaGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="#1f6f7b" />
+            <Stop offset="55%" stopColor="#277f8f" />
+            <Stop offset="100%" stopColor="#52a9b7" />
+          </SvgLinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#ctaGradient)" rx="999" />
+      </Svg>
+      <Text className="text-base font-extrabold text-white">{label}</Text>
+    </View>
+  </TouchableOpacity>
+);
 
 const getSpeciesLabel = (pet: AdoptionPet) => {
   if (pet.species === "dog") return "Chó";
@@ -58,47 +46,23 @@ const getSpeciesLabel = (pet: AdoptionPet) => {
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const initialPet = queryClient.getQueryData<AdoptionPet>(["pet-detail", id]);
 
   const detailQuery = useQuery({
     queryKey: ["pet-detail", id],
-    queryFn: ({ signal }) => fetchMockPetById({ id, signal }),
+    queryFn: () => fetchPetDetail(id),
     initialData: initialPet,
   });
 
-  const favoriteMutation = useMutation({
-    mutationFn: ({ nextFavorite }: { nextFavorite: boolean }) =>
-      toggleMockFavoritePet({ id, nextFavorite }),
-    onMutate: async ({ nextFavorite }) => {
-      await queryClient.cancelQueries({ queryKey: ["pet-detail", id] });
-      const previousPet = queryClient.getQueryData<AdoptionPet>(["pet-detail", id]);
-
-      if (previousPet) {
-        queryClient.setQueryData<AdoptionPet>(["pet-detail", id], {
-          ...previousPet,
-          favorite: nextFavorite,
-        });
-      }
-
-      return { previousPet };
-    },
-    onError: (error, _, context) => {
-      if (context?.previousPet) {
-        queryClient.setQueryData(["pet-detail", id], context.previousPet);
-      }
-
-      Alert.alert(
-        "Không thể cập nhật",
-        error instanceof Error ? error.message : "Vui lòng thử lại."
-      );
-    },
-    onSuccess: (updatedPet) => {
-      queryClient.setQueryData(["pet-detail", id], updatedPet);
-    },
-  });
-
   const pet = detailQuery.data;
+
+  if (detailQuery.isLoading && !pet) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   if (!pet) {
     return (
@@ -128,16 +92,14 @@ export default function PetDetailScreen() {
               <Feather name="chevron-left" size={22} color="#ffffff" />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => favoriteMutation.mutate({ nextFavorite: !pet.favorite })}
+              onPress={() =>
+                Alert.alert("Thông báo", "Chức năng yêu thích chưa được backend hỗ trợ trong app này.")
+              }
               accessibilityRole="button"
-              accessibilityLabel={pet.favorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
+              accessibilityLabel="Yêu thích"
               className="h-11 w-11 items-center justify-center rounded-full bg-black/40"
             >
-              <Ionicons
-                name={pet.favorite ? "heart" : "heart-outline"}
-                size={22}
-                color={pet.favorite ? "#ff6b6b" : "#ffffff"}
-              />
+              <Ionicons name="heart-outline" size={22} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -205,7 +167,7 @@ export default function PetDetailScreen() {
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() =>
-              Alert.alert("Chat với shelter", "Màn chat mock sẽ được nối ở bước tiếp theo.")
+              Alert.alert("Chat với shelter", "Luồng chat chưa được backend/app này hỗ trợ.")
             }
             accessibilityRole="button"
             accessibilityLabel="Chat với shelter"
@@ -217,7 +179,7 @@ export default function PetDetailScreen() {
             <GradientButton
               label="Nhận nuôi bé ngay"
               onPress={() =>
-                Alert.alert("Adoption Form", "Màn form nhận nuôi mock sẽ được nối ở bước tiếp theo.")
+                Alert.alert("Adoption Form", "Luồng tạo đơn nhận nuôi sẽ được nối ở bước tiếp theo.")
               }
             />
           </View>

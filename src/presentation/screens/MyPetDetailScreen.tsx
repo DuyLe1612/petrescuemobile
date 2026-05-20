@@ -8,17 +8,17 @@ import {
   SecondaryButton,
   ToneChip,
 } from "@/src/presentation/components/my-pets/ui";
-import { findMyPetById } from "@/src/presentation/mocks/my-pets";
+import { fetchMyPetDetail } from "@/src/presentation/data/pet-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, View, Pressable } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MyPetDetailScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const pet = findMyPetById(id ?? "");
   const insets = useSafeAreaInsets();
 
   const backgroundColor = useThemeColor({}, "background");
@@ -26,6 +26,20 @@ export default function MyPetDetailScreen() {
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
   const primaryColor = useThemeColor({}, "tint");
+  const petQuery = useQuery({
+    queryKey: ["my-pet-detail", id],
+    queryFn: () => fetchMyPetDetail(id ?? ""),
+    enabled: Boolean(id),
+  });
+  const pet = petQuery.data;
+
+  if (petQuery.isLoading && !pet) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   if (!pet) {
     return (
@@ -121,17 +135,10 @@ export default function MyPetDetailScreen() {
 
           <MyPetPanel style={{ marginTop: 14 }}>
             <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>Checklist sức khỏe</Text>
-            <Text style={{ color: mutedColor, fontSize: 11, marginTop: 4 }}>
-              {pet.healthSummary}
-            </Text>
+            <Text style={{ color: mutedColor, fontSize: 11, marginTop: 4 }}>{pet.healthSummary}</Text>
             <View style={{ marginTop: 8 }}>
               {pet.checklists.map((item) => (
-                <ChecklistRow
-                  key={item.id}
-                  title={item.title}
-                  detail={item.detail}
-                  tone={item.tone}
-                />
+                <ChecklistRow key={item.id} title={item.title} detail={item.detail} tone={item.tone} />
               ))}
             </View>
           </MyPetPanel>

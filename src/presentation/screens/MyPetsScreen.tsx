@@ -7,11 +7,12 @@ import {
   StatCard,
   ToneChip,
 } from "@/src/presentation/components/my-pets/ui";
-import { MY_PETS } from "@/src/presentation/mocks/my-pets";
+import { fetchMyPets } from "@/src/presentation/data/pet-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { ScrollView, Text, View, Pressable } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MyPetsScreen() {
@@ -20,6 +21,11 @@ export default function MyPetsScreen() {
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
   const primaryColor = useThemeColor({}, "tint");
+  const petsQuery = useQuery({
+    queryKey: ["my-pets"],
+    queryFn: fetchMyPets,
+  });
+  const pets = petsQuery.data ?? [];
 
   return (
     <ScrollView
@@ -45,18 +51,24 @@ export default function MyPetsScreen() {
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "white", fontSize: 10, fontWeight: "800" }}>{MY_PETS.length}</Text>
+            <Text style={{ color: "white", fontSize: 10, fontWeight: "800" }}>{pets.length}</Text>
           </View>
         }
       />
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-        <StatCard value={`${MY_PETS.length}`} label="Tổng" accent="#ff9f43" />
-        <StatCard value={`${MY_PETS.filter((pet) => pet.statusTone === "good").length}`} label="Thành viên" accent="#44b882" />
+        <StatCard value={`${pets.length}`} label="Tổng" accent="#ff9f43" />
+        <StatCard value={`${pets.filter((pet) => pet.statusTone === "good").length}`} label="Ổn định" accent="#44b882" />
       </View>
 
+      {petsQuery.isLoading ? (
+        <View style={{ marginTop: 24, alignItems: "center" }}>
+          <ActivityIndicator />
+        </View>
+      ) : null}
+
       <View style={{ marginTop: 14, gap: 12 }}>
-        {MY_PETS.map((pet) => (
+        {pets.map((pet) => (
           <Pressable
             key={pet.id}
             onPress={() => router.push({ pathname: "/my-pets/[id]", params: { id: pet.id } })}
@@ -88,6 +100,15 @@ export default function MyPetsScreen() {
           </Pressable>
         ))}
       </View>
+
+      {!petsQuery.isLoading && pets.length === 0 ? (
+        <MyPetPanel style={{ marginTop: 14, alignItems: "center" }}>
+          <Text style={{ color: textColor, fontSize: 14, fontWeight: "700" }}>Chưa có thú cưng nào từ API.</Text>
+          <Text style={{ color: mutedColor, fontSize: 12, marginTop: 6, textAlign: "center" }}>
+            Hãy tạo hồ sơ thú cưng trên hệ thống để màn hình này hiển thị dữ liệu thật.
+          </Text>
+        </MyPetPanel>
+      ) : null}
 
       <MyPetPanel
         style={{

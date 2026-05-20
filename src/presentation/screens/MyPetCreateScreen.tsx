@@ -6,11 +6,13 @@ import {
   SectionCaption,
   SelectChip,
 } from "@/src/presentation/components/my-pets/ui";
+import { createMyPet } from "@/src/presentation/data/pet-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather } from "@expo/vector-icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SPECIES_OPTIONS = [
@@ -25,6 +27,7 @@ const GENDER_OPTIONS = [
 
 export default function MyPetCreateScreen() {
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const backgroundColor = useThemeColor({}, "background");
   const primaryColor = useThemeColor({}, "tint");
@@ -40,6 +43,26 @@ export default function MyPetCreateScreen() {
   const [gender, setGender] = useState<(typeof GENDER_OPTIONS)[number]["id"]>("female");
 
   const canSave = useMemo(() => name.trim().length > 0 && breed.trim().length > 0, [breed, name]);
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      createMyPet({
+        name: name.trim(),
+        breed: breed.trim(),
+        species,
+        gender,
+        weight: weight ? Number(weight) : undefined,
+        color: color.trim() || undefined,
+        description: description.trim() || undefined,
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["my-pets"] });
+      router.replace("/my-pets/create-success");
+    },
+    onError: (error) => {
+      Alert.alert("Không thể tạo hồ sơ", error instanceof Error ? error.message : "Vui lòng thử lại.");
+    },
+  });
 
   return (
     <ScrollView
@@ -57,7 +80,7 @@ export default function MyPetCreateScreen() {
         backIcon="x"
         rightSlot={
           <Pressable
-            onPress={canSave ? () => router.push("/my-pets/create-success") : undefined}
+            onPress={canSave ? () => createMutation.mutate() : undefined}
             style={{
               borderRadius: MY_PET_TOKENS.radius.pill,
               backgroundColor: canSave ? "rgba(39,127,143,0.12)" : "rgba(170,170,170,0.14)",
@@ -66,7 +89,7 @@ export default function MyPetCreateScreen() {
             }}
           >
             <Text style={{ color: canSave ? primaryColor : mutedColor, fontSize: 11, fontWeight: "700" }}>
-              Lưu
+              {createMutation.isPending ? "Đang lưu" : "Lưu"}
             </Text>
           </Pressable>
         }
@@ -90,7 +113,7 @@ export default function MyPetCreateScreen() {
         </View>
         <Text style={{ color: textColor, fontSize: 13, fontWeight: "700", marginTop: 10 }}>Thêm ảnh đại diện</Text>
         <Text style={{ color: mutedColor, fontSize: 11, marginTop: 4 }}>
-          Chỉ là UI, chưa kết nối upload ảnh.
+          Upload ảnh chưa được nối ở bước này, nên hồ sơ sẽ tạo không kèm media.
         </Text>
       </MyPetPanel>
 
@@ -129,7 +152,7 @@ export default function MyPetCreateScreen() {
           </View>
         </View>
 
-        <LabeledInput label="Cân nặng" value={weight} onChangeText={setWeight} placeholder="Ví dụ: 7.8 kg" />
+        <LabeledInput label="Cân nặng" value={weight} onChangeText={setWeight} placeholder="Ví dụ: 7.8" />
         <LabeledInput label="Màu lông" value={color} onChangeText={setColor} placeholder="Ví dụ: Vàng kem" />
         <LabeledInput
           label="Ghi chú"
