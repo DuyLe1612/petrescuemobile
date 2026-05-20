@@ -4,6 +4,7 @@ import { type AdoptionPet } from "@/src/domain/entities/adoption-pet";
 import { useSessionBootstrap } from "@/src/presentation/hooks/use-session-bootstrap";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { type ReactNode, useEffect, useState } from "react";
 import {
@@ -407,6 +408,11 @@ function AuthenticatedFeed() {
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
   const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
+  const feedQuery = useQuery({
+    queryKey: ["community-feed"],
+    queryFn: () => fetchFeedPosts({ size: 10 }),
+  });
+  const posts = feedQuery.data?.items ?? [];
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
@@ -500,7 +506,22 @@ function AuthenticatedFeed() {
           </View>
 
           <View style={{ marginTop: 14, gap: 14 }}>
-            {FEED_POSTS.map((post) => (
+            {feedQuery.isLoading ? (
+              <View
+                style={{
+                  borderRadius: HOME_TOKENS.radius.card,
+                  backgroundColor: cardColor,
+                  paddingVertical: 32,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  ...HOME_TOKENS.shadow,
+                }}
+              >
+                <ActivityIndicator color={primaryColor} />
+              </View>
+            ) : null}
+
+            {!feedQuery.isLoading && posts.map((post) => (
               <FeedCard
                 key={post.id}
                 post={post}
@@ -510,6 +531,25 @@ function AuthenticatedFeed() {
                 borderColor={borderColor}
               />
             ))}
+
+            {!feedQuery.isLoading && posts.length === 0 ? (
+              <View
+                style={{
+                  borderRadius: HOME_TOKENS.radius.card,
+                  backgroundColor: cardColor,
+                  paddingVertical: 24,
+                  paddingHorizontal: 18,
+                  ...HOME_TOKENS.shadow,
+                }}
+              >
+                <Text style={{ color: textColor, fontSize: 15, fontWeight: "700" }}>
+                  Chưa có bài viết cộng đồng.
+                </Text>
+                <Text style={{ color: mutedColor, fontSize: 12, marginTop: 6 }}>
+                  Feed sẽ hiển thị dữ liệu thật từ API khi có bài đăng.
+                </Text>
+              </View>
+            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -544,7 +584,7 @@ function FeedCard({
   mutedColor,
   borderColor,
 }: {
-  post: FeedPost;
+  post: FeedPostViewModel;
   cardColor: string;
   textColor: string;
   mutedColor: string;
@@ -615,15 +655,17 @@ function FeedCard({
 
         <Text style={{ color: textColor, fontSize: 15, lineHeight: 22, marginTop: 12 }}>{post.title}</Text>
 
-        <FastImage
-          source={{ uri: post.imageUrl }}
-          style={{
-            width: "100%",
-            height: 240,
-            borderRadius: 18,
-            marginTop: 12,
-          }}
-        />
+        {post.imageUrl ? (
+          <FastImage
+            source={{ uri: post.imageUrl }}
+            style={{
+              width: "100%",
+              height: 240,
+              borderRadius: 18,
+              marginTop: 12,
+            }}
+          />
+        ) : null}
 
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
           <Ionicons name="location-outline" size={14} color={mutedColor} />
