@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CreatePetRequestDtoGender } from './createPetRequestDtoGender';
+import type { CreatePetRequestDtoHealthStatus } from './createPetRequestDtoHealthStatus';
 
 export interface CreatePetRequestDto {
   /**
@@ -46,6 +47,7 @@ export interface CreatePetRequestDto {
   description?: string;
   vaccinated?: boolean;
   neutered?: boolean;
+  healthStatus?: CreatePetRequestDtoHealthStatus;
   rescueDate?: string;
   /**
      * @minLength 0
@@ -57,6 +59,11 @@ export interface CreatePetRequestDto {
      * @maxItems 10
      */
   imageUrls?: string[];
+  /**
+     * @minItems 0
+     * @maxItems 10
+     */
+  mediaIds?: string[];
   shelterId?: string;
   rescueCaseId?: string;
 }

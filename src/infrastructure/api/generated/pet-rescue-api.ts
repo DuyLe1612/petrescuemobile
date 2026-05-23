@@ -6,12 +6,18 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
+  AddMediaBody,
+  AddMediaParams,
   AddMemberRequestDto,
   ApiResponseAdoptionResponseDto,
   ApiResponseAuthTokenResponseDto,
   ApiResponseBannerResponseDto,
+  ApiResponseChatMessageDto,
   ApiResponseCommentResponseDto,
+  ApiResponseConversationCursorResponseDto,
+  ApiResponseConversationSummaryDto,
   ApiResponseCursorPageDtoCommentSummaryDto,
+  ApiResponseFriendRequestDto,
   ApiResponseGeoUserLocationDto,
   ApiResponseLikeStatusDto,
   ApiResponseListBannerResponseDto,
@@ -20,35 +26,44 @@ import type {
   ApiResponseListPermissionResponseDto,
   ApiResponseListRescueMapMarkerDto,
   ApiResponseMediaFileResponseDto,
+  ApiResponseMediaSignedUploadResponseDto,
   ApiResponseMediaUploadResponseDto,
   ApiResponseOrganizationMemberResponseDto,
   ApiResponseOrganizationResponseDto,
   ApiResponsePageResponseAdoptionSummaryResponseDto,
   ApiResponsePageResponseBannerResponseDto,
+  ApiResponsePageResponseChatMessageDto,
   ApiResponsePageResponseCommentSummaryDto,
-  ApiResponsePageResponseMediaFileResponseDto,
+  ApiResponsePageResponseFriendRequestDto,
+  ApiResponsePageResponseFriendSummaryDto,
   ApiResponsePageResponseOrganizationMemberResponseDto,
   ApiResponsePageResponseOrganizationSummaryResponseDto,
+  ApiResponsePageResponsePetMediaResponseDto,
   ApiResponsePageResponsePetMedicalRecordResponseDto,
   ApiResponsePageResponsePetOwnershipResponseDto,
   ApiResponsePageResponsePetSummaryResponseDto,
   ApiResponsePageResponsePostSummaryResponseDto,
+  ApiResponsePageResponseProvinceSummaryDto,
   ApiResponsePageResponseRescueCaseSummaryResponseDto,
   ApiResponsePageResponseRoleSummaryResponseDto,
   ApiResponsePageResponseTagSummaryResponseDto,
   ApiResponsePageResponseUserSummaryResponseDto,
+  ApiResponsePetMediaResponseDto,
   ApiResponsePetMedicalRecordResponseDto,
   ApiResponsePetResponseDto,
   ApiResponsePostCursorResponseDto,
   ApiResponsePostResponseDto,
+  ApiResponseProvinceDetailDto,
   ApiResponseRescueCaseResponseDto,
   ApiResponseRoleResponseDto,
+  ApiResponseString,
   ApiResponseTagResponseDto,
   ApiResponseUserReputationResponseDto,
   ApiResponseUserResponseDto,
   ApiResponseVoid,
   AssignOrgRoleRequestDto,
   AssignPermissionsRequestDto,
+  AttachPetMediaRequestDto,
   ChangeStatus1Params,
   ChangeStatus2Params,
   ConfirmUploadParams,
@@ -56,7 +71,9 @@ import type {
   CreateAdoptionRequestDto,
   CreateBannerRequestDto,
   CreateCommentRequestDto,
+  CreateConversationRequestDto,
   CreateMedicalRecordRequestDto,
+  CreateMessageRequestDto,
   CreateOrganizationAccountRequestDto,
   CreateOrganizationRequestDto,
   CreatePetRequestDto,
@@ -91,20 +108,31 @@ import type {
   GetMembersParams,
   GetNearbyParams,
   GetOwnershipsParams,
+  GetProvinceDetailParams,
   GetRepliesParams,
   GetWithinBoundingBoxParams,
+  ListConversationsParams,
+  ListFriendsParams,
+  ListMessagesParams,
+  ListPendingParams,
+  ListProvincesParams,
   LoginRequestDto,
+  MarkReadRequestDto,
+  MediaRegisterRequestDto,
+  MediaSignedUploadRequestDto,
   NearbyParams,
   RefreshTokenRequestDto,
   RegisterRequestDto,
   ResendVerificationParams,
   ResetPasswordRequestDto,
+  SendRequestParams,
   TransferOwnershipRequestDto,
   UpdateBannerRequestDto,
   UpdateDisplayOrderParams,
   UpdatePetRequestDto,
   UpdatePostRequestDto,
   UpdateProfileParams,
+  UpdatePushTokenBody,
   UpdateRescueCaseStatusRequestDto,
   UploadTempBody,
   UploadTempParams,
@@ -313,6 +341,17 @@ export const delete2 = (
  options?: SecondParameter<typeof customInstance<ApiResponseVoid>>,) => {
       return customInstance<ApiResponseVoid>(
       {url: `/api/v1/banners/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+
+export const updatePushToken = (
+    updatePushTokenBody: BodyType<UpdatePushTokenBody>,
+ options?: SecondParameter<typeof customInstance<ApiResponseString>>,) => {
+      return customInstance<ApiResponseString>(
+      {url: `/api/v1/users/me/push-token`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: updatePushTokenBody
     },
       options);
     }
@@ -568,6 +607,58 @@ export const addMedicalRecord = (
     }
 
 /**
+ * Fetch all media files associated with a pet, paginated
+ * @summary List media attachments for a pet (paginated)
+ */
+export const getMedia = (
+    petId: string,
+    params?: GetMediaParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponsePetMediaResponseDto>>,) => {
+      return customInstance<ApiResponsePageResponsePetMediaResponseDto>(
+      {url: `/api/v1/pets/${petId}/media`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary Upload a new image for a pet
+ */
+export const addMedia = (
+    petId: string,
+    addMediaBody?: BodyType<AddMediaBody>,
+    params?: AddMediaParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePetMediaResponseDto>>,) => {const formData = new FormData();
+if(addMediaBody?.file !== undefined) {
+ formData.append(`file`, addMediaBody.file);
+ }
+
+      return customInstance<ApiResponsePetMediaResponseDto>(
+      {url: `/api/v1/pets/${petId}/media`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData,
+        params
+    },
+      options);
+    }
+
+/**
+ * Use this after a presigned/direct Cloudinary upload and /media/register flow.
+ * @summary Attach an already uploaded image to a pet
+ */
+export const attachMedia = (
+    petId: string,
+    attachPetMediaRequestDto: BodyType<AttachPetMediaRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponsePetMediaResponseDto>>,) => {
+      return customInstance<ApiResponsePetMediaResponseDto>(
+      {url: `/api/v1/pets/${petId}/media/attach`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: attachPetMediaRequestDto
+    },
+      options);
+    }
+
+/**
  * Manually transfer pet ownership to a new user or organization. Only system admins or owners of the organization that currently owns the pet can perform this action.
  * @summary Transfer pet ownership (Admin or Organization Owner only)
  */
@@ -691,6 +782,73 @@ if(uploadTempBody?.file !== undefined) {
     }
 
 /**
+ * Returns a Cloudinary signature for direct client upload.
+ * @summary Create signed upload payload
+ */
+export const createSignedUpload = (
+    mediaSignedUploadRequestDto?: BodyType<MediaSignedUploadRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseMediaSignedUploadResponseDto>>,) => {
+      return customInstance<ApiResponseMediaSignedUploadResponseDto>(
+      {url: `/api/v1/media/upload/signed`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: mediaSignedUploadRequestDto
+    },
+      options);
+    }
+
+/**
+ * Registers a media file uploaded directly to Cloudinary.
+ * @summary Register uploaded media
+ */
+export const register = (
+    mediaRegisterRequestDto: BodyType<MediaRegisterRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseMediaUploadResponseDto>>,) => {
+      return customInstance<ApiResponseMediaUploadResponseDto>(
+      {url: `/api/v1/media/register`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: mediaRegisterRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Send a friend request
+ */
+export const sendRequest = (
+    params: SendRequestParams,
+ options?: SecondParameter<typeof customInstance<ApiResponseFriendRequestDto>>,) => {
+      return customInstance<ApiResponseFriendRequestDto>(
+      {url: `/api/v1/friends/requests`, method: 'POST',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary Reject a friend request
+ */
+export const rejectRequest = (
+    requestId: string,
+ options?: SecondParameter<typeof customInstance<ApiResponseFriendRequestDto>>,) => {
+      return customInstance<ApiResponseFriendRequestDto>(
+      {url: `/api/v1/friends/requests/${requestId}/reject`, method: 'POST'
+    },
+      options);
+    }
+
+/**
+ * @summary Accept a friend request
+ */
+export const acceptRequest = (
+    requestId: string,
+ options?: SecondParameter<typeof customInstance<ApiResponseFriendRequestDto>>,) => {
+      return customInstance<ApiResponseFriendRequestDto>(
+      {url: `/api/v1/friends/requests/${requestId}/accept`, method: 'POST'
+    },
+      options);
+    }
+
+/**
  * Adds the authenticated user's like to the comment. Operation is idempotent.
  * @summary Like a comment
  */
@@ -712,6 +870,77 @@ export const unlikeComment = (
  options?: SecondParameter<typeof customInstance<ApiResponseLikeStatusDto>>,) => {
       return customInstance<ApiResponseLikeStatusDto>(
       {url: `/api/v1/comments/${commentId}/like`, method: 'DELETE'
+    },
+      options);
+    }
+
+/**
+ * @summary List conversations by cursor for current user
+ */
+export const listConversations = (
+    params?: ListConversationsParams,
+ options?: SecondParameter<typeof customInstance<ApiResponseConversationCursorResponseDto>>,) => {
+      return customInstance<ApiResponseConversationCursorResponseDto>(
+      {url: `/api/v1/chats/conversations`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary Create or get a direct conversation
+ */
+export const createConversation = (
+    createConversationRequestDto: BodyType<CreateConversationRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseConversationSummaryDto>>,) => {
+      return customInstance<ApiResponseConversationSummaryDto>(
+      {url: `/api/v1/chats/conversations`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createConversationRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Mark conversation as read
+ */
+export const markRead = (
+    conversationId: string,
+    markReadRequestDto?: BodyType<MarkReadRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseVoid>>,) => {
+      return customInstance<ApiResponseVoid>(
+      {url: `/api/v1/chats/conversations/${conversationId}/read`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: markReadRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Get messages in a conversation (paged)
+ */
+export const listMessages = (
+    conversationId: string,
+    params?: ListMessagesParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseChatMessageDto>>,) => {
+      return customInstance<ApiResponsePageResponseChatMessageDto>(
+      {url: `/api/v1/chats/conversations/${conversationId}/messages`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary Send a message to a conversation
+ */
+export const sendMessage = (
+    conversationId: string,
+    createMessageRequestDto: BodyType<CreateMessageRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseChatMessageDto>>,) => {
+      return customInstance<ApiResponseChatMessageDto>(
+      {url: `/api/v1/chats/conversations/${conversationId}/messages`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createMessageRequestDto
     },
       options);
     }
@@ -775,7 +1004,7 @@ export const resendVerification = (
  * Creates the user and sends a verification email
  * @summary Register a new account
  */
-export const register = (
+export const register1 = (
     registerRequestDto: BodyType<RegisterRequestDto>,
  options?: SecondParameter<typeof customInstance<ApiResponseAuthTokenResponseDto>>,) => {
       return customInstance<ApiResponseAuthTokenResponseDto>(
@@ -952,6 +1181,19 @@ export const changeStatus = (
       {url: `/api/v1/rescue-cases/${id}/status`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateRescueCaseStatusRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Set a pet image as primary
+ */
+export const setPrimaryMedia = (
+    petId: string,
+    mediaId: string,
+ options?: SecondParameter<typeof customInstance<ApiResponsePetMediaResponseDto>>,) => {
+      return customInstance<ApiResponsePetMediaResponseDto>(
+      {url: `/api/v1/pets/${petId}/media/${mediaId}/primary`, method: 'PATCH'
     },
       options);
     }
@@ -1232,21 +1474,6 @@ export const getOwnerships = (
     }
 
 /**
- * Fetch all media files associated with a pet, paginated
- * @summary List media attachments for a pet (paginated)
- */
-export const getMedia = (
-    petId: string,
-    params?: GetMediaParams,
- options?: SecondParameter<typeof customInstance<ApiResponsePageResponseMediaFileResponseDto>>,) => {
-      return customInstance<ApiResponsePageResponseMediaFileResponseDto>(
-      {url: `/api/v1/pets/${petId}/media`, method: 'GET',
-        params
-    },
-      options);
-    }
-
-/**
  * @summary List pets owned by a user (paginated, with optional filters)
  */
 export const getByUser = (
@@ -1340,6 +1567,33 @@ export const delete4 = (
     }
 
 /**
+ * @summary List provinces
+ */
+export const listProvinces = (
+    params?: ListProvincesParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseProvinceSummaryDto>>,) => {
+      return customInstance<ApiResponsePageResponseProvinceSummaryDto>(
+      {url: `/api/v1/locations/p`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary Get province detail
+ */
+export const getProvinceDetail = (
+    code: number,
+    params?: GetProvinceDetailParams,
+ options?: SecondParameter<typeof customInstance<ApiResponseProvinceDetailDto>>,) => {
+      return customInstance<ApiResponseProvinceDetailDto>(
+      {url: `/api/v1/locations/p/${code}`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
  * Returns nearby active users (name, avatar, basic location).
  * @summary Get nearby active users
  */
@@ -1348,6 +1602,32 @@ export const nearby = (
  options?: SecondParameter<typeof customInstance<ApiResponseListGeoUserLocationDto>>,) => {
       return customInstance<ApiResponseListGeoUserLocationDto>(
       {url: `/api/v1/geo/nearby`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary List friends for current user
+ */
+export const listFriends = (
+    params?: ListFriendsParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseFriendSummaryDto>>,) => {
+      return customInstance<ApiResponsePageResponseFriendSummaryDto>(
+      {url: `/api/v1/friends`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary List pending friend requests for current user
+ */
+export const listPending = (
+    params?: ListPendingParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseFriendRequestDto>>,) => {
+      return customInstance<ApiResponsePageResponseFriendRequestDto>(
+      {url: `/api/v1/friends/requests/pending`, method: 'GET',
         params
     },
       options);
@@ -1461,6 +1741,19 @@ export const delete5 = (
     }
 
 /**
+ * @summary Delete a pet image
+ */
+export const deleteMedia = (
+    petId: string,
+    mediaId: string,
+ options?: SecondParameter<typeof customInstance<ApiResponseVoid>>,) => {
+      return customInstance<ApiResponseVoid>(
+      {url: `/api/v1/pets/${petId}/media/${mediaId}`, method: 'DELETE'
+    },
+      options);
+    }
+
+/**
  * @summary Remove a member from an organization
  */
 export const removeMember = (
@@ -1488,6 +1781,7 @@ export type UpdateMyLocationResult = NonNullable<Awaited<ReturnType<typeof updat
 export type GetById4Result = NonNullable<Awaited<ReturnType<typeof getById4>>>
 export type Update4Result = NonNullable<Awaited<ReturnType<typeof update4>>>
 export type Delete2Result = NonNullable<Awaited<ReturnType<typeof delete2>>>
+export type UpdatePushTokenResult = NonNullable<Awaited<ReturnType<typeof updatePushToken>>>
 export type GetAllResult = NonNullable<Awaited<ReturnType<typeof getAll>>>
 export type CreateResult = NonNullable<Awaited<ReturnType<typeof create>>>
 export type GetAll1Result = NonNullable<Awaited<ReturnType<typeof getAll1>>>
@@ -1506,6 +1800,9 @@ export type GetAll4Result = NonNullable<Awaited<ReturnType<typeof getAll4>>>
 export type CreateAsUserResult = NonNullable<Awaited<ReturnType<typeof createAsUser>>>
 export type GetMedicalRecordsResult = NonNullable<Awaited<ReturnType<typeof getMedicalRecords>>>
 export type AddMedicalRecordResult = NonNullable<Awaited<ReturnType<typeof addMedicalRecord>>>
+export type GetMediaResult = NonNullable<Awaited<ReturnType<typeof getMedia>>>
+export type AddMediaResult = NonNullable<Awaited<ReturnType<typeof addMedia>>>
+export type AttachMediaResult = NonNullable<Awaited<ReturnType<typeof attachMedia>>>
 export type TransferOwnershipResult = NonNullable<Awaited<ReturnType<typeof transferOwnership>>>
 export type CreateAsShelterResult = NonNullable<Awaited<ReturnType<typeof createAsShelter>>>
 export type GetAll5Result = NonNullable<Awaited<ReturnType<typeof getAll5>>>
@@ -1514,13 +1811,23 @@ export type GetMembersResult = NonNullable<Awaited<ReturnType<typeof getMembers>
 export type AddMemberResult = NonNullable<Awaited<ReturnType<typeof addMember>>>
 export type ConfirmUploadResult = NonNullable<Awaited<ReturnType<typeof confirmUpload>>>
 export type UploadTempResult = NonNullable<Awaited<ReturnType<typeof uploadTemp>>>
+export type CreateSignedUploadResult = NonNullable<Awaited<ReturnType<typeof createSignedUpload>>>
+export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
+export type SendRequestResult = NonNullable<Awaited<ReturnType<typeof sendRequest>>>
+export type RejectRequestResult = NonNullable<Awaited<ReturnType<typeof rejectRequest>>>
+export type AcceptRequestResult = NonNullable<Awaited<ReturnType<typeof acceptRequest>>>
 export type LikeCommentResult = NonNullable<Awaited<ReturnType<typeof likeComment>>>
 export type UnlikeCommentResult = NonNullable<Awaited<ReturnType<typeof unlikeComment>>>
+export type ListConversationsResult = NonNullable<Awaited<ReturnType<typeof listConversations>>>
+export type CreateConversationResult = NonNullable<Awaited<ReturnType<typeof createConversation>>>
+export type MarkReadResult = NonNullable<Awaited<ReturnType<typeof markRead>>>
+export type ListMessagesResult = NonNullable<Awaited<ReturnType<typeof listMessages>>>
+export type SendMessageResult = NonNullable<Awaited<ReturnType<typeof sendMessage>>>
 export type GetAll6Result = NonNullable<Awaited<ReturnType<typeof getAll6>>>
 export type Create4Result = NonNullable<Awaited<ReturnType<typeof create4>>>
 export type ResetPasswordResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
 export type ResendVerificationResult = NonNullable<Awaited<ReturnType<typeof resendVerification>>>
-export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
+export type Register1Result = NonNullable<Awaited<ReturnType<typeof register1>>>
 export type RefreshResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 export type LoginResult = NonNullable<Awaited<ReturnType<typeof login>>>
@@ -1533,6 +1840,7 @@ export type CreateOrganizationAccountResult = NonNullable<Awaited<ReturnType<typ
 export type CreateAccountResult = NonNullable<Awaited<ReturnType<typeof createAccount>>>
 export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
 export type ChangeStatusResult = NonNullable<Awaited<ReturnType<typeof changeStatus>>>
+export type SetPrimaryMediaResult = NonNullable<Awaited<ReturnType<typeof setPrimaryMedia>>>
 export type ChangeStatus1Result = NonNullable<Awaited<ReturnType<typeof changeStatus1>>>
 export type ChangeStatus2Result = NonNullable<Awaited<ReturnType<typeof changeStatus2>>>
 export type ToggleActiveResult = NonNullable<Awaited<ReturnType<typeof toggleActive>>>
@@ -1554,7 +1862,6 @@ export type GetMapMarkersResult = NonNullable<Awaited<ReturnType<typeof getMapMa
 export type GetInBoundingBoxResult = NonNullable<Awaited<ReturnType<typeof getInBoundingBox>>>
 export type GetFeedResult = NonNullable<Awaited<ReturnType<typeof getFeed>>>
 export type GetOwnershipsResult = NonNullable<Awaited<ReturnType<typeof getOwnerships>>>
-export type GetMediaResult = NonNullable<Awaited<ReturnType<typeof getMedia>>>
 export type GetByUserResult = NonNullable<Awaited<ReturnType<typeof getByUser>>>
 export type GetByOrganizationResult = NonNullable<Awaited<ReturnType<typeof getByOrganization>>>
 export type GetAvailableResult = NonNullable<Awaited<ReturnType<typeof getAvailable>>>
@@ -1562,7 +1869,11 @@ export type GetMapMarkers1Result = NonNullable<Awaited<ReturnType<typeof getMapM
 export type GetWithinBoundingBoxResult = NonNullable<Awaited<ReturnType<typeof getWithinBoundingBox>>>
 export type GetById7Result = NonNullable<Awaited<ReturnType<typeof getById7>>>
 export type Delete4Result = NonNullable<Awaited<ReturnType<typeof delete4>>>
+export type ListProvincesResult = NonNullable<Awaited<ReturnType<typeof listProvinces>>>
+export type GetProvinceDetailResult = NonNullable<Awaited<ReturnType<typeof getProvinceDetail>>>
 export type NearbyResult = NonNullable<Awaited<ReturnType<typeof nearby>>>
+export type ListFriendsResult = NonNullable<Awaited<ReturnType<typeof listFriends>>>
+export type ListPendingResult = NonNullable<Awaited<ReturnType<typeof listPending>>>
 export type GetCommentByIdResult = NonNullable<Awaited<ReturnType<typeof getCommentById>>>
 export type DeleteCommentResult = NonNullable<Awaited<ReturnType<typeof deleteComment>>>
 export type GetRepliesResult = NonNullable<Awaited<ReturnType<typeof getReplies>>>
@@ -1571,4 +1882,5 @@ export type VerifyEmailResult = NonNullable<Awaited<ReturnType<typeof verifyEmai
 export type GetById8Result = NonNullable<Awaited<ReturnType<typeof getById8>>>
 export type GetByUserIdResult = NonNullable<Awaited<ReturnType<typeof getByUserId>>>
 export type Delete5Result = NonNullable<Awaited<ReturnType<typeof delete5>>>
+export type DeleteMediaResult = NonNullable<Awaited<ReturnType<typeof deleteMedia>>>
 export type RemoveMemberResult = NonNullable<Awaited<ReturnType<typeof removeMember>>>

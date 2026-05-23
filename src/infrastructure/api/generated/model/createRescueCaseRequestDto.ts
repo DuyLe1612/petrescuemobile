@@ -23,5 +23,6 @@ export interface CreateRescueCaseRequestDto {
   wardCode?: string;
   wardName?: string;
   imageUrls?: string[];
+  mediaIds?: string[];
   contactPhone?: string;
 }
