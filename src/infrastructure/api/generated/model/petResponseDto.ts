@@ -35,6 +35,7 @@ export interface PetResponseDto {
   neutered?: boolean;
   rescueDate?: string;
   rescueLocation?: string;
+  primaryImageUrl?: string;
   imageUrls?: string[];
   shelterId?: string;
   createdAt?: string;

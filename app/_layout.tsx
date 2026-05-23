@@ -37,6 +37,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
           <Stack.Screen name="register" options={{ title: "Đăng ký" }} />
           <Stack.Screen name="application/index" options={{ headerShown: false }} />

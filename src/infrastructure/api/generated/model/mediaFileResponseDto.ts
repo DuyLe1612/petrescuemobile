@@ -13,6 +13,7 @@ import type { MediaFileResponseDtoType } from './mediaFileResponseDtoType';
 export interface MediaFileResponseDto {
   mediaId?: string;
   uploaderId?: string;
+  publicId?: string;
   url?: string;
   type?: MediaFileResponseDtoType;
   createdAt?: string;
