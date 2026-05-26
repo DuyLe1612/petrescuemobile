@@ -29,6 +29,12 @@ Mobile app for pet rescue with social feed, map-based discovery, and real-time c
 - Gluestack UI components
 - react-native-reanimated
 
+## API Client
+
+- Regenerate the OpenAPI client after backend spec changes:
+  - `npm run api:generate`
+- Orval reads from `https://pet-rescue-api-0uhx.onrender.com/api-docs` by default through `orval.config.cjs`.
+
 ## Coding Rules
 
 - Keep `app/` for routing only. UI logic belongs in `src/presentation`.

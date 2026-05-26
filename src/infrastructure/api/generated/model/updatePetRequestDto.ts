@@ -55,4 +55,9 @@ export interface UpdatePetRequestDto {
      * @maxItems 10
      */
   imageUrls?: string[];
+  /**
+     * @minItems 0
+     * @maxItems 10
+     */
+  mediaIds?: string[];
 }
