@@ -101,9 +101,12 @@ export default function TabLayout() {
         options={{
           title: "Chat",
           tabBarLabel: "Chat",
+          title: "Thong bao",
+          tabBarLabel: "Thong bao",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "chatbubble" : "chatbubble-outline"}
+              name={focused ? "notifications" : "notifications-outline"}
               size={size}
               color={color}
             />
