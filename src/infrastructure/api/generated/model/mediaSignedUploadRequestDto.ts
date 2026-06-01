@@ -7,6 +7,14 @@
  */
 
 export interface MediaSignedUploadRequestDto {
-  folder?: string;
-  publicId?: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  folder: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  publicId: string;
 }

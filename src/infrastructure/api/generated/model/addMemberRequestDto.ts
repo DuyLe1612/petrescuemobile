@@ -7,6 +7,7 @@
  */
 
 export interface AddMemberRequestDto {
-  userId?: string;
-  role?: string;
+  userId: string;
+  /** @pattern ^(OWNER|STAFF|VET|MEMBER)$ */
+  role: string;
 }

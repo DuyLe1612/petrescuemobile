@@ -7,8 +7,24 @@
  */
 
 export interface CreateMedicalRecordRequestDto {
-  description?: string;
-  vaccine?: string;
-  diagnosis?: string;
-  recordDate?: string;
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
+  description: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  vaccine: string;
+  /**
+     * @minLength 0
+     * @maxLength 1000
+     */
+  diagnosis: string;
+  /**
+     * @minLength 0
+     * @maxLength 50
+     */
+  recordDate: string;
 }

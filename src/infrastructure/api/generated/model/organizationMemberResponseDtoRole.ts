@@ -12,5 +12,6 @@ export type OrganizationMemberResponseDtoRole = typeof OrganizationMemberRespons
 export const OrganizationMemberResponseDtoRole = {
   OWNER: 'OWNER',
   STAFF: 'STAFF',
+  MEMBER: 'MEMBER',
   VET: 'VET',
 } as const;

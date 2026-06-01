@@ -7,11 +7,30 @@
  */
 
 export interface MediaRegisterRequestDto {
-  publicId?: string;
-  resourceType?: string;
-  format?: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  publicId: string;
+  /**
+     * @minLength 0
+     * @maxLength 20
+     */
+  resourceType: string;
+  /**
+     * @minLength 0
+     * @maxLength 20
+     */
+  format: string;
+  /** @minimum 1 */
   width?: number;
+  /** @minimum 1 */
   height?: number;
+  /** @minimum 1 */
   bytes?: number;
-  folder?: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  folder: string;
 }

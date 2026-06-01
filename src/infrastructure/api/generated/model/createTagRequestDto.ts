@@ -7,7 +7,19 @@
  */
 
 export interface CreateTagRequestDto {
-  code?: string;
-  name?: string;
+  /**
+     * @minLength 0
+     * @maxLength 50
+     */
+  code: string;
+  /**
+     * @minLength 0
+     * @maxLength 100
+     */
+  name: string;
+  /**
+     * @minLength 0
+     * @maxLength 500
+     */
   description?: string;
 }

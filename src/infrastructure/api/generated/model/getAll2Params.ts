@@ -7,6 +7,9 @@
  */
 
 export type GetAll2Params = {
+search?: string;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

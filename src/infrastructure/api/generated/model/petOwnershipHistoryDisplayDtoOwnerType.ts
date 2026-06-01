@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PetOwnershipResponseDtoOwnerType = typeof PetOwnershipResponseDtoOwnerType[keyof typeof PetOwnershipResponseDtoOwnerType];
+export type PetOwnershipHistoryDisplayDtoOwnerType = typeof PetOwnershipHistoryDisplayDtoOwnerType[keyof typeof PetOwnershipHistoryDisplayDtoOwnerType];
 
 
-export const PetOwnershipResponseDtoOwnerType = {
+export const PetOwnershipHistoryDisplayDtoOwnerType = {
   USER: 'USER',
   ORGANIZATION: 'ORGANIZATION',
 } as const;

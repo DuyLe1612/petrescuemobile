@@ -10,6 +10,9 @@ export interface ConversationSummaryDto {
   id?: string;
   type?: string;
   name?: string;
+  otherUserId?: string;
+  otherUserName?: string;
+  otherUserAvatarUrl?: string;
   lastMessage?: string;
   lastTime?: string;
   unread?: number;

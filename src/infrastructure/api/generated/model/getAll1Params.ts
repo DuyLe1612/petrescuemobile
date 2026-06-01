@@ -8,5 +8,8 @@
 
 export type GetAll1Params = {
 page?: number;
-size?: number;
+pageSize?: number;
+search?: string;
+sortBy?: string;
+sortOrder?: string;
 };

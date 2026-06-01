@@ -634,6 +634,16 @@ const LoggedInProfile = () => {
             onPress={() => router.push("/my-pets")}
           />
           <GuestMenuRow
+            icon={<Feather name="user-check" size={16} color="#1f9bd1" />}
+            label="Danh sách bạn bè"
+            badge="Mới"
+            textColor={textColor}
+            mutedColor={mutedColor}
+            subtleSurface={subtleSurface}
+            borderColor={borderColor}
+            onPress={() => router.push("/friends" as never)}
+          />
+          <GuestMenuRow
             icon={
               <Ionicons
                 name="document-text-outline"

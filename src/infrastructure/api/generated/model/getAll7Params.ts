@@ -8,6 +8,9 @@
 
 export type GetAll7Params = {
 status?: string[];
+search?: string;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

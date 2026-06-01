@@ -8,5 +8,5 @@
 
 export type ListConversationsParams = {
 cursor?: string;
-size?: number;
+pageSize?: number;
 };

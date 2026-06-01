@@ -5,12 +5,12 @@
  * RESTful API for Pet Rescue and Adoption Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { PageResponseFriendRequestDto } from './pageResponseFriendRequestDto';
+import type { PageResponsePetOwnershipHistoryDisplayDto } from './pageResponsePetOwnershipHistoryDisplayDto';
 
 /**
  * Standard API response wrapper
  */
-export interface ApiResponsePageResponseFriendRequestDto {
+export interface ApiResponsePageResponsePetOwnershipHistoryDisplayDto {
   /** Whether the request succeeded */
   success?: boolean;
   /** HTTP status code */
@@ -18,7 +18,7 @@ export interface ApiResponsePageResponseFriendRequestDto {
   /** Human-readable message */
   message?: string;
   /** Response payload */
-  data?: PageResponseFriendRequestDto;
+  data?: PageResponsePetOwnershipHistoryDisplayDto;
   /** ISO-8601 timestamp */
   timestamp?: string;
   /** Correlation ID for tracing */

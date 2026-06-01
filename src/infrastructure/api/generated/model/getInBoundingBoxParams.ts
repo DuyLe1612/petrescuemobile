@@ -12,5 +12,7 @@ minLng: number;
 maxLat: number;
 maxLng: number;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

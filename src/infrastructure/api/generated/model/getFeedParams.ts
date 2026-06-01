@@ -8,5 +8,5 @@
 
 export type GetFeedParams = {
 cursor?: string;
-size?: number;
+pageSize?: number;
 };

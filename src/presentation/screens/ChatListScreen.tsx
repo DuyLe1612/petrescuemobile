@@ -1,95 +1,110 @@
-import { chatApi } from "@/src/infrastructure/api/chat-api";
-import { useQuery } from "@tanstack/react-query";
+import { ChatSocket } from "@/src/infrastructure/api/chatSocket";
+import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
+import { Feather } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Text,
+    View
+} from "react-native";
+import { ChatListItem } from "../components/chat/ChatListItem";
+import { useChats } from "../hooks/useChat";
+
+const WS_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080")
+  .replace(/^https/, "wss")
+  .replace(/^http/, "ws");
 
 export default function ChatListScreen() {
   const router = useRouter();
-  const q = useQuery({
-    queryKey: ["conversations"],
-    queryFn: () => chatApi.listConversations(undefined, 50).then((r) => r.data),
-  });
+  const { data, fetchNextPage, hasNextPage, isLoading } = useChats(15);
+  const qc = useQueryClient();
+  const socketRef = useRef<ChatSocket | null>(null);
 
-  const items = q.data?.items ?? [];
+  const items = data?.pages.flatMap((page) => page.items) || [];
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const token = await tokenStorage.getAccessToken();
+      const sock = new ChatSocket();
+      socketRef.current = sock;
+      sock.connect(`${WS_BASE_URL}/chat-ws`, token || "");
+
+      sock.on("message", (ev: any) => {
+        if (!mounted) return;
+        if (ev.type === "conversation_update" && ev.conversationId) {
+          qc.setQueryData(["chats"], (old: any) => {
+            if (!old?.pages) return old;
+            const updatedPages = old.pages.map((page: any, idx: number) => {
+              let updatedItems = (page.items || []).map((item: any) =>
+                item.id === ev.conversationId
+                  ? {
+                      ...item,
+                      lastMessage: ev.payload?.lastMessage ?? item.lastMessage,
+                      lastTime: ev.payload?.lastTime ?? item.lastTime,
+                    }
+                  : item,
+              );
+              if (idx === 0) {
+                const updated = updatedItems.find(
+                  (i: any) => i.id === ev.conversationId,
+                );
+                if (updated) {
+                  updatedItems = [
+                    updated,
+                    ...updatedItems.filter(
+                      (i: any) => i.id !== ev.conversationId,
+                    ),
+                  ];
+                }
+              }
+              return { ...page, items: updatedItems };
+            });
+            return { ...old, pages: updatedPages };
+          });
+        }
+      });
+    })();
+
+    return () => {
+      mounted = false;
+      socketRef.current?.close();
+    };
+  }, [qc]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <FlatList
-        data={items}
-        keyExtractor={(i) => i.id}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => router.push(`/chat/${item.id}`)}
-            style={{
-              padding: 14,
-              borderBottomWidth: 1,
-              borderColor: "#f0f0f0",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: "#0b93f6",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "700" }}>
-                {(item.name || "C").slice(0, 1).toUpperCase()}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontWeight: "700", fontSize: 16 }}>
-                  {item.name || "Conversation"}
-                </Text>
-                {!!item.lastMessageTime && (
-                  <Text style={{ color: "#777", fontSize: 12 }}>
-                    {new Date(item.lastMessageTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Text>
-                )}
-              </View>
-              <Text numberOfLines={1} style={{ color: "#666", marginTop: 2 }}>
-                {item.lastMessagePreview || "Say hi to start the chat."}
-              </Text>
-            </View>
-            {typeof item.unread === "number" && item.unread > 0 && (
-              <View
-                style={{
-                  minWidth: 22,
-                  paddingHorizontal: 6,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: "#0b93f6",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Text
-                  style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}
-                >
-                  {item.unread}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        )}
-      />
+    <View className="flex-1 bg-white dark:bg-black">
+      {isLoading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#0b93f6" />
+        </View>
+      ) : items.length === 0 ? (
+        <View className="flex-1 justify-center items-center px-6">
+          <Feather name="message-circle" size={48} color="#cbd5e1" />
+          <Text className="text-gray-500 text-center mt-4">
+            Chưa có tin nhắn nào. Bấm vào biểu tượng tìm kiếm để bắt đầu trò
+            chuyện.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ChatListItem
+              conversation={item}
+              onPress={(id) => router.push(`/chat/${id}` as never)}
+            />
+          )}
+          onEndReached={() => {
+            if (hasNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.5}
+        />
+      )}
     </View>
   );
 }

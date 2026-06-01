@@ -5,14 +5,14 @@
  * RESTful API for Pet Rescue and Adoption Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { PetOwnershipResponseDto } from './petOwnershipResponseDto';
+import type { PetOwnershipHistoryDisplayDto } from './petOwnershipHistoryDisplayDto';
 
 /**
  * Paginated result set
  */
-export interface PageResponsePetOwnershipResponseDto {
+export interface PageResponsePetOwnershipHistoryDisplayDto {
   /** Items on this page */
-  content?: PetOwnershipResponseDto[];
+  content?: PetOwnershipHistoryDisplayDto[];
   /** Current page number (0-based) */
   page?: number;
   /** Page size */

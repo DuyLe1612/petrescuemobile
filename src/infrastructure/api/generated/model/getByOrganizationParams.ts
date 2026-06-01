@@ -8,7 +8,9 @@
 
 export type GetByOrganizationParams = {
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 species?: string;
 breed?: string;
 gender?: string;

@@ -5,7 +5,6 @@
  * RESTful API for Pet Rescue and Adoption Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { MediaFileResponseDto } from './mediaFileResponseDto';
 
 /**
  * Community post
@@ -16,7 +15,7 @@ export interface PostResponseDto {
   authorUsername?: string;
   rescueCaseId?: string;
   content?: string;
-  media?: MediaFileResponseDto[];
+  imageUrls?: string[];
   tags?: string[];
   createdAt?: string;
   updatedAt?: string;

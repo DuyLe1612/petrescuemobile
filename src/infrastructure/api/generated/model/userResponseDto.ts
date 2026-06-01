@@ -26,7 +26,9 @@ export interface UserResponseDto {
   phone?: string;
   gender?: UserResponseDtoGender;
   streetAddress?: string;
+  wardCode?: string;
   wardName?: string;
+  provinceCode?: string;
   provinceName?: string;
   status?: UserResponseDtoStatus;
   emailVerified?: boolean;

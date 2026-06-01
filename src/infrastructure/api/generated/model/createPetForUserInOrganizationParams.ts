@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type UpdateProfileParams = {
-username?: string;
-avatarUrl?: string;
+export type CreatePetForUserInOrganizationParams = {
+userId?: string;
 };

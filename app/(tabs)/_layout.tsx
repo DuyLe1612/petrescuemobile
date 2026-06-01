@@ -1,11 +1,12 @@
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/tokens";
-import { Tabs } from "expo-router";
-import { useColorScheme } from "react-native";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs, router } from "expo-router";
+import { TouchableOpacity, useColorScheme } from "react-native";
 
 export default function TabLayout() {
   const scheme = useColorScheme();
-  const t = scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
+  const t =
+    scheme === "dark" ? semanticColorValues.dark : semanticColorValues.light;
 
   return (
     <Tabs
@@ -27,7 +28,7 @@ export default function TabLayout() {
           elevation: 10,
           shadowOpacity: 0.08,
           shadowRadius: 10,
-          
+
           overflow: "hidden",
         },
 
@@ -43,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Trang chủ",
+          title: "trang chủ",
           tabBarLabel: "Trang chủ",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
@@ -51,6 +52,14 @@ export default function TabLayout() {
               size={size}
               color={color}
             />
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => router.push("/search-users" as never)}
+              style={{ marginRight: 16 }}
+            >
+              <Feather name="search" size={24} color={t.foreground} />
+            </TouchableOpacity>
           ),
         }}
       />
@@ -89,21 +98,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "notifications" : "notifications-outline"}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="chat"
-        options={{
-          title: "Chat",
-          tabBarLabel: "Chat",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "chatbubble" : "chatbubble-outline"}
               size={size}
               color={color}
             />

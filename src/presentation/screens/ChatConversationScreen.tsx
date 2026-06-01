@@ -1,21 +1,34 @@
 import { chatApi } from "@/src/infrastructure/api/chat-api";
 import { ChatSocket } from "@/src/infrastructure/api/chatSocket";
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Feather } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Button,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    FlatList,
+    Keyboard,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMessages, useSendMessage } from "../hooks/useChat";
+
+// Lấy WS base URL từ env — giống http client
+const WS_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080")
+  .replace(/^https/, "wss")
+  .replace(/^http/, "ws");
 
 export default function ChatConversationScreen({ route }: any) {
-  const conversationId = route?.params?.id || route?.id;
+  const params = useLocalSearchParams();
+  const conversationId =
+    (params.id as string) || route?.params?.id || route?.id;
+  const insets = useSafeAreaInsets();
+
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
@@ -26,17 +39,37 @@ export default function ChatConversationScreen({ route }: any) {
   >("unknown");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const currentUserIdRef = useRef<string | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const inputRef = useRef<TextInput>(null);
 
-  const messagesQ = useQuery({
-    queryKey: ["messages", conversationId],
-    queryFn: () =>
-      chatApi.listMessages(conversationId, 0, 50).then((r) => r.data),
-    enabled: !!conversationId,
-  });
+  const messagesQ = useMessages(conversationId);
+  const { mutateAsync: sendMessageAsync } = useSendMessage(conversationId);
+
+  // Keyboard listener — hoạt động trên cả Android edgeToEdge lẫn iOS
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      },
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      },
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
+    const fetchedMessages = messagesQ.data?.pages.flatMap((p) => p.items) || [];
     setMessages(
-      (messagesQ.data || []).map((item: any) => ({
+      fetchedMessages.map((item: any) => ({
         ...item,
         isMine: currentUserId ? item.senderId === currentUserId : false,
       })),
@@ -52,27 +85,36 @@ export default function ChatConversationScreen({ route }: any) {
     chatApi.markRead(conversationId).catch((e) => console.warn(e));
   }, [conversationId, messages.length]);
 
+  // WebSocket setup — dùng WS_BASE_URL từ env
   useEffect(() => {
+    if (!conversationId) return;
     let mounted = true;
+
     (async () => {
       const token = await tokenStorage.getAccessToken();
       if (token) {
         const subject = decodeJwtSubject(token);
         setCurrentUserId(subject);
       }
+
       const sock = new ChatSocket();
       socketRef.current = sock;
-      const apiBase =
-        process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080";
-      sock.connect(`${apiBase}/chat-ws`, token || "");
+      sock.connect(`${WS_BASE_URL}/chat-ws`, token || "");
+
       sock.on("open", () => {
         sock.send({ type: "presence", conversationId, content: "online" });
       });
+
       sock.on("message", (ev: any) => {
         if (!mounted) return;
-        if (ev.type === "message" && ev.conversationId === conversationId) {
+        if (
+          (ev.type === "message" || ev.type === "ack") &&
+          ev.conversationId === conversationId
+        ) {
           setMessages((prev) => {
-            const next = [
+            const exists = prev.some((m) => m.id === ev.payload?.id);
+            if (exists) return prev;
+            return [
               ...prev,
               {
                 ...ev.payload,
@@ -81,26 +123,40 @@ export default function ChatConversationScreen({ route }: any) {
                   : false,
               },
             ];
-            return next;
           });
           chatApi.markRead(conversationId).catch(() => {});
         }
         if (ev.type === "typing" && ev.conversationId === conversationId) {
           const typing = ev.payload?.typing === true;
           setRemoteTyping(typing);
-          if (typing) {
-            // clear after a timeout
-            setTimeout(() => setRemoteTyping(false), 3000);
-          }
+          if (typing) setTimeout(() => setRemoteTyping(false), 3000);
         }
         if (ev.type === "presence") {
           const status = ev.payload?.status;
-          if (status === "online" || status === "offline") {
+          if (status === "online" || status === "offline")
             setPresenceStatus(status);
-          }
+        }
+        if (ev.type === "conversation_update" && ev.conversationId) {
+          qc.setQueryData(["chats"], (old: any) => {
+            if (!old?.pages) return old;
+            const updatedPages = old.pages.map((page: any) => {
+              const items = (page.items || []).map((item: any) =>
+                item.id === ev.conversationId
+                  ? {
+                      ...item,
+                      lastMessage: ev.payload?.lastMessage ?? item.lastMessage,
+                      lastTime: ev.payload?.lastTime ?? item.lastTime,
+                    }
+                  : item,
+              );
+              return { ...page, items };
+            });
+            return { ...old, pages: updatedPages };
+          });
         }
       });
     })();
+
     return () => {
       mounted = false;
       socketRef.current?.send({
@@ -113,15 +169,27 @@ export default function ChatConversationScreen({ route }: any) {
   }, [conversationId]);
 
   const send = async () => {
-    if (!text) return;
+    const trimmed = text.trim();
+    if (!trimmed || !conversationId) return;
+    setText("");
+    socketRef.current?.sendTyping(conversationId, false);
+    const tempId = `local-${Date.now()}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        senderId: currentUserIdRef.current || "",
+        content: trimmed,
+        time: new Date().toISOString(),
+        seen: true,
+        isMine: true,
+      },
+    ]);
     try {
-      await chatApi.sendMessage(conversationId, text);
-      setText("");
-      setRemoteTyping(false);
-      socketRef.current?.sendTyping(conversationId, false);
+      await sendMessageAsync(trimmed);
       chatApi.markRead(conversationId).catch(() => {});
-      // refetch messages
       qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+      qc.invalidateQueries({ queryKey: ["chats"] });
     } catch (e) {
       console.warn(e);
     }
@@ -133,16 +201,19 @@ export default function ChatConversationScreen({ route }: any) {
     return "";
   }, [presenceStatus]);
 
+  // Padding bottom = keyboard height trừ safe area bottom (tránh double-padding trên iPhone)
+  const composerBottom = Math.max(0, keyboardHeight - insets.bottom);
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Chat</Text>
+          <Text style={styles.headerTitle}>
+            {(params.name as string) || "Chat"}
+          </Text>
           <Text style={styles.headerSubtitle}>
-            {presenceLabel || "Active conversation"}
+            {presenceLabel || "Đang hoạt động"}
           </Text>
         </View>
         <View
@@ -165,11 +236,20 @@ export default function ChatConversationScreen({ route }: any) {
         </View>
       </View>
 
+      {/* Messages */}
       <FlatList
+        ref={flatListRef}
         data={messages}
         keyExtractor={(m) => m.id}
         inverted
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "flex-end",
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+        }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         renderItem={({ item }) => {
           const isMe = !!item.isMine;
           return (
@@ -179,14 +259,20 @@ export default function ChatConversationScreen({ route }: any) {
                 isMe ? styles.bubbleRight : styles.bubbleLeft,
               ]}
             >
-              <Text style={{ color: isMe ? "#fff" : "#111" }}>
+              <Text
+                style={{
+                  color: isMe ? "#fff" : "#111",
+                  fontSize: 15,
+                  lineHeight: 21,
+                }}
+              >
                 {item.content}
               </Text>
               {!!item.time && (
                 <Text
                   style={[
                     styles.meta,
-                    { color: isMe ? "rgba(255,255,255,0.8)" : "#888" },
+                    { color: isMe ? "rgba(255,255,255,0.7)" : "#aaa" },
                   ]}
                 >
                   {new Date(item.time).toLocaleTimeString([], {
@@ -200,73 +286,154 @@ export default function ChatConversationScreen({ route }: any) {
         }}
       />
 
-      {remoteTyping && <Text style={styles.typing}>Typing…</Text>}
+      {/* Typing indicator */}
+      {remoteTyping && (
+        <View style={styles.typingRow}>
+          <View style={styles.typingDots}>
+            <View style={[styles.typingDot, { opacity: 0.4 }]} />
+            <View style={[styles.typingDot, { opacity: 0.7 }]} />
+            <View style={styles.typingDot} />
+          </View>
+          <Text style={styles.typingText}>đang nhập...</Text>
+        </View>
+      )}
 
-      <View style={styles.composer}>
+      {/* Composer — đẩy lên theo bàn phím qua paddingBottom */}
+      <View
+        style={[
+          styles.composer,
+          {
+            paddingBottom: composerBottom + insets.bottom + 8,
+            paddingTop: 8,
+          },
+        ]}
+      >
         <TextInput
+          ref={inputRef}
           style={styles.input}
           value={text}
           onChangeText={(t) => {
             setText(t);
             socketRef.current?.sendTyping(conversationId, t.length > 0);
           }}
+          placeholder="Nhập tin nhắn..."
+          placeholderTextColor="#aaa"
+          multiline
+          maxLength={2000}
+          returnKeyType="default"
         />
-        <Button title="Send" onPress={send} />
+        <TouchableOpacity
+          style={[styles.sendButton, !text.trim() && styles.sendButtonDisabled]}
+          onPress={send}
+          disabled={!text.trim()}
+          activeOpacity={0.75}
+        >
+          <Feather
+            name="send"
+            size={19}
+            color="#fff"
+            style={{ marginLeft: 2 }}
+          />
+        </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  bubble: { padding: 10, margin: 8, borderRadius: 16, maxWidth: "75%" },
-  bubbleLeft: {
-    backgroundColor: "#eee",
-    alignSelf: "flex-start",
-    borderTopLeftRadius: 4,
-  },
-  bubbleRight: {
-    backgroundColor: "#0b93f6",
-    alignSelf: "flex-end",
-    borderTopRightRadius: 4,
-  },
-  composer: { flexDirection: "row", padding: 8, alignItems: "center" },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-  },
-  typing: { padding: 8, color: "#666", fontStyle: "italic" },
+  container: { flex: 1, backgroundColor: "#f5f6fa" },
+
   header: {
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#ececec",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    backgroundColor: "#fff",
   },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: "#111" },
-  headerSubtitle: { fontSize: 12, color: "#777", marginTop: 2 },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: "#111" },
+  headerSubtitle: { fontSize: 12, color: "#777", marginTop: 1 },
+
   badge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 999,
   },
   badgeOnline: { backgroundColor: "#e9f9ef" },
-  badgeOffline: { backgroundColor: "#f4f4f4" },
-  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+  badgeOffline: { backgroundColor: "#f2f2f2" },
+  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 5 },
   dotOnline: { backgroundColor: "#28a745" },
-  dotOffline: { backgroundColor: "#999" },
+  dotOffline: { backgroundColor: "#bbb" },
   badgeText: { fontSize: 12, fontWeight: "700", color: "#111" },
-  meta: { fontSize: 11, marginTop: 4 },
+
+  bubble: {
+    maxWidth: "78%",
+    marginVertical: 3,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 18,
+  },
+  bubbleLeft: {
+    backgroundColor: "#fff",
+    alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  bubbleRight: {
+    backgroundColor: "#0b93f6",
+    alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
+  },
+  meta: { fontSize: 10, marginTop: 3, textAlign: "right" },
+
+  typingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
+  typingDots: { flexDirection: "row", gap: 3, marginRight: 6 },
+  typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#999" },
+  typingText: { fontSize: 12, color: "#999", fontStyle: "italic" },
+
+  composer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingHorizontal: 10,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#ececec",
+  },
+  input: {
+    flex: 1,
+    minHeight: 42,
+    maxHeight: 120,
+    backgroundColor: "#f1f3f5",
+    borderRadius: 21,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 8,
+    fontSize: 15,
+    color: "#111",
+  },
+  sendButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#0b93f6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 0,
+  },
+  sendButtonDisabled: { backgroundColor: "#c2e0fb" },
 });
 
 function decodeJwtSubject(token: string): string | null {

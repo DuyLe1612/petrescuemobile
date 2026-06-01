@@ -7,12 +7,33 @@
  */
 
 export interface UpdateBannerRequestDto {
+  /**
+     * @minLength 0
+     * @maxLength 200
+     */
   title?: string;
+  /**
+     * @minLength 0
+     * @maxLength 500
+     */
   subtitle?: string;
+  /**
+     * @minLength 0
+     * @maxLength 100
+     */
   buttonText?: string;
   mediaId?: string;
+  /**
+     * @minLength 0
+     * @maxLength 500
+     */
   linkUrl?: string;
+  /**
+     * @minLength 0
+     * @maxLength 20
+     */
   linkType?: string;
+  /** @minimum 0 */
   displayOrder?: number;
   startDate?: string;
   endDate?: string;

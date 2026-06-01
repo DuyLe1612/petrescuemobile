@@ -7,6 +7,7 @@
  */
 
 export type ListFriendsParams = {
-page?: number;
-size?: number;
+cursor?: string;
+pageSize?: number;
+search?: string;
 };

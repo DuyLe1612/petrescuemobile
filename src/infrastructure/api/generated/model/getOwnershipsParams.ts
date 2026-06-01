@@ -8,5 +8,7 @@
 
 export type GetOwnershipsParams = {
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

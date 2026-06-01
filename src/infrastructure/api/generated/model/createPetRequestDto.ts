@@ -26,7 +26,7 @@ export interface CreatePetRequestDto {
   breed?: string;
   /**
      * @minimum 0
-     * @maximum 600
+     * @maximum 6000
      */
   age?: number;
   gender?: CreatePetRequestDtoGender;

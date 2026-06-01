@@ -7,9 +7,21 @@
  */
 
 export interface CreateConversationRequestDto {
-  type?: string;
-  participantId?: string;
+  /**
+     * @minLength 0
+     * @maxLength 50
+     */
+  type: string;
+  participantId: string;
   rescueCaseId?: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
   name?: string;
+  /**
+     * @minLength 0
+     * @maxLength 1000
+     */
   relatedInfo?: string;
 }

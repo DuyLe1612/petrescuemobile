@@ -8,22 +8,70 @@
 import type { CreateOrganizationRequestDtoType } from './createOrganizationRequestDtoType';
 
 export interface CreateOrganizationRequestDto {
-  name?: string;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  name: string;
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
   description?: string;
-  type?: CreateOrganizationRequestDtoType;
-  streetAddress?: string;
-  /** Ward code */
-  wardCode?: string;
-  /** Ward name */
-  wardName?: string;
-  /** Province code */
-  provinceCode?: string;
-  /** Province name */
-  provinceName?: string;
+  /**
+     * @minLength 0
+     * @maxLength 50
+     */
+  type: CreateOrganizationRequestDtoType;
+  /**
+     * @minLength 0
+     * @maxLength 255
+     */
+  streetAddress: string;
+  /**
+     * Ward code
+     * @minLength 0
+     * @maxLength 50
+     */
+  wardCode: string;
+  /**
+     * Ward name
+     * @minLength 0
+     * @maxLength 255
+     */
+  wardName: string;
+  /**
+     * Province code
+     * @minLength 0
+     * @maxLength 50
+     */
+  provinceCode: string;
+  /**
+     * Province name
+     * @minLength 0
+     * @maxLength 255
+     */
+  provinceName: string;
   phone?: string;
-  email?: string;
+  email: string;
+  /**
+     * @minLength 0
+     * @maxLength 500
+     */
   imageUrl?: string;
+  /**
+     * @minLength 0
+     * @maxLength 500
+     */
   officialLink?: string;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
   latitude?: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
   longitude?: number;
 }

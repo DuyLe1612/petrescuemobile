@@ -1,8 +1,8 @@
 import {
-  listConversations as apiListConversations,
-  listMessages as apiListMessages,
-  markRead as apiMarkRead,
-  sendMessage as apiSendMessage,
+    listConversations as apiListConversations,
+    listMessages as apiListMessages,
+    markRead as apiMarkRead,
+    sendMessage as apiSendMessage,
 } from "./generated/pet-rescue-api";
 
 export interface ConversationSummary {
@@ -24,6 +24,7 @@ export interface ChatMessage {
   senderId: string;
   content: string;
   time: string;
+  messageSeq?: number;
   seen?: boolean;
 }
 
@@ -45,7 +46,7 @@ export const chatApi = {
   listConversations: async (cursor?: string, limit = 20) => {
     const response = await apiListConversations({
       cursor,
-      size: limit,
+      pageSize: limit,
     });
 
     return {
@@ -57,14 +58,27 @@ export const chatApi = {
     };
   },
 
-  listMessages: async (conversationId: string, page = 0, size = 50) => {
+  listMessages: async (
+    conversationId: string,
+    cursor?: string,
+    cursorSeq?: number,
+    direction: "before" | "after" = "before",
+    pageSize = 50,
+  ) => {
     const response = await apiListMessages(conversationId, {
-      page,
-      size,
+      cursor,
+      cursorSeq,
+      direction,
+      pageSize,
     });
 
     return {
-      data: (response.data?.content ?? []) as ChatMessage[],
+      data: {
+        items: (response.data?.items ?? []) as ChatMessage[],
+        nextCursor: response.data?.nextCursor ?? undefined,
+        nextCursorSeq: response.data?.nextCursorSeq ?? undefined,
+        hasMore: response.data?.hasMore ?? false,
+      },
     };
   },
 

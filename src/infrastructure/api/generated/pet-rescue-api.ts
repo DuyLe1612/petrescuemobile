@@ -12,11 +12,14 @@ import type {
   ApiResponseAdoptionResponseDto,
   ApiResponseAuthTokenResponseDto,
   ApiResponseBannerResponseDto,
+  ApiResponseChatMessageCursorResponseDto,
   ApiResponseChatMessageDto,
   ApiResponseCommentResponseDto,
   ApiResponseConversationCursorResponseDto,
   ApiResponseConversationSummaryDto,
   ApiResponseCursorPageDtoCommentSummaryDto,
+  ApiResponseCursorPageDtoFriendRequestDto,
+  ApiResponseCursorPageDtoFriendSummaryDto,
   ApiResponseFriendRequestDto,
   ApiResponseGeoUserLocationDto,
   ApiResponseLikeStatusDto,
@@ -30,17 +33,15 @@ import type {
   ApiResponseMediaUploadResponseDto,
   ApiResponseOrganizationMemberResponseDto,
   ApiResponseOrganizationResponseDto,
+  ApiResponseOrganizationWithRoleResponseDto,
   ApiResponsePageResponseAdoptionSummaryResponseDto,
   ApiResponsePageResponseBannerResponseDto,
-  ApiResponsePageResponseChatMessageDto,
   ApiResponsePageResponseCommentSummaryDto,
-  ApiResponsePageResponseFriendRequestDto,
-  ApiResponsePageResponseFriendSummaryDto,
   ApiResponsePageResponseOrganizationMemberResponseDto,
   ApiResponsePageResponseOrganizationSummaryResponseDto,
   ApiResponsePageResponsePetMediaResponseDto,
   ApiResponsePageResponsePetMedicalRecordResponseDto,
-  ApiResponsePageResponsePetOwnershipResponseDto,
+  ApiResponsePageResponsePetOwnershipHistoryDisplayDto,
   ApiResponsePageResponsePetSummaryResponseDto,
   ApiResponsePageResponsePostSummaryResponseDto,
   ApiResponsePageResponseProvinceSummaryDto,
@@ -76,6 +77,7 @@ import type {
   CreateMessageRequestDto,
   CreateOrganizationAccountRequestDto,
   CreateOrganizationRequestDto,
+  CreatePetForUserInOrganizationParams,
   CreatePetRequestDto,
   CreatePostRequestDto,
   CreateRescueCaseRequestDto,
@@ -95,6 +97,7 @@ import type {
   GetAll8Params,
   GetAllParams,
   GetAvailableParams,
+  GetByOrganizationIdParams,
   GetByOrganizationParams,
   GetByUserIdParams,
   GetByUserParams,
@@ -121,6 +124,7 @@ import type {
   MediaRegisterRequestDto,
   MediaSignedUploadRequestDto,
   NearbyParams,
+  PatchProfileParams,
   RefreshTokenRequestDto,
   RegisterRequestDto,
   ResendVerificationParams,
@@ -129,11 +133,12 @@ import type {
   TransferOwnershipRequestDto,
   UpdateBannerRequestDto,
   UpdateDisplayOrderParams,
+  UpdateOrganizationMemberRoleRequestDto,
   UpdatePetRequestDto,
   UpdatePostRequestDto,
-  UpdateProfileParams,
   UpdatePushTokenBody,
   UpdateRescueCaseStatusRequestDto,
+  UpdateUserProfileRequestDto,
   UploadTempBody,
   UploadTempParams,
   VerifyEmailParams
@@ -145,6 +150,33 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
   /**
+ * @summary Update current user profile
+ */
+export const updateProfile = (
+    updateUserProfileRequestDto: BodyType<UpdateUserProfileRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseUserResponseDto>>,) => {
+      return customInstance<ApiResponseUserResponseDto>(
+      {url: `/api/v1/users/me/profile`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUserProfileRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Update current user profile partially
+ */
+export const patchProfile = (
+    params?: PatchProfileParams,
+ options?: SecondParameter<typeof customInstance<ApiResponseUserResponseDto>>,) => {
+      return customInstance<ApiResponseUserResponseDto>(
+      {url: `/api/v1/users/me/profile`, method: 'PATCH',
+        params
+    },
+      options);
+    }
+
+/**
  * @summary Get rescue case by ID
  */
 export const getById = (
@@ -731,7 +763,7 @@ export const getMembers = (
     }
 
 /**
- * @summary Add STAFF or VET to this organization (OWNER only)
+ * @summary Add member to this organization (OWNER only), STAFF, MEMBER, VET
  */
 export const addMember = (
     id: string,
@@ -917,13 +949,13 @@ export const markRead = (
     }
 
 /**
- * @summary Get messages in a conversation (paged)
+ * @summary Get messages in a conversation (cursor)
  */
 export const listMessages = (
     conversationId: string,
     params?: ListMessagesParams,
- options?: SecondParameter<typeof customInstance<ApiResponsePageResponseChatMessageDto>>,) => {
-      return customInstance<ApiResponsePageResponseChatMessageDto>(
+ options?: SecondParameter<typeof customInstance<ApiResponseChatMessageCursorResponseDto>>,) => {
+      return customInstance<ApiResponseChatMessageCursorResponseDto>(
       {url: `/api/v1/chats/conversations/${conversationId}/messages`, method: 'GET',
         params
     },
@@ -1098,17 +1130,18 @@ export const submit = (
     }
 
 /**
- * @summary Create pet for a user in an organization context
+ * @summary Create pet for an organization, optionally assigning a caretaker user
  */
 export const createPetForUserInOrganization = (
     organizationId: string,
-    userId: string,
     createPetRequestDto: BodyType<CreatePetRequestDto>,
+    params?: CreatePetForUserInOrganizationParams,
  options?: SecondParameter<typeof customInstance<ApiResponsePetResponseDto>>,) => {
       return customInstance<ApiResponsePetResponseDto>(
-      {url: `/api/v1/admin/organizations/${organizationId}/users/${userId}/pets`, method: 'POST',
+      {url: `/api/v1/admin/organizations/${organizationId}/pets`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: createPetRequestDto
+      data: createPetRequestDto,
+        params
     },
       options);
     }
@@ -1153,19 +1186,6 @@ export const createAccount = (
       {url: `/api/v1/admin/accounts`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAdminAccountRequestDto
-    },
-      options);
-    }
-
-/**
- * @summary Update current user profile
- */
-export const updateProfile = (
-    params?: UpdateProfileParams,
- options?: SecondParameter<typeof customInstance<ApiResponseUserResponseDto>>,) => {
-      return customInstance<ApiResponseUserResponseDto>(
-      {url: `/api/v1/users/me/profile`, method: 'PATCH',
-        params
     },
       options);
     }
@@ -1223,6 +1243,35 @@ export const changeStatus2 = (
       return customInstance<ApiResponseOrganizationResponseDto>(
       {url: `/api/v1/organizations/${id}/status`, method: 'PATCH',
         params
+    },
+      options);
+    }
+
+/**
+ * @summary Remove a member from an organization
+ */
+export const removeMember = (
+    id: string,
+    userId: string,
+ options?: SecondParameter<typeof customInstance<ApiResponseVoid>>,) => {
+      return customInstance<ApiResponseVoid>(
+      {url: `/api/v1/organizations/${id}/members/${userId}`, method: 'DELETE'
+    },
+      options);
+    }
+
+/**
+ * @summary Update a member role in this organization (OWNER only)
+ */
+export const updateMemberRole = (
+    id: string,
+    userId: string,
+    updateOrganizationMemberRoleRequestDto: BodyType<UpdateOrganizationMemberRoleRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseOrganizationMemberResponseDto>>,) => {
+      return customInstance<ApiResponseOrganizationMemberResponseDto>(
+      {url: `/api/v1/organizations/${id}/members/${userId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateOrganizationMemberRoleRequestDto
     },
       options);
     }
@@ -1465,8 +1514,8 @@ export const getFeed = (
 export const getOwnerships = (
     petId: string,
     params?: GetOwnershipsParams,
- options?: SecondParameter<typeof customInstance<ApiResponsePageResponsePetOwnershipResponseDto>>,) => {
-      return customInstance<ApiResponsePageResponsePetOwnershipResponseDto>(
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponsePetOwnershipHistoryDisplayDto>>,) => {
+      return customInstance<ApiResponsePageResponsePetOwnershipHistoryDisplayDto>(
       {url: `/api/v1/pets/${petId}/ownerships`, method: 'GET',
         params
     },
@@ -1510,6 +1559,18 @@ export const getAvailable = (
       return customInstance<ApiResponsePageResponsePetSummaryResponseDto>(
       {url: `/api/v1/pets/available`, method: 'GET',
         params
+    },
+      options);
+    }
+
+/**
+ * @summary Get my organization with my role
+ */
+export const getMyOrganization = (
+
+ options?: SecondParameter<typeof customInstance<ApiResponseOrganizationWithRoleResponseDto>>,) => {
+      return customInstance<ApiResponseOrganizationWithRoleResponseDto>(
+      {url: `/api/v1/organizations/me`, method: 'GET'
     },
       options);
     }
@@ -1612,8 +1673,8 @@ export const nearby = (
  */
 export const listFriends = (
     params?: ListFriendsParams,
- options?: SecondParameter<typeof customInstance<ApiResponsePageResponseFriendSummaryDto>>,) => {
-      return customInstance<ApiResponsePageResponseFriendSummaryDto>(
+ options?: SecondParameter<typeof customInstance<ApiResponseCursorPageDtoFriendSummaryDto>>,) => {
+      return customInstance<ApiResponseCursorPageDtoFriendSummaryDto>(
       {url: `/api/v1/friends`, method: 'GET',
         params
     },
@@ -1625,8 +1686,8 @@ export const listFriends = (
  */
 export const listPending = (
     params?: ListPendingParams,
- options?: SecondParameter<typeof customInstance<ApiResponsePageResponseFriendRequestDto>>,) => {
-      return customInstance<ApiResponsePageResponseFriendRequestDto>(
+ options?: SecondParameter<typeof customInstance<ApiResponseCursorPageDtoFriendRequestDto>>,) => {
+      return customInstance<ApiResponseCursorPageDtoFriendRequestDto>(
       {url: `/api/v1/friends/requests/pending`, method: 'GET',
         params
     },
@@ -1729,6 +1790,20 @@ export const getByUserId = (
     }
 
 /**
+ * @summary Get adoption applications by organization ID
+ */
+export const getByOrganizationId = (
+    orgId: string,
+    params?: GetByOrganizationIdParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseAdoptionSummaryResponseDto>>,) => {
+      return customInstance<ApiResponsePageResponseAdoptionSummaryResponseDto>(
+      {url: `/api/v1/adoptions/organization/${orgId}`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
  * @summary Delete a tag
  */
 export const delete5 = (
@@ -1754,18 +1829,20 @@ export const deleteMedia = (
     }
 
 /**
- * @summary Remove a member from an organization
+ * @summary Delete a message in a conversation
  */
-export const removeMember = (
-    id: string,
-    userId: string,
+export const deleteMessage = (
+    conversationId: string,
+    messageId: string,
  options?: SecondParameter<typeof customInstance<ApiResponseVoid>>,) => {
       return customInstance<ApiResponseVoid>(
-      {url: `/api/v1/organizations/${id}/members/${userId}`, method: 'DELETE'
+      {url: `/api/v1/chats/conversations/${conversationId}/messages/${messageId}`, method: 'DELETE'
     },
       options);
     }
 
+export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
+export type PatchProfileResult = NonNullable<Awaited<ReturnType<typeof patchProfile>>>
 export type GetByIdResult = NonNullable<Awaited<ReturnType<typeof getById>>>
 export type UpdateResult = NonNullable<Awaited<ReturnType<typeof update>>>
 export type GetById1Result = NonNullable<Awaited<ReturnType<typeof getById1>>>
@@ -1838,11 +1915,12 @@ export type CreatePetForUserInOrganizationResult = NonNullable<Awaited<ReturnTyp
 export type AssignOrgRoleResult = NonNullable<Awaited<ReturnType<typeof assignOrgRole>>>
 export type CreateOrganizationAccountResult = NonNullable<Awaited<ReturnType<typeof createOrganizationAccount>>>
 export type CreateAccountResult = NonNullable<Awaited<ReturnType<typeof createAccount>>>
-export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
 export type ChangeStatusResult = NonNullable<Awaited<ReturnType<typeof changeStatus>>>
 export type SetPrimaryMediaResult = NonNullable<Awaited<ReturnType<typeof setPrimaryMedia>>>
 export type ChangeStatus1Result = NonNullable<Awaited<ReturnType<typeof changeStatus1>>>
 export type ChangeStatus2Result = NonNullable<Awaited<ReturnType<typeof changeStatus2>>>
+export type RemoveMemberResult = NonNullable<Awaited<ReturnType<typeof removeMember>>>
+export type UpdateMemberRoleResult = NonNullable<Awaited<ReturnType<typeof updateMemberRole>>>
 export type ToggleActiveResult = NonNullable<Awaited<ReturnType<typeof toggleActive>>>
 export type UpdateDisplayOrderResult = NonNullable<Awaited<ReturnType<typeof updateDisplayOrder>>>
 export type RejectResult = NonNullable<Awaited<ReturnType<typeof reject>>>
@@ -1865,6 +1943,7 @@ export type GetOwnershipsResult = NonNullable<Awaited<ReturnType<typeof getOwner
 export type GetByUserResult = NonNullable<Awaited<ReturnType<typeof getByUser>>>
 export type GetByOrganizationResult = NonNullable<Awaited<ReturnType<typeof getByOrganization>>>
 export type GetAvailableResult = NonNullable<Awaited<ReturnType<typeof getAvailable>>>
+export type GetMyOrganizationResult = NonNullable<Awaited<ReturnType<typeof getMyOrganization>>>
 export type GetMapMarkers1Result = NonNullable<Awaited<ReturnType<typeof getMapMarkers1>>>
 export type GetWithinBoundingBoxResult = NonNullable<Awaited<ReturnType<typeof getWithinBoundingBox>>>
 export type GetById7Result = NonNullable<Awaited<ReturnType<typeof getById7>>>
@@ -1881,6 +1960,7 @@ export type GetActiveBannersResult = NonNullable<Awaited<ReturnType<typeof getAc
 export type VerifyEmailResult = NonNullable<Awaited<ReturnType<typeof verifyEmail>>>
 export type GetById8Result = NonNullable<Awaited<ReturnType<typeof getById8>>>
 export type GetByUserIdResult = NonNullable<Awaited<ReturnType<typeof getByUserId>>>
+export type GetByOrganizationIdResult = NonNullable<Awaited<ReturnType<typeof getByOrganizationId>>>
 export type Delete5Result = NonNullable<Awaited<ReturnType<typeof delete5>>>
 export type DeleteMediaResult = NonNullable<Awaited<ReturnType<typeof deleteMedia>>>
-export type RemoveMemberResult = NonNullable<Awaited<ReturnType<typeof removeMember>>>
+export type DeleteMessageResult = NonNullable<Awaited<ReturnType<typeof deleteMessage>>>
