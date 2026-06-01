@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  StatusBar,
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fetchAvailablePets } from "@/src/presentation/data/pet-api";
 
 const HOME_TOKENS = {
@@ -73,9 +75,10 @@ const ACTIONS = [
 export default function HomeScreen() {
   const [featuredPets, setFeaturedPets] = useState<AdoptionPet[]>([]);
   const [isLoadingPets, setIsLoadingPets] = useState(true);
+  const insets = useSafeAreaInsets();
 
-  const backgroundColor = useThemeColor({}, "background");
-  const primaryColor = useThemeColor({}, "tint");
+  const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
   const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
@@ -99,77 +102,94 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
+      <StatusBar barStyle="light-content" />
       <ScrollView
         style={{ flex: 1, backgroundColor }}
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Full-width header */}
         <View
           style={{
-            paddingHorizontal: HOME_TOKENS.spacing.screenX,
-            paddingTop: HOME_TOKENS.spacing.top,
+            backgroundColor: "#0a4c73",
+            paddingTop: insets.top + 20,
+            paddingBottom: 72,
+            paddingHorizontal: 24,
           }}
         >
-          <View
-            style={{
-              borderRadius: HOME_TOKENS.radius.hero,
-              backgroundColor: primaryColor,
-              paddingHorizontal: 18,
-              paddingTop: 18,
-              paddingBottom: 86,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: "rgba(246,252,252,0.82)", fontSize: 13 }}>
-                  Xin chào
-                </Text>
-                <Text
-                  style={{
-                    color: "rgb(246 252 252)",
-                    fontSize: 29,
-                    fontWeight: "800",
-                    marginTop: 4,
-                  }}
-                >
-                  Hanoi Pet Adoption
-                </Text>
-              </View>
-
-              <Pressable
-                onPress={() => router.push("/news")}
-                accessibilityRole="button"
-                accessibilityLabel="Thông báo"
+          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: 13 }}>
+                Xin chào
+              </Text>
+              <Text
                 style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: HOME_TOKENS.radius.pill,
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  color: "white",
+                  fontSize: 28,
+                  fontWeight: "800",
+                  marginTop: 4,
                 }}
               >
-                <Ionicons name="notifications-outline" size={18} color="white" />
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 7,
-                    right: 8,
-                    width: 7,
-                    height: 7,
-                    borderRadius: HOME_TOKENS.radius.pill,
-                    backgroundColor: "#ff8c38",
-                  }}
-                />
-              </Pressable>
+                Hanoi Pet Adoption
+              </Text>
             </View>
 
-            <LocationPill text="Hà Nội, Việt Nam" />
+            <Pressable
+              onPress={() => router.push("/news")}
+              accessibilityRole="button"
+              accessibilityLabel="Thông báo"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="notifications-outline" size={18} color="white" />
+              <View
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 9,
+                  width: 7,
+                  height: 7,
+                  borderRadius: 3.5,
+                  backgroundColor: "#ff8c38",
+                }}
+              />
+            </Pressable>
           </View>
 
           <View
             style={{
-              marginTop: -58,
+              marginTop: 16,
+              borderRadius: 999,
+              backgroundColor: "rgba(255, 255, 255, 0.12)",
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+            }}
+          >
+            <Ionicons name="location-outline" size={15} color="rgba(255, 255, 255, 0.9)" />
+            <Text style={{ color: "rgba(255, 255, 255, 0.9)", fontSize: 13, marginLeft: 8 }}>
+              Hà Nội, Việt Nam
+            </Text>
+          </View>
+        </View>
+
+        {/* Content Wrapper */}
+        <View
+          style={{
+            paddingHorizontal: HOME_TOKENS.spacing.screenX,
+          }}
+        >
+          <View
+            style={{
+              marginTop: -42,
               borderRadius: HOME_TOKENS.radius.card,
               backgroundColor: cardColor,
               paddingHorizontal: 12,

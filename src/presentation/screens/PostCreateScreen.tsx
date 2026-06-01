@@ -2,8 +2,9 @@ import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState, useCallback } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View, ActivityIndicator } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TextInput, View, ActivityIndicator, StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar } from "@/components/ui/header-bar";
 import * as ImagePicker from "expo-image-picker";
 import { Image as ExpoImage } from "expo-image";
 import { container } from "@/src/infrastructure/di";
@@ -153,35 +154,11 @@ export default function PostCreateScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: insets.top + 12,
-          paddingHorizontal: 16,
-          paddingBottom: Math.max(insets.bottom + 24, 32),
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          style={{
-            minHeight: 56,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            disabled={isSubmitting}
-            accessibilityRole="button"
-            accessibilityLabel="Đóng màn đăng bài"
-            style={{ width: 34, height: 34, alignItems: "center", justifyContent: "center" }}
-          >
-            <Feather name="x" size={20} color={textColor} />
-          </Pressable>
-
-          <Text style={{ color: textColor, fontSize: 22, fontWeight: "800" }}>Đăng bài mới</Text>
-
+      <StatusBar barStyle="light-content" />
+      <HeaderBar
+        title="Đăng bài mới"
+        onBack={() => router.back()}
+        rightSlot={
           <Pressable
             onPress={canSubmit ? onSubmit : undefined}
             disabled={!canSubmit}
@@ -189,23 +166,33 @@ export default function PostCreateScreen() {
             accessibilityLabel="Đăng bài"
             style={{
               borderRadius: POST_CREATE_TOKENS.radius.pill,
-              backgroundColor: canSubmit ? "rgba(39,127,143,0.12)" : "rgba(160,160,160,0.18)",
-              paddingHorizontal: 12,
+              backgroundColor: canSubmit ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)",
+              paddingHorizontal: 16,
               paddingVertical: 7,
-              minWidth: 54,
+              minWidth: 60,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             {isSubmitting ? (
-              <ActivityIndicator size="small" color={primaryColor} />
+              <ActivityIndicator size="small" color="white" />
             ) : (
-              <Text style={{ color: canSubmit ? primaryColor : mutedColor, fontSize: 12, fontWeight: "700" }}>
+              <Text style={{ color: canSubmit ? "white" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: "700" }}>
                 Đăng
               </Text>
             )}
           </Pressable>
-        </View>
+        }
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingHorizontal: 16,
+          paddingBottom: Math.max(insets.bottom + 24, 32),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
 
         <View
           style={{

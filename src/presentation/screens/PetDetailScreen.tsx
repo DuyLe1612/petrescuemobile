@@ -8,6 +8,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 const InfoTile = ({ label, value }: { label: string; value: string }) => (
   <View className="flex-1 rounded-3xl bg-muted px-4 py-4">
@@ -76,33 +77,31 @@ export default function PetDetailScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 180 }}>
-        <View className="relative">
-          <FastImage source={{ uri: pet.imageUrl }} style={{ width: "100%", height: 360 }} />
-          <View
-            className="absolute left-0 right-0 flex-row items-center justify-between px-4"
-            style={{ top: insets.top + 8 }}
+      <HeaderBar
+        title="Chi tiết thú cưng"
+        onBack={() => router.back()}
+        rightSlot={
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert("Thông báo", "Chức năng yêu thích chưa được backend hỗ trợ trong app này.")
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Yêu thích"
+            style={{
+              height: 36,
+              width: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+            }}
           >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Quay lại danh sách thú cưng"
-              className="h-11 w-11 items-center justify-center rounded-full bg-black/40"
-            >
-              <Feather name="chevron-left" size={22} color="#ffffff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                Alert.alert("Thông báo", "Chức năng yêu thích chưa được backend hỗ trợ trong app này.")
-              }
-              accessibilityRole="button"
-              accessibilityLabel="Yêu thích"
-              className="h-11 w-11 items-center justify-center rounded-full bg-black/40"
-            >
-              <Ionicons name="heart-outline" size={22} color="#ffffff" />
-            </TouchableOpacity>
-          </View>
-        </View>
+            <Ionicons name="heart-outline" size={18} color="#ffffff" />
+          </TouchableOpacity>
+        }
+      />
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 180 }}>
+        <FastImage source={{ uri: pet.imageUrl }} style={{ width: "100%", height: 360 }} />
 
         <View className="-mt-8 rounded-t-[36px] bg-card px-5 pb-8 pt-6 shadow-soft-1">
           <View className="flex-row items-start justify-between gap-4">

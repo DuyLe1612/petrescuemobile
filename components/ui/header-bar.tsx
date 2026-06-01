@@ -10,35 +10,54 @@ type Props = {
   className?: string;
 };
 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 export const HeaderBar: React.FC<Props> = ({
   title,
   subtitle,
   onBack,
   rightSlot,
-  className = "",
 }) => {
+  const insets = useSafeAreaInsets();
   return (
     <View
-      className={`flex-row items-center justify-between py-3 bg-background border-b border-border/40 ${className}`}
+      style={{
+        backgroundColor: "#0a4c73",
+        paddingTop: insets.top + 16,
+        paddingBottom: 16,
+        paddingHorizontal: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
     >
-      <View className="flex-1 flex-row items-center gap-3">
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 12 }}>
         {onBack ? (
           <Pressable
             onPress={onBack}
             accessibilityRole="button"
             accessibilityLabel="Quay lại"
-            className="h-10 w-10 items-center justify-center rounded-full bg-muted/60 active:bg-muted"
+            style={({ pressed }) => ({
+              height: 36,
+              width: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: pressed
+                ? "rgba(255, 255, 255, 0.25)"
+                : "rgba(255, 255, 255, 0.15)",
+            })}
           >
-            <Ionicons name="chevron-back" size={22} className="text-foreground" />
+            <Ionicons name="chevron-back" size={18} color="white" />
           </Pressable>
         ) : null}
 
-        <View className="flex-1 justify-center">
-          <Text className="text-xl font-extrabold text-foreground tracking-tight leading-7">
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <Text style={{ color: "white", fontSize: 18, fontWeight: "800", letterSpacing: -0.2 }}>
             {title}
           </Text>
           {subtitle ? (
-            <Text className="text-xs text-muted-foreground mt-0.5 leading-4">
+            <Text style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: 11, marginTop: 2 }}>
               {subtitle}
             </Text>
           ) : null}
@@ -46,7 +65,7 @@ export const HeaderBar: React.FC<Props> = ({
       </View>
 
       {rightSlot ? (
-        <View className="flex-row items-center justify-end pl-2">
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", paddingLeft: 8 }}>
           {rightSlot}
         </View>
       ) : null}

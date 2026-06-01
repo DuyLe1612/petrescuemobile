@@ -3,7 +3,7 @@ import { ChatSocket } from "@/src/infrastructure/api/chatSocket";
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
 import { Feather } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -14,10 +14,12 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    StatusBar
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMessages, useSendMessage } from "../hooks/useChat";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 // Lấy WS base URL từ env — giống http client
 const WS_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080")
@@ -207,35 +209,35 @@ export default function ChatConversationScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>
-            {(params.name as string) || "Chat"}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            {presenceLabel || "Đang hoạt động"}
-          </Text>
-        </View>
-        <View
-          style={[
-            styles.badge,
-            presenceStatus === "online"
-              ? styles.badgeOnline
-              : styles.badgeOffline,
-          ]}
-        >
+      <StatusBar barStyle="light-content" />
+      <HeaderBar
+        title={(params.name as string) || "Chat"}
+        subtitle={presenceLabel || "Đang hoạt động"}
+        onBack={() => router.back()}
+        rightSlot={
           <View
             style={[
-              styles.dot,
+              styles.badge,
               presenceStatus === "online"
-                ? styles.dotOnline
-                : styles.dotOffline,
+                ? styles.badgeOnline
+                : styles.badgeOffline,
+              { backgroundColor: presenceStatus === "online" ? "rgba(40,167,69,0.2)" : "rgba(255,255,255,0.15)" }
             ]}
-          />
-          <Text style={styles.badgeText}>{presenceLabel || "Unknown"}</Text>
-        </View>
-      </View>
+          >
+            <View
+              style={[
+                styles.dot,
+                presenceStatus === "online"
+                  ? styles.dotOnline
+                  : styles.dotOffline,
+              ]}
+            />
+            <Text style={[styles.badgeText, { color: presenceStatus === "online" ? "#28a745" : "#fff" }]}>
+              {presenceLabel || "Unknown"}
+            </Text>
+          </View>
+        }
+      />
 
       {/* Messages */}
       <FlatList

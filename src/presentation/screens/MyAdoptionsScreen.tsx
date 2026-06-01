@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 import { AdoptionSummary } from "@/src/domain/entities/adoption";
 import { useMyAdoptions } from "@/src/presentation/hooks/use-my-adoptions";
@@ -267,28 +268,34 @@ export default function MyAdoptionsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <View className="bg-card px-4 pb-3 pt-12">
-        <View className="flex-row items-center gap-3">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Feather name="chevron-left" size={22} className="text-white" />
-          </TouchableOpacity>
-          <View className="flex-1">
-            <Text className="text-xs text-primary/80">
-              Theo dõi trạng thái đơn của bạn
-            </Text>
-          </View>
+      <HeaderBar
+        title="Hồ sơ nhận nuôi"
+        subtitle="Theo dõi trạng thái đơn của bạn"
+        onBack={() => router.back()}
+        rightSlot={
           <TouchableOpacity
             onPress={refresh}
-            className="h-9 w-9 items-center justify-center rounded-full bg-white/20"
+            accessibilityRole="button"
+            accessibilityLabel="Làm mới"
+            style={{
+              height: 36,
+              width: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+            }}
           >
-            <Feather name="refresh-cw" size={16} className="text-white" />
+            <Feather name="refresh-cw" size={14} color="white" />
           </TouchableOpacity>
-        </View>
+        }
+      />
 
+      <View style={{ backgroundColor: "#0a4c73", paddingBottom: 14 }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: 12, paddingBottom: 6, gap: 8 }}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
         >
           {(
             [
@@ -303,19 +310,22 @@ export default function MyAdoptionsScreen() {
             const count = counts[item.key as keyof typeof counts];
             return (
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.8}
                 key={item.key}
                 onPress={() => setFilter(item.key as typeof filter)}
-                className={`rounded-full px-3 py-1.5 ${
-                  isActive ? "bg-primary" : "bg-muted"
-                }`}
+                style={{
+                  borderRadius: 999,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  backgroundColor: isActive ? "#ff8c38" : "rgba(255,255,255,0.15)",
+                }}
               >
                 <Text
-                  className={`text-[11px] font-semibold ${
-                    isActive
-                      ? "text-primary-foreground"
-                      : "text-muted-foreground"
-                  }`}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: "white",
+                  }}
                 >
                   {item.label}
                   {count ? ` (${count})` : ""}

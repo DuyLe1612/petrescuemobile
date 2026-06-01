@@ -9,6 +9,7 @@ import type { ComponentProps } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCreateComment } from "@/src/presentation/hooks/use-post-like";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 const POST_TOKENS = {
   radius: {
@@ -78,48 +79,36 @@ export default function PostDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: insets.top + 12,
-          paddingHorizontal: 16,
-          paddingBottom: Math.max(insets.bottom + 110, 128),
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          style={{
-            minHeight: 56,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-            style={{ width: 34, height: 34, alignItems: "center", justifyContent: "center" }}
-          >
-            <Feather name="chevron-left" size={20} color={textColor} />
-          </Pressable>
-          <Text style={{ color: textColor, fontSize: 21, fontWeight: "800" }}>Chi tiết bài viết</Text>
+      <HeaderBar
+        title="Chi tiết bài viết"
+        onBack={() => router.back()}
+        rightSlot={
           <View
             style={{
               borderRadius: POST_TOKENS.radius.pill,
-              backgroundColor: "rgba(255,130,80,0.12)",
+              backgroundColor: "rgba(255,255,255,0.18)",
               paddingHorizontal: 10,
               paddingVertical: 6,
               flexDirection: "row",
               alignItems: "center",
             }}
           >
-            <Ionicons name="pricetag-outline" size={12} color="#ff8250" />
-            <Text style={{ color: "#ff8250", fontSize: 11, fontWeight: "700", marginLeft: 5 }}>
+            <Ionicons name="pricetag-outline" size={12} color="white" />
+            <Text style={{ color: "white", fontSize: 11, fontWeight: "700", marginLeft: 5 }}>
               {post.category}
             </Text>
           </View>
-        </View>
+        }
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingHorizontal: 16,
+          paddingBottom: Math.max(insets.bottom + 110, 128),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
 
         {post.alertText ? (
           <View

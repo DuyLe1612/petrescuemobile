@@ -2,6 +2,7 @@ import { semanticColorValues } from "@/components/ui/gluestack-ui-provider/token
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
 import { TouchableOpacity, useColorScheme } from "react-native";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 export default function TabLayout() {
   const scheme = useColorScheme();
@@ -11,56 +12,38 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: t.background },
-        headerTintColor: t.foreground,
-        headerStyle: { backgroundColor: t.background },
-        headerTintColor: t.foreground,
-        headerShadowVisible: false,
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={() => router.push("/search-users" as never)}
-            style={{ marginRight: 16 }}
-          >
-            <Feather name="search" size={22} color={t.foreground} />
-          </TouchableOpacity>
+        headerShown: true,
+        header: ({ options, route }) => (
+          <HeaderBar
+            title={options.title ?? route.name}
+          />
         ),
-
         tabBarActiveTintColor: t.primary,
         tabBarInactiveTintColor: t.mutedForeground,
-
-
-        tabBarActiveTintColor: t.primary,
-        tabBarInactiveTintColor: t.mutedForeground,
-
         tabBarStyle: {
-          backgroundColor: t.background,
           backgroundColor: t.background,
           height: 72,
           paddingTop: 8,
           paddingBottom: 10,
           borderTopWidth: 1,
           borderTopColor: t.border,
-          borderTopWidth: 1,
-          borderTopColor: t.border,
           elevation: 10,
           shadowOpacity: 0.08,
           shadowRadius: 10,
-
           overflow: "hidden",
         },
-
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
           marginTop: 4,
         },
-
         tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
+          headerShown: false,
           title: "trang chủ",
           tabBarLabel: "Trang chủ",
           tabBarIcon: ({ color, size, focused }) => (
@@ -102,8 +85,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="news"
         options={{
-          title: "Thong bao",
-          tabBarLabel: "Thong bao",
+          headerShown: false,
+          title: "Thông báo",
+          tabBarLabel: "Thông báo",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "notifications" : "notifications-outline"}
@@ -132,6 +116,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
+          headerShown: false,
           title: "Tôi",
           tabBarLabel: "Tôi",
           tabBarIcon: ({ color, size }) => (

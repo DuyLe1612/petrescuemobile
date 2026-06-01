@@ -2,7 +2,6 @@ import { FastImage } from "@/src/presentation/components/adoption/FastImage";
 import {
   MY_PET_TOKENS,
   MyPetPanel,
-  MyPetTopBar,
   PrimaryButton,
   StatCard,
   ToneChip,
@@ -14,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 export default function MyPetsScreen() {
   const insets = useSafeAreaInsets();
@@ -28,16 +28,8 @@ export default function MyPetsScreen() {
   const pets = petsQuery.data ?? [];
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor }}
-      contentContainerStyle={{
-        paddingTop: insets.top + MY_PET_TOKENS.spacing.top,
-        paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
-        paddingBottom: Math.max(insets.bottom + 24, 32),
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <MyPetTopBar
+    <View style={{ flex: 1, backgroundColor }}>
+      <HeaderBar
         title="Thú cưng của tôi"
         onBack={() => router.back()}
         rightSlot={
@@ -46,7 +38,7 @@ export default function MyPetsScreen() {
               width: 24,
               height: 24,
               borderRadius: MY_PET_TOKENS.radius.pill,
-              backgroundColor: "#ff9f43",
+              backgroundColor: "#ff8c38", // Orange badge matching color theme
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -55,6 +47,15 @@ export default function MyPetsScreen() {
           </View>
         }
       />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
+          paddingBottom: Math.max(insets.bottom + 24, 32),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
         <StatCard value={`${pets.length}`} label="Tổng" accent="#ff9f43" />
@@ -148,6 +149,7 @@ export default function MyPetsScreen() {
       <View style={{ marginTop: 16 }}>
         <PrimaryButton label="Thêm thú cưng ngay" onPress={() => router.push("/my-pets/create")} />
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

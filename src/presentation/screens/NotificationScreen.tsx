@@ -1,7 +1,7 @@
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Pressable, ScrollView, StatusBar, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const NOTIFICATION_TOKENS = {
@@ -113,186 +113,195 @@ const NOTIFICATIONS: NotificationItem[] = [
 
 export default function NotificationScreen() {
   const insets = useSafeAreaInsets();
-  const backgroundColor = useThemeColor({}, "background");
-  const primaryColor = useThemeColor({}, "tint");
+  const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
   const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
+  const borderColor = useThemeColor({ light: "#e9eff4", dark: "rgb(58 58 58)" }, "icon");
 
   const unreadItems = NOTIFICATIONS.filter((item) => item.isUnread);
   const readItems = NOTIFICATIONS.filter((item) => !item.isUnread);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor }}
-      contentContainerStyle={{
-        paddingTop: insets.top + NOTIFICATION_TOKENS.spacing.top,
-        paddingHorizontal: NOTIFICATION_TOKENS.spacing.screenX,
-        paddingBottom: Math.max(insets.bottom + 24, 32),
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View
-        style={{
-          borderRadius: NOTIFICATION_TOKENS.radius.hero,
-          backgroundColor: primaryColor,
-          paddingHorizontal: 18,
-          paddingTop: 16,
-          paddingBottom: 18,
+    <View style={{ flex: 1, backgroundColor }}>
+      <StatusBar barStyle="light-content" />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingBottom: Math.max(insets.bottom + 24, 32),
         }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-                return;
-              }
+        {/* Full-width header */}
+        <View
+          style={{
+            backgroundColor: "#0a4c73",
+            paddingTop: insets.top + 20,
+            paddingBottom: 20,
+            paddingHorizontal: 24,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Pressable
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                  return;
+                }
 
-              router.replace("/");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: NOTIFICATION_TOKENS.radius.pill,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.10)",
-            }}
-          >
-            <Feather name="chevron-left" size={18} color="white" />
-          </Pressable>
+                router.replace("/");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Quay lại"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                marginRight: 12,
+              }}
+            >
+              <Feather name="chevron-left" size={20} color="white" />
+            </Pressable>
 
-          <View style={{ flex: 1, marginLeft: 8 }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={{ fontSize: 19, marginRight: 8 }}>🔔</Text>
-              <Text style={{ color: "white", fontSize: 28, fontWeight: "800" }}>Thông báo</Text>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ fontSize: 19, marginRight: 8 }}>🔔</Text>
+                <Text style={{ color: "white", fontSize: 26, fontWeight: "800" }}>Thông báo</Text>
+              </View>
             </View>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Đọc tất cả"
+              style={{
+                borderRadius: 999,
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 12, fontWeight: "700" }}>
+                Đọc tất cả
+              </Text>
+            </Pressable>
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Đọc tất cả"
-            style={{
-              borderRadius: NOTIFICATION_TOKENS.radius.pill,
-              backgroundColor: "rgba(255,255,255,0.14)",
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-            }}
-          >
-            <Text style={{ color: "rgba(246,252,252,0.96)", fontSize: 12, fontWeight: "700" }}>
-              Đọc tất cả
-            </Text>
-          </Pressable>
-        </View>
-
-        <View
-          style={{
-            marginTop: 14,
-            alignSelf: "flex-start",
-            borderRadius: NOTIFICATION_TOKENS.radius.pill,
-            backgroundColor: "rgba(255,255,255,0.14)",
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
           <View
             style={{
-              width: 7,
-              height: 7,
-              borderRadius: NOTIFICATION_TOKENS.radius.pill,
-              backgroundColor: "#ff6f61",
-              marginRight: 7,
+              marginTop: 14,
+              alignSelf: "flex-start",
+              borderRadius: 999,
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              flexDirection: "row",
+              alignItems: "center",
             }}
-          />
-          <Text style={{ color: "white", fontSize: 12, fontWeight: "700" }}>
-            {unreadItems.length} thông báo chưa đọc
-          </Text>
+          >
+            <View
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: 3.5,
+                backgroundColor: "#ff8c38",
+                marginRight: 7,
+              }}
+            />
+            <Text style={{ color: "white", fontSize: 12, fontWeight: "700" }}>
+              {unreadItems.length} thông báo chưa đọc
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <SectionLabel label="CHƯA ĐỌC" color={mutedColor} />
-      <View
-        style={{
-          borderRadius: NOTIFICATION_TOKENS.radius.card,
-          backgroundColor: cardColor,
-          overflow: "hidden",
-          ...NOTIFICATION_TOKENS.shadow,
-        }}
-      >
-        {unreadItems.map((item, index) => (
-          <NotificationCard
-            key={item.id}
-            item={item}
-            textColor={textColor}
-            mutedColor={mutedColor}
-            borderColor={borderColor}
-            isLast={index === unreadItems.length - 1}
-          />
-        ))}
-      </View>
-
-      <SectionLabel label="ĐÃ ĐỌC" color={mutedColor} />
-      <View
-        style={{
-          borderRadius: NOTIFICATION_TOKENS.radius.card,
-          backgroundColor: cardColor,
-          overflow: "hidden",
-          ...NOTIFICATION_TOKENS.shadow,
-        }}
-      >
-        {readItems.map((item, index) => (
-          <NotificationCard
-            key={item.id}
-            item={item}
-            textColor={textColor}
-            mutedColor={mutedColor}
-            borderColor={borderColor}
-            isLast={index === readItems.length - 1}
-          />
-        ))}
-      </View>
-
-      <View
-        style={{
-          marginTop: 16,
-          borderRadius: NOTIFICATION_TOKENS.radius.card,
-          backgroundColor: cardColor,
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          flexDirection: "row",
-          alignItems: "center",
-          ...NOTIFICATION_TOKENS.shadow,
-        }}
-      >
+        {/* Content Wrapper */}
         <View
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: NOTIFICATION_TOKENS.radius.pill,
-            backgroundColor: "rgba(39,127,143,0.10)",
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 12,
+            paddingHorizontal: NOTIFICATION_TOKENS.spacing.screenX,
           }}
         >
-          <Ionicons name="notifications-outline" size={17} color={primaryColor} />
+          <SectionLabel label="CHƯA ĐỌC" color={mutedColor} />
+          <View
+            style={{
+              borderRadius: NOTIFICATION_TOKENS.radius.card,
+              backgroundColor: cardColor,
+              overflow: "hidden",
+              ...NOTIFICATION_TOKENS.shadow,
+            }}
+          >
+            {unreadItems.map((item, index) => (
+              <NotificationCard
+                key={item.id}
+                item={item}
+                textColor={textColor}
+                mutedColor={mutedColor}
+                borderColor={borderColor}
+                isLast={index === unreadItems.length - 1}
+              />
+            ))}
+          </View>
+
+          <SectionLabel label="ĐÃ ĐỌC" color={mutedColor} />
+          <View
+            style={{
+              borderRadius: NOTIFICATION_TOKENS.radius.card,
+              backgroundColor: cardColor,
+              overflow: "hidden",
+              ...NOTIFICATION_TOKENS.shadow,
+            }}
+          >
+            {readItems.map((item, index) => (
+              <NotificationCard
+                key={item.id}
+                item={item}
+                textColor={textColor}
+                mutedColor={mutedColor}
+                borderColor={borderColor}
+                isLast={index === readItems.length - 1}
+              />
+            ))}
+          </View>
+
+          <View
+            style={{
+              marginTop: 16,
+              borderRadius: NOTIFICATION_TOKENS.radius.card,
+              backgroundColor: cardColor,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              ...NOTIFICATION_TOKENS.shadow,
+            }}
+          >
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: NOTIFICATION_TOKENS.radius.pill,
+                backgroundColor: "rgba(39,127,143,0.10)",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 12,
+              }}
+            >
+              <Ionicons name="notifications-outline" size={17} color="#0a4c73" />
+            </View>
+            <Text style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "700" }}>
+              Thông báo đẩy
+            </Text>
+            <Switch
+              value
+              trackColor={{ false: "rgb(210 210 210)", true: "#0a4c73" }}
+              thumbColor="white"
+            />
+          </View>
         </View>
-        <Text style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "700" }}>
-          Thông báo đẩy
-        </Text>
-        <Switch
-          value
-          trackColor={{ false: "rgb(210 210 210)", true: primaryColor }}
-          thumbColor="white"
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

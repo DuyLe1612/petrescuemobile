@@ -1,7 +1,7 @@
 import { queryClient } from "@/app/_layout";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,10 +14,8 @@ import {
   View,
 } from "react-native";
 
-import { CategoryList } from "@/src/presentation/components/adoption/CategoryList";
 import { EmptyState } from "@/src/presentation/components/adoption/EmptyState";
 import { ErrorState } from "@/src/presentation/components/adoption/ErrorState";
-import { FilterChips } from "@/src/presentation/components/adoption/FilterChips";
 import { PetListItem, PET_CARD_HEIGHT } from "@/src/presentation/components/adoption/PetListItem";
 import { SearchBar } from "@/src/presentation/components/adoption/SearchBar";
 import { SkeletonLoading } from "@/src/presentation/components/adoption/SkeletonLoading";
@@ -43,6 +41,8 @@ export default function AdoptionScreen() {
     return (innerWidth - totalGap) / columnCount;
   }, [columnCount, width]);
 
+  const [page, setPage] = useState(0);
+
   const { filters, hasActiveFilters, resetFilters, setKeyword, setSpecies, setStatus } =
     usePetFilters();
   const debouncedKeyword = useDebounce(filters.keyword, 500);
@@ -54,68 +54,27 @@ export default function AdoptionScreen() {
     [debouncedKeyword, filters]
   );
 
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedKeyword]);
+
   const {
     pets,
     total,
     error,
-    fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
     isLoading,
     isRefreshing,
     refetch,
-  } = useAdoptionPets(queryFilters);
+  } = useAdoptionPets(queryFilters, page);
 
   const listHeader = (
-    <View className="px-4 pb-6 pt-4">
-      <View className="rounded-[32px] bg-primary px-5 py-6">
-        <View className="flex-row items-start justify-between gap-4">
-          <View className="flex-1">
-            <Text className="text-[26px] font-extrabold leading-8 text-primary-foreground">
-              Tìm một người bạn mới
-            </Text>
-            <Text className="mt-2 text-sm leading-6 text-primary-foreground/85">
-              Duyệt thú cưng đang chờ nhận nuôi với bộ lọc nhanh, cuộn mượt và dữ liệu mock phân trang.
-            </Text>
-          </View>
-          {hasActiveFilters ? (
-            <TouchableOpacity
-              onPress={resetFilters}
-              accessibilityRole="button"
-              accessibilityLabel="Xóa tất cả bộ lọc"
-              className="rounded-full bg-white/20 px-4 py-2"
-            >
-              <Text className="text-xs font-bold text-primary-foreground">Xóa lọc</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
-        <View className="mt-5">
-          <SearchBar
-            value={filters.keyword}
-            onChangeText={setKeyword}
-            onClear={() => setKeyword("")}
-          />
-        </View>
-      </View>
-
-      <Text className="mt-6 text-sm font-bold text-foreground">Loài thú cưng</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 12, paddingTop: 14, paddingBottom: 6 }}
-      >
-        <CategoryList selectedSpecies={filters.species} onSelect={setSpecies} />
-      </ScrollView>
-
-      <Text className="mt-5 text-sm font-bold text-foreground">Bộ lọc nhanh</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingTop: 12, paddingBottom: 2 }}
-      >
-        <FilterChips selectedStatus={filters.status} onSelect={setStatus} />
-      </ScrollView>
+    <View className="px-4 pb-4 pt-4">
+      <SearchBar
+        value={filters.keyword}
+        onChangeText={setKeyword}
+        onClear={() => setKeyword("")}
+      />
 
       <View className="mt-5 flex-row items-center justify-between">
         <Text className="text-sm font-semibold text-muted-foreground">
@@ -131,6 +90,41 @@ export default function AdoptionScreen() {
           <Text className="text-xs font-semibold text-primary">Làm mới</Text>
         </TouchableOpacity>
       </View>
+    </View>
+  );
+
+  const totalPages = Math.ceil(total / 6);
+  const paginationFooter = (
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 18, paddingHorizontal: 16 }}>
+      <TouchableOpacity
+        onPress={() => setPage((p) => Math.max(0, p - 1))}
+        disabled={page === 0}
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          borderRadius: 12,
+          backgroundColor: page === 0 ? "rgba(0,0,0,0.04)" : "#0a4c73",
+        }}
+      >
+        <Text style={{ color: page === 0 ? "#bbb" : "white", fontSize: 13, fontWeight: "700" }}>Trang trước</Text>
+      </TouchableOpacity>
+
+      <Text style={{ fontSize: 13, fontWeight: "700", color: "#333" }}>
+        Trang {page + 1} / {Math.max(1, totalPages)}
+      </Text>
+
+      <TouchableOpacity
+        onPress={() => setPage((p) => (hasNextPage ? p + 1 : p))}
+        disabled={!hasNextPage}
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          borderRadius: 12,
+          backgroundColor: !hasNextPage ? "rgba(0,0,0,0.04)" : "#0a4c73",
+        }}
+      >
+        <Text style={{ color: !hasNextPage ? "#bbb" : "white", fontSize: 13, fontWeight: "700" }}>Trang sau</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -193,21 +187,11 @@ export default function AdoptionScreen() {
           };
         }}
         onScrollBeginDrag={Keyboard.dismiss}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
-        onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={() => refetch()} />
         }
         ListFooterComponent={
-          isFetchingNextPage ? (
-            <View className="items-center py-5">
-              <ActivityIndicator />
-            </View>
-          ) : null
+          pets.length > 0 ? paginationFooter : null
         }
         showsVerticalScrollIndicator={false}
       />

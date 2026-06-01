@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useFriends, useFriendRequests, useFriendActions } from '../hooks/useFriend';
 import { UserListItem } from '../components/friend/UserListItem';
 import { Feather } from '@expo/vector-icons';
+import { HeaderBar } from '@/components/ui/header-bar';
 
 export default function FriendsScreen() {
   const router = useRouter();
@@ -18,25 +19,25 @@ export default function FriendsScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <Feather name="arrow-left" size={24} color="#0b93f6" />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900 dark:text-white">Bạn bè</Text>
-      </View>
+      <HeaderBar
+        title="Bạn bè"
+        onBack={() => router.back()}
+      />
 
       <View className="flex-row border-b border-gray-100 dark:border-gray-800">
         <TouchableOpacity 
-          className={`flex-1 py-3 items-center ${tab === 'friends' ? 'border-b-2 border-blue-500' : ''}`}
+          className="flex-1 py-3 items-center"
+          style={{ borderBottomWidth: tab === 'friends' ? 2 : 0, borderBottomColor: '#0a4c73' }}
           onPress={() => setTab('friends')}
         >
-          <Text className={`font-semibold ${tab === 'friends' ? 'text-blue-500' : 'text-gray-500'}`}>Danh sách</Text>
+          <Text style={{ fontWeight: '600', color: tab === 'friends' ? '#0a4c73' : '#6b7280' }}>Danh sách</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          className={`flex-1 py-3 items-center ${tab === 'requests' ? 'border-b-2 border-blue-500' : ''}`}
+          className="flex-1 py-3 items-center"
+          style={{ borderBottomWidth: tab === 'requests' ? 2 : 0, borderBottomColor: '#0a4c73' }}
           onPress={() => setTab('requests')}
         >
-          <Text className={`font-semibold ${tab === 'requests' ? 'text-blue-500' : 'text-gray-500'}`}>
+          <Text style={{ fontWeight: '600', color: tab === 'requests' ? '#0a4c73' : '#6b7280' }}>
             Lời mời {requests.length > 0 && `(${requests.length})`}
           </Text>
         </TouchableOpacity>

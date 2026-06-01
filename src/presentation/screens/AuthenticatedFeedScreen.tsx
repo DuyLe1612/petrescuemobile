@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  StatusBar,
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fetchFeedPosts, type FeedPostViewModel } from "@/src/presentation/data/post-api";
 
 const HOME_TOKENS = {
@@ -43,12 +45,13 @@ const FEED_FILTERS = [
 ] as const;
 
 export default function AuthenticatedFeedScreen() {
-  const backgroundColor = useThemeColor({}, "background");
-  const primaryColor = useThemeColor({}, "tint");
+  const insets = useSafeAreaInsets();
+  const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
   const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
+  const borderColor = useThemeColor({ light: "#e9eff4", dark: "rgb(58 58 58)" }, "icon");
   const feedQuery = useQuery({
     queryKey: ["community-feed"],
     queryFn: () => fetchFeedPosts({ size: 10 }),
@@ -57,94 +60,122 @@ export default function AuthenticatedFeedScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
+      <StatusBar barStyle="light-content" />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 108 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Full-width header */}
+        <View
+          style={{
+            backgroundColor: "#0a4c73",
+            paddingTop: insets.top + 20,
+            paddingBottom: 18,
+            paddingHorizontal: 24,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ fontSize: 22, marginRight: 8 }}>🐾</Text>
+                <Text style={{ color: "white", fontSize: 26, fontWeight: "800" }}>Cộng đồng</Text>
+              </View>
+              <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: 12, marginTop: 4 }}>
+                Hanoi Pet Adoption
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Pressable
+                onPress={() => router.push("/adoption")}
+                accessibilityRole="button"
+                accessibilityLabel="Tìm kiếm"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="search" size={18} color="white" />
+              </Pressable>
+              <Pressable
+                onPress={() => router.push("/news")}
+                accessibilityRole="button"
+                accessibilityLabel="Thông báo"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="notifications-outline" size={18} color="white" />
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 9,
+                    width: 7,
+                    height: 7,
+                    borderRadius: 3.5,
+                    backgroundColor: "#ff8c38",
+                  }}
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Horizontal scrollable filters */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingTop: 16 }}
+          >
+            {FEED_FILTERS.map((filter) => (
+              <Pressable
+                key={filter.label}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  borderRadius: 999,
+                  backgroundColor: filter.active ? "white" : "rgba(255, 255, 255, 0.15)",
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                }}
+              >
+                <Ionicons
+                  name={filter.icon}
+                  size={14}
+                  color={filter.active ? "#0a4c73" : "white"}
+                />
+                <Text
+                  style={{
+                    marginLeft: 6,
+                    color: filter.active ? "#0a4c73" : "white",
+                    fontSize: 12,
+                    fontWeight: "700",
+                  }}
+                >
+                  {filter.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Content Wrapper */}
         <View
           style={{
             paddingHorizontal: HOME_TOKENS.spacing.screenX,
-            paddingTop: HOME_TOKENS.spacing.top,
+            marginTop: 16,
           }}
         >
-          <View
-            style={{
-              borderRadius: HOME_TOKENS.radius.hero,
-              backgroundColor: primaryColor,
-              paddingHorizontal: 18,
-              paddingTop: 16,
-              paddingBottom: 16,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ fontSize: 22, marginRight: 8 }}>🐾</Text>
-                  <Text style={{ color: "white", fontSize: 28, fontWeight: "800" }}>Cộng đồng</Text>
-                </View>
-                <Text style={{ color: "rgba(246,252,252,0.8)", fontSize: 12, marginTop: 4 }}>
-                  Hanoi Pet Adoption
-                </Text>
-              </View>
-
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Pressable
-                  onPress={() => router.push("/adoption")}
-                  accessibilityRole="button"
-                  accessibilityLabel="Tìm kiếm"
-                  style={circleButtonStyle("rgba(255,255,255,0.14)")}
-                >
-                  <Ionicons name="search" size={18} color="white" />
-                </Pressable>
-                <Pressable
-                  onPress={() => router.push("/news")}
-                  accessibilityRole="button"
-                  accessibilityLabel="Thông báo"
-                  style={circleButtonStyle("rgba(255,255,255,0.14)")}
-                >
-                  <Ionicons name="notifications-outline" size={18} color="white" />
-                  <View style={notificationDotStyle} />
-                </Pressable>
-              </View>
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8, paddingTop: 14 }}
-            >
-              {FEED_FILTERS.map((filter) => (
-                <Pressable
-                  key={filter.label}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    borderRadius: HOME_TOKENS.radius.pill,
-                    backgroundColor: filter.active ? "white" : "rgba(255,255,255,0.14)",
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                  }}
-                >
-                  <Ionicons
-                    name={filter.icon}
-                    size={14}
-                    color={filter.active ? primaryColor : "rgba(246,252,252,0.95)"}
-                  />
-                  <Text
-                    style={{
-                      marginLeft: 6,
-                      color: filter.active ? primaryColor : "white",
-                      fontSize: 12,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {filter.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
 
           <View style={{ marginTop: 14, gap: 14 }}>
             {feedQuery.isLoading ? (
