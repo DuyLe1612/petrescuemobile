@@ -1,45 +1,30 @@
 import React from "react";
-import { TextInput as RNTextInput, Text, View } from "react-native";
+import { TextInput as RNTextInput, View } from "react-native";
 
 type Props = React.ComponentProps<typeof RNTextInput> & {
-  label?: string;
-  error?: string | null;
   left?: React.ReactNode;
   right?: React.ReactNode;
+  containerClassName?: string;
 };
 
-export const Input: React.FC<Props> = ({
-  label,
-  error,
-  left,
-  right,
-  style,
-  ...rest
-}) => {
-  return (
-    <View className="w-full">
-      {label ? (
-        <Text className="mb-2 text-xs font-semibold text-muted-foreground">
-          {label}
-        </Text>
-      ) : null}
-
-      <View className="flex-row items-center rounded-xl border border-border bg-input px-3 py-2">
+export const Input = React.forwardRef<RNTextInput, Props>(
+  ({ left, right, containerClassName = "", style, ...rest }, ref) => {
+    return (
+      <View
+        className={`flex-row items-center rounded-xl border border-border bg-muted/20 px-3 py-3 focus-within:border-primary focus-within:bg-transparent ${containerClassName}`}
+      >
         {left ? <View className="mr-2">{left}</View> : null}
         <RNTextInput
+          ref={ref}
           {...rest}
           style={[]}
-          className="flex-1 p-0 m-0 text-foreground"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          className="flex-1 p-0 m-0 text-sm text-foreground"
+          placeholderTextColor="rgba(125, 125, 125, 0.5)"
         />
         {right ? <View className="ml-2">{right}</View> : null}
       </View>
-
-      {error ? (
-        <Text className="mt-2 text-sm text-destructive">{error}</Text>
-      ) : null}
-    </View>
-  );
-};
+    );
+  }
+);
 
 export default Input;

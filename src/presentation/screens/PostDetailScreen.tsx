@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { FastImage } from "@/src/presentation/components/adoption/FastImage";
 import { fetchPostDetail } from "@/src/presentation/data/post-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
@@ -7,6 +8,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import type { ComponentProps } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCreateComment } from "@/src/presentation/hooks/use-post-like";
 
 const POST_TOKENS = {
   radius: {
@@ -27,6 +29,9 @@ export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
 
+  const [commentText, setCommentText] = useState("");
+  const createCommentMutation = useCreateComment();
+
   const backgroundColor = useThemeColor({}, "background");
   const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
   const textColor = useThemeColor({}, "text");
@@ -40,6 +45,20 @@ export default function PostDetailScreen() {
   });
 
   const post = postQuery.data;
+
+  const handleSendComment = async () => {
+    if (!commentText.trim()) return;
+    try {
+      await createCommentMutation.mutateAsync({
+        postId: id,
+        payload: { content: commentText.trim() },
+      });
+      setCommentText("");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      Alert.alert("Lỗi", "Không thể gửi bình luận. Vui lòng thử lại.");
+    }
+  };
 
   if (postQuery.isLoading && !post) {
     return (
@@ -289,24 +308,32 @@ export default function PostDetailScreen() {
             <TextInput
               placeholder="Viết bình luận..."
               placeholderTextColor={mutedColor}
+              value={commentText}
+              onChangeText={setCommentText}
+              editable={!createCommentMutation.isPending}
               style={{ color: textColor, fontSize: 14, paddingVertical: 0 }}
             />
           </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Gửi bình luận"
-            onPress={() => Alert.alert("Thông báo", "Luồng gửi bình luận chưa được nối trong app này.")}
+            onPress={handleSendComment}
+            disabled={!commentText.trim() || createCommentMutation.isPending}
             style={{
               marginLeft: 10,
               width: 38,
               height: 38,
               borderRadius: POST_TOKENS.radius.pill,
-              backgroundColor: primaryColor,
+              backgroundColor: commentText.trim() ? primaryColor : mutedColor,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="paper-plane-outline" size={18} color="white" />
+            {createCommentMutation.isPending ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Ionicons name="paper-plane-outline" size={18} color="white" />
+            )}
           </Pressable>
         </View>
       </View>

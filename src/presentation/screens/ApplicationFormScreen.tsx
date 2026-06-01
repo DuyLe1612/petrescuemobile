@@ -1,18 +1,15 @@
 import {
   APPLICATION_TOKENS,
-  ApplicationInput,
-  ApplicationPanel,
-  ApplicationTopBar,
-  PrimaryButton,
   SectionCaption,
   SelectionPill,
 } from "@/src/presentation/components/application/ui";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar, FormField, Input, Button, ButtonText, Card } from "@/components/ui";
 
 const ROLE_OPTIONS = [
   { id: "volunteer", label: "Tình nguyện viên", color: "#44b882" },
@@ -69,7 +66,7 @@ export default function ApplicationFormScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
-      <ApplicationTopBar
+      <HeaderBar
         title="Hồ sơ ứng tuyển"
         subtitle="Chỉ tạo UI, chưa gửi dữ liệu lên server"
         onBack={() => router.back()}
@@ -108,7 +105,7 @@ export default function ApplicationFormScreen() {
         </Text>
       </View>
 
-      <ApplicationPanel style={{ marginTop: 14, alignItems: "center" }}>
+      <Card className="mt-[14px] items-center">
         <View
           style={{
             width: 74,
@@ -127,10 +124,10 @@ export default function ApplicationFormScreen() {
         <Text style={{ color: textColor, fontSize: 13, fontWeight: "700", marginTop: 10 }}>
           Tải ảnh đại diện / logo
         </Text>
-      </ApplicationPanel>
+      </Card>
 
       <SectionCaption label="THÔNG TIN CƠ BẢN" />
-      <ApplicationPanel>
+      <Card className="mt-1 gap-y-4">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {ROLE_OPTIONS.map((item) => (
             <SelectionPill
@@ -143,59 +140,75 @@ export default function ApplicationFormScreen() {
           ))}
         </View>
 
-        <ApplicationInput
+        <FormField
           label={role === "center" ? "Tên trung tâm / đội nhóm" : "Họ và tên"}
           required
-          value={name}
-          onChangeText={setName}
-          placeholder={role === "center" ? "Ví dụ: HPA Rescue Team" : "Ví dụ: Nguyễn Văn An"}
-          leading={<Feather name="user" size={16} color={mutedColor} />}
-        />
-        <ApplicationInput
+        >
+          <Input
+            value={name}
+            onChangeText={setName}
+            placeholder={role === "center" ? "Ví dụ: HPA Rescue Team" : "Ví dụ: Nguyễn Văn An"}
+            left={<Ionicons name="person-outline" size={16} color={mutedColor} />}
+          />
+        </FormField>
+
+        <FormField
           label={role === "center" ? "Người liên hệ" : "Tên liên hệ khẩn cấp"}
           required
-          value={contact}
-          onChangeText={setContact}
-          placeholder="Ví dụ: Nguyễn Hà Linh"
-          leading={<Feather name="users" size={16} color={mutedColor} />}
-        />
-        <ApplicationInput
-          label="Số điện thoại"
-          required
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="0123 456 789"
-          keyboardType="phone-pad"
-          leading={<Feather name="phone" size={16} color={mutedColor} />}
-        />
-        <ApplicationInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="email@example.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          leading={<Feather name="mail" size={16} color={mutedColor} />}
-        />
-        <ApplicationInput
-          label="Khu vực hỗ trợ"
-          required
-          value={area}
-          onChangeText={setArea}
-          placeholder="Ví dụ: Hà Nội, Đống Đa"
-          leading={<Feather name="map-pin" size={16} color={mutedColor} />}
-        />
-        <ApplicationInput
-          label="Mô tả ngắn"
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Chia sẻ kinh nghiệm, nguồn lực hoặc lý do bạn muốn đồng hành..."
-          multiline
-        />
-      </ApplicationPanel>
+        >
+          <Input
+            value={contact}
+            onChangeText={setContact}
+            placeholder="Ví dụ: Nguyễn Hà Linh"
+            left={<Ionicons name="people-outline" size={16} color={mutedColor} />}
+          />
+        </FormField>
+
+        <FormField label="Số điện thoại" required>
+          <Input
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="0123 456 789"
+            keyboardType="phone-pad"
+            left={<Ionicons name="call-outline" size={16} color={mutedColor} />}
+          />
+        </FormField>
+
+        <FormField label="Email">
+          <Input
+            value={email}
+            onChangeText={setEmail}
+            placeholder="email@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            left={<Ionicons name="mail-outline" size={16} color={mutedColor} />}
+          />
+        </FormField>
+
+        <FormField label="Khu vực hỗ trợ" required>
+          <Input
+            value={area}
+            onChangeText={setArea}
+            placeholder="Ví dụ: Hà Nội, Đống Đa"
+            left={<Ionicons name="location-outline" size={16} color={mutedColor} />}
+          />
+        </FormField>
+
+        <FormField label="Mô tả ngắn">
+          <Input
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Chia sẻ kinh nghiệm, nguồn lực hoặc lý do bạn muốn đồng hành..."
+            multiline
+            numberOfLines={4}
+            containerClassName="align-top py-2 min-h-[96px]"
+            style={{ textAlignVertical: "top" }}
+          />
+        </FormField>
+      </Card>
 
       <SectionCaption label="LỊCH HỖ TRỢ" />
-      <ApplicationPanel>
+      <Card className="mt-1">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {SCHEDULE_OPTIONS.map((item) => (
             <SelectionPill
@@ -207,10 +220,10 @@ export default function ApplicationFormScreen() {
             />
           ))}
         </View>
-      </ApplicationPanel>
+      </Card>
 
       <SectionCaption label="THẾ MẠNH NỔI BẬT" />
-      <ApplicationPanel>
+      <Card className="mt-1 gap-y-4">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {SKILL_OPTIONS.map((item) => (
             <SelectionPill
@@ -225,7 +238,6 @@ export default function ApplicationFormScreen() {
 
         <View
           style={{
-            marginTop: 14,
             borderRadius: APPLICATION_TOKENS.radius.field,
             backgroundColor: "rgba(39,127,143,0.08)",
             paddingHorizontal: 14,
@@ -234,20 +246,25 @@ export default function ApplicationFormScreen() {
             alignItems: "center",
           }}
         >
-          <MaterialCommunityIcons name="card-account-details-outline" size={18} color={primaryColor} />
+          <Ionicons name="card-outline" size={18} color={primaryColor} />
           <Text style={{ color: textColor, fontSize: 12, fontWeight: "700", marginLeft: 10 }}>
             Tải giấy tờ xác minh
           </Text>
           <Text style={{ color: mutedColor, fontSize: 11, marginLeft: "auto" }}>UI upload</Text>
         </View>
-      </ApplicationPanel>
+      </Card>
 
       <View style={{ marginTop: 16 }}>
-        <PrimaryButton
-          label="Gửi đơn đăng ký"
-          onPress={() => router.push("/application/success" as never)}
+        <Button
+          variant="solid"
+          size="xl"
+          action="primary"
           disabled={!canSubmit}
-        />
+          onPress={() => router.push("/application/success" as never)}
+          className="rounded-2xl h-12"
+        >
+          <ButtonText className="font-extrabold text-sm">Gửi đơn đăng ký</ButtonText>
+        </Button>
       </View>
     </ScrollView>
   );

@@ -2,11 +2,17 @@ import {
   getById1,
   getCommentsByPost,
   getFeed,
+  likePost as apiLikePost,
+  unlikePost as apiUnlikePost,
+  create2 as apiCreatePost,
+  createComment as apiCreateComment,
 } from "@/src/infrastructure/api/generated/pet-rescue-api";
 import type {
   CommentSummaryDto,
   PostResponseDto,
   PostSummaryResponseDto,
+  CreatePostRequestDto,
+  CreateCommentRequestDto,
 } from "@/src/infrastructure/api/generated/model";
 
 export interface FeedPostViewModel {
@@ -74,7 +80,7 @@ const mapSummary = (post: PostSummaryResponseDto): FeedPostViewModel => {
     status: urgent ? "Ưu tiên" : "Đang mở",
     statusColor: urgent ? "#ff8c38" : "#5fb95c",
     title: post.content ?? "Bài viết cộng đồng",
-    imageUrl: undefined,
+    imageUrl: post.imageUrls?.[0],
     location: "Đang cập nhật vị trí",
     tags,
     urgent,
@@ -98,7 +104,7 @@ const mapDetail = (post: PostResponseDto, comments: CommentSummaryDto[]): PostDe
     status: urgent ? "Ưu tiên" : "Đang mở",
     statusColor: urgent ? "#ff8c38" : "#5fb95c",
     title: post.content ?? "Bài viết cộng đồng",
-    imageUrl: post.media?.[0]?.url,
+    imageUrl: post.imageUrls?.[0],
     location: "Đang cập nhật vị trí",
     tags,
     urgent,
@@ -119,7 +125,7 @@ export const fetchFeedPosts = async ({
   cursor?: string;
   size?: number;
 }) => {
-  const response = await getFeed({ cursor, size });
+  const response = await getFeed({ cursor, pageSize: size });
   const data = response.data;
   return {
     items: (data?.items ?? []).map(mapSummary),
@@ -131,10 +137,30 @@ export const fetchFeedPosts = async ({
 export const fetchPostDetail = async (id: string) => {
   const [postResponse, commentsResponse] = await Promise.all([
     getById1(id),
-    getCommentsByPost(id, { page: 0, size: 20 }).catch(() => null),
+    getCommentsByPost(id, { page: 0, pageSize: 20 }).catch(() => null),
   ]);
 
   if (!postResponse.data) return null;
 
   return mapDetail(postResponse.data, commentsResponse?.data?.items ?? []);
+};
+
+export const likePost = async (postId: string) => {
+  const response = await apiLikePost(postId);
+  return response.data;
+};
+
+export const unlikePost = async (postId: string) => {
+  const response = await apiUnlikePost(postId);
+  return response.data;
+};
+
+export const createPost = async (payload: CreatePostRequestDto) => {
+  const response = await apiCreatePost(payload);
+  return response.data;
+};
+
+export const createComment = async (postId: string, payload: CreateCommentRequestDto) => {
+  const response = await apiCreateComment(postId, payload);
+  return response.data;
 };

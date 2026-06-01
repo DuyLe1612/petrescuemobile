@@ -1,15 +1,14 @@
-import { Feather } from "@expo/vector-icons";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Ionicons } from "@expo/vector-icons";
+import { Button, ButtonText, Input, FormField } from "@/components/ui";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { router } from "expo-router";
-import { type ComponentProps, type ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -18,19 +17,10 @@ const REGISTER_TOKENS = {
     screenX: 24,
     top: 20,
     section: 24,
-    field: 14,
-    inputX: 16,
-  },
-  size: {
-    backButton: 36,
-    icon: 18,
-    input: 52,
-    button: 54,
   },
   radius: {
     hero: 32,
     card: 28,
-    input: 16,
     pill: 999,
   },
   elevation: {
@@ -56,13 +46,7 @@ export default function RegisterScreen() {
   const primaryColor = useThemeColor({}, "tint");
   const backgroundColor = useThemeColor({}, "background");
   const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
   const mutedColor = useThemeColor({}, "icon");
-  const mutedSurfaceColor = useThemeColor(
-    { light: "rgb(243 242 240)", dark: "rgb(42 39 36)" },
-    "background",
-  );
 
   const canSubmit = useMemo(() => {
     return (
@@ -138,15 +122,15 @@ export default function RegisterScreen() {
               accessibilityRole="button"
               accessibilityLabel="Quay lại"
               style={{
-                width: REGISTER_TOKENS.size.backButton,
-                height: REGISTER_TOKENS.size.backButton,
+                width: 36,
+                height: 36,
                 borderRadius: REGISTER_TOKENS.radius.pill,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "rgba(255,255,255,0.12)",
               }}
             >
-              <Feather name="chevron-left" size={20} color="rgb(246 252 252)" />
+              <Ionicons name="arrow-back" size={20} color="rgb(246 252 252)" />
             </Pressable>
 
             <View style={{ marginTop: REGISTER_TOKENS.spacing.section }}>
@@ -180,90 +164,114 @@ export default function RegisterScreen() {
               ...REGISTER_TOKENS.elevation,
             }}
           >
-            <View style={{ gap: REGISTER_TOKENS.spacing.field }}>
-              <Field
-                label="Họ và tên"
-                required
-                value={fullName}
-                onChangeText={setFullName}
-                placeholder="Nguyễn Văn An"
-                icon="user"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+            <View className="gap-4">
+              <FormField label="Họ và tên" required>
+                <Input
+                  value={fullName}
+                  onChangeText={setFullName}
+                  placeholder="Nguyễn Văn An"
+                  left={
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color={mutedColor}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Email"
-                required
-                value={email}
-                onChangeText={setEmail}
-                placeholder="email@gmail.com"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                icon="mail"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+              <FormField label="Email" required>
+                <Input
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="email@gmail.com"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  left={
+                    <Ionicons
+                      name="mail-outline"
+                      size={18}
+                      color={mutedColor}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Số điện thoại"
-                required
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="0921 345 678"
-                keyboardType="phone-pad"
-                icon="phone"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+              <FormField label="Số điện thoại" required>
+                <Input
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="0921 345 678"
+                  keyboardType="phone-pad"
+                  left={
+                    <Ionicons
+                      name="call-outline"
+                      size={18}
+                      color={mutedColor}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Mật khẩu"
-                required
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Ít nhất 6 ký tự"
-                secureTextEntry={!showPassword}
-                icon="lock"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-                rightAction={
-                  <PasswordToggle
-                    visible={showPassword}
-                    onPress={() => setShowPassword((value) => !value)}
-                    color={mutedColor}
-                  />
-                }
-              />
+              <FormField label="Mật khẩu" required>
+                <Input
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Ít nhất 6 ký tự"
+                  secureTextEntry={!showPassword}
+                  left={
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={mutedColor}
+                    />
+                  }
+                  right={
+                    <Pressable
+                      onPress={() => setShowPassword((value) => !value)}
+                      accessibilityRole="button"
+                      accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      hitSlop={8}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={18}
+                        color={mutedColor}
+                      />
+                    </Pressable>
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Xác nhận mật khẩu"
-                required
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Nhập lại mật khẩu"
-                secureTextEntry={!showConfirmPassword}
-                icon="lock"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-                rightAction={
-                  <PasswordToggle
-                    visible={showConfirmPassword}
-                    onPress={() => setShowConfirmPassword((value) => !value)}
-                    color={mutedColor}
-                  />
-                }
-              />
+              <FormField label="Xác nhận mật khẩu" required>
+                <Input
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Nhập lại mật khẩu"
+                  secureTextEntry={!showConfirmPassword}
+                  left={
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={mutedColor}
+                    />
+                  }
+                  right={
+                    <Pressable
+                      onPress={() => setShowConfirmPassword((value) => !value)}
+                      accessibilityRole="button"
+                      accessibilityLabel={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      hitSlop={8}
+                    >
+                      <Ionicons
+                        name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                        size={18}
+                        color={mutedColor}
+                      />
+                    </Pressable>
+                  }
+                />
+              </FormField>
             </View>
 
             {formError ? (
@@ -303,8 +311,7 @@ export default function RegisterScreen() {
               action="primary"
               disabled={!canSubmit}
               onPress={onSubmit}
-              className="mt-5 rounded-2xl"
-              style={{ height: REGISTER_TOKENS.size.button }}
+              className="mt-5 rounded-2xl h-12"
             >
               <ButtonText className="font-bold">Tạo tài khoản</ButtonText>
             </Button>
@@ -332,93 +339,6 @@ export default function RegisterScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  );
-}
-
-type FieldProps = ComponentProps<typeof TextInput> & {
-  label: string;
-  required?: boolean;
-  icon: keyof typeof Feather.glyphMap;
-  textColor: string;
-  mutedColor: string;
-  surfaceColor: string;
-  borderColor: string;
-  rightAction?: ReactNode;
-};
-
-function Field({
-  label,
-  required = false,
-  icon,
-  textColor,
-  mutedColor,
-  surfaceColor,
-  borderColor,
-  rightAction,
-  ...inputProps
-}: FieldProps) {
-  return (
-    <View>
-      <Text
-        style={{
-          marginBottom: 8,
-          color: textColor,
-          fontSize: 13,
-          fontWeight: "700",
-        }}
-      >
-        {label}
-        {required ? <Text style={{ color: "rgb(218 65 47)" }}> *</Text> : null}
-      </Text>
-
-      <View
-        style={{
-          height: REGISTER_TOKENS.size.input,
-          borderRadius: REGISTER_TOKENS.radius.input,
-          borderWidth: 1,
-          borderColor,
-          backgroundColor: surfaceColor,
-          paddingHorizontal: REGISTER_TOKENS.spacing.inputX,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <Feather name={icon} size={REGISTER_TOKENS.size.icon} color={mutedColor} />
-        <TextInput
-          {...inputProps}
-          placeholderTextColor={mutedColor}
-          style={{
-            flex: 1,
-            color: textColor,
-            fontSize: 15,
-            paddingVertical: 0,
-          }}
-        />
-        {rightAction}
-      </View>
-    </View>
-  );
-}
-
-function PasswordToggle({
-  visible,
-  onPress,
-  color,
-}: {
-  visible: boolean;
-  onPress: () => void;
-  color: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-      hitSlop={8}
-    >
-      <Feather name={visible ? "eye" : "eye-off"} size={16} color={color} />
-    </Pressable>
   );
 }
 

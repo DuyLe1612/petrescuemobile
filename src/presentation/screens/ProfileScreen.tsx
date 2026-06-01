@@ -1,7 +1,7 @@
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
 import { useSessionBootstrap } from "@/src/presentation/hooks/use-session-bootstrap";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -19,6 +19,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+
 
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
@@ -107,6 +108,7 @@ const GuestProfile = () => {
     <ScrollView
       style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{ paddingBottom: 32 }}
+      showsVerticalScrollIndicator={false}
     >
       <View
         style={{
@@ -121,53 +123,21 @@ const GuestProfile = () => {
             paddingVertical: 18,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: PROFILE_TOKENS.radius.pill,
-                borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.45)",
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 14,
-              }}
-            >
-              <Feather name="user" size={22} color="rgb(246 252 252)" />
+          <View className="flex-row items-center">
+            <View className="h-12 w-12 rounded-full border border-white/45 items-center justify-center mr-3.5 bg-white/10">
+              <Ionicons name="person" size={20} color="white" />
             </View>
 
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: "white", fontSize: 24, fontWeight: "800" }}>
-                Khách
-              </Text>
-              <Text
-                style={{
-                  color: "rgba(255,255,255,0.8)",
-                  fontSize: 13,
-                  marginTop: 4,
-                }}
-              >
-                Đăng nhập để sử dụng đầy đủ
-              </Text>
+            <View className="flex-1">
+              <Text className="text-white text-2xl font-black">Khách</Text>
+              <Text className="text-white/80 text-xs mt-1">Đăng nhập để sử dụng đầy đủ</Text>
               <Pressable
                 onPress={() => router.push("/login")}
                 accessibilityRole="button"
                 accessibilityLabel="Đăng nhập"
-                style={{
-                  marginTop: 10,
-                  alignSelf: "flex-start",
-                  backgroundColor: "#ff9f43",
-                  borderRadius: PROFILE_TOKENS.radius.pill,
-                  paddingHorizontal: 14,
-                  paddingVertical: 6,
-                }}
+                className="mt-2.5 self-start bg-orange-400 rounded-full px-3.5 py-1.5 active:opacity-90"
               >
-                <Text
-                  style={{ color: "white", fontSize: 12, fontWeight: "700" }}
-                >
-                  Đăng nhập
-                </Text>
+                <Text className="text-white text-xs font-bold">Đăng nhập</Text>
               </Pressable>
             </View>
           </View>
@@ -177,38 +147,20 @@ const GuestProfile = () => {
           onPress={() => router.push("/application" as never)}
           accessibilityRole="button"
           accessibilityLabel="Trở thành tình nguyện viên"
-          style={{
-            marginTop: PROFILE_TOKENS.spacing.section,
-            borderRadius: PROFILE_TOKENS.radius.card,
-            backgroundColor: "rgba(39,127,143,0.12)",
-            paddingHorizontal: 16,
-            paddingVertical: 16,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
+          className="mt-5 rounded-2xl bg-primary/10 px-4 py-4 flex-row items-center active:opacity-90"
         >
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: PROFILE_TOKENS.radius.pill,
-              backgroundColor: "rgba(255,255,255,0.7)",
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: 12,
-            }}
-          >
-            <Text style={{ fontSize: 18 }}>🤝</Text>
+          <View className="h-10 w-10 rounded-full bg-white/80 items-center justify-center mr-3 shadow-sm">
+            <Text className="text-lg">🤝</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: textColor, fontSize: 14, fontWeight: "700" }}>
+          <View className="flex-1">
+            <Text className="text-foreground text-sm font-bold">
               Trở thành Tình nguyện viên
             </Text>
-            <Text style={{ color: mutedColor, fontSize: 12, marginTop: 3 }}>
+            <Text className="text-muted-foreground text-xs mt-1">
               Cùng HPA thay đổi cuộc đời thú cưng
             </Text>
           </View>
-          <Feather name="chevron-right" size={18} color={primaryColor} />
+          <Ionicons name="chevron-forward" size={18} color={primaryColor} />
         </Pressable>
 
         <ProfileSection
@@ -217,14 +169,7 @@ const GuestProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={
-              <Ionicons
-                name="notifications-outline"
-                size={16}
-                color={primaryColor}
-              />
-            }
-            
+            icon={<Ionicons name="notifications-outline" size={16} color={primaryColor} />}
             label="Thông báo"
             badge="3"
             textColor={textColor}
@@ -234,13 +179,7 @@ const GuestProfile = () => {
             onPress={() => router.push("/news")}
           />
           <GuestMenuRow
-            icon={
-              <MaterialCommunityIcons
-                name="hand-heart-outline"
-                size={16}
-                color={primaryColor}
-              />
-            }
+            icon={<Ionicons name="heart-outline" size={16} color={primaryColor} />}
             label="Lịch sử ủng hộ"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -257,7 +196,7 @@ const GuestProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={<Feather name="users" size={16} color={primaryColor} />}
+            icon={<Ionicons name="people-outline" size={16} color={primaryColor} />}
             label="Đăng ký tình nguyện viên"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -266,7 +205,7 @@ const GuestProfile = () => {
             onPress={() => router.push("/application" as never)}
           />
           <GuestMenuRow
-            icon={<Feather name="star" size={16} color={primaryColor} />}
+            icon={<Ionicons name="star-outline" size={16} color={primaryColor} />}
             label="Đánh giá ứng dụng"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -288,7 +227,7 @@ const GuestProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={<Feather name="help-circle" size={16} color={primaryColor} />}
+            icon={<Ionicons name="help-circle-outline" size={16} color={primaryColor} />}
             label="Câu hỏi thường gặp"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -302,7 +241,7 @@ const GuestProfile = () => {
             }
           />
           <GuestMenuRow
-            icon={<Feather name="info" size={16} color={primaryColor} />}
+            icon={<Ionicons name="information-circle-outline" size={16} color={primaryColor} />}
             label="Chính sách bảo mật"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -316,7 +255,7 @@ const GuestProfile = () => {
             }
           />
           <GuestMenuRow
-            icon={<Feather name="phone-call" size={16} color={primaryColor} />}
+            icon={<Ionicons name="call-outline" size={16} color={primaryColor} />}
             label="Liên hệ chúng tôi"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -383,34 +322,14 @@ const GuestProfile = () => {
           onPress={() => router.push("/login")}
           accessibilityRole="button"
           accessibilityLabel="Đăng nhập hoặc đăng ký"
-          style={{
-            marginTop: 18,
-            borderRadius: 16,
-            backgroundColor: primaryColor,
-            height: 48,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className="mt-[18px] rounded-2xl bg-primary h-12 items-center justify-center active:opacity-90"
         >
-          <Text
-            style={{
-              color: "rgb(246 252 252)",
-              fontSize: 15,
-              fontWeight: "800",
-            }}
-          >
+          <Text className="text-white text-sm font-black">
             Đăng nhập / Đăng ký
           </Text>
         </TouchableOpacity>
 
-        <Text
-          style={{
-            marginTop: 18,
-            textAlign: "center",
-            color: mutedColor,
-            fontSize: 11,
-          }}
-        >
+        <Text className="mt-[18px] text-center text-muted-foreground text-[10px] font-medium tracking-wide">
           Hanoi Pet Adoption v{APP_VERSION} - Made with love
         </Text>
       </View>
@@ -446,6 +365,7 @@ const LoggedInProfile = () => {
     <ScrollView
       style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{ paddingBottom: 32 }}
+      showsVerticalScrollIndicator={false}
     >
       <View
         style={{
@@ -461,54 +381,24 @@ const LoggedInProfile = () => {
             paddingBottom: 92,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: PROFILE_TOKENS.radius.pill,
-                backgroundColor: "rgba(255,255,255,0.18)",
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 12,
-              }}
-            >
-              <Feather name="user" size={21} color="rgb(246 252 252)" />
+          <View className="flex-row items-center">
+            <View className="h-12 w-12 rounded-full items-center justify-center mr-3 bg-white/20">
+              <Ionicons name="person" size={20} color="white" />
             </View>
             <View className="flex-1">
-              <Text style={{ color: "white", fontSize: 18, fontWeight: "800" }}>
+              <Text className="text-white text-lg font-black">
                 Nguyễn Văn An
               </Text>
-              <Text
-                style={{
-                  color: "rgba(255,255,255,0.82)",
-                  fontSize: 12,
-                  marginTop: 2,
-                }}
-              >
+              <Text className="text-white/80 text-xs mt-0.5">
                 nguyenvana@example.com
               </Text>
-              <Text
-                style={{
-                  color: "#ffb36a",
-                  fontSize: 11,
-                  marginTop: 3,
-                  fontWeight: "700",
-                }}
-              >
+              <Text className="text-orange-300 text-[10px] mt-1 font-bold">
                 Người dùng
               </Text>
             </View>
           </View>
 
-          <View
-            style={{
-              marginTop: 16,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
-          >
+          <View className="mt-4 flex-row justify-between gap-2.5">
             <ProfileStat value="3" label="Lượt cứu hộ" />
             <ProfileStat value="5" label="Bài đăng" />
             <ProfileStat value="8" label="Quan tâm" />
@@ -525,21 +415,14 @@ const LoggedInProfile = () => {
             ...PROFILE_TOKENS.shadow,
           }}
         >
-          <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>
+          <Text className="text-sm font-bold text-foreground">
             Điểm uy tín: 340+
-            <Text style={{ color: mutedColor, fontWeight: "500" }}>
+            <Text className="text-muted-foreground font-medium text-xs">
               {" "}
               | Tình nguyện viên
             </Text>
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 8,
-              marginTop: 10,
-            }}
-          >
+          <View className="flex-row flex-wrap gap-2 mt-2.5">
             <InterestChip label="Nuôi chó" color="#ff8c38" />
             <InterestChip label="Nhận nuôi" color="#d46474" />
             <InterestChip label="Mèo nhỏ" color="#1f9bd1" />
@@ -552,15 +435,8 @@ const LoggedInProfile = () => {
           cardColor={cardColor}
           titleColor={sectionTitle}
         >
-
           <GuestMenuRow
-            icon={
-              <Ionicons
-                name="notifications-outline"
-                size={16}
-                color={primaryColor}
-              />
-            }
+            icon={<Ionicons name="notifications-outline" size={16} color={primaryColor} />}
             label="Thông báo"
             badge="2"
             textColor={textColor}
@@ -575,13 +451,7 @@ const LoggedInProfile = () => {
             }
           />
           <GuestMenuRow
-            icon={
-              <MaterialCommunityIcons
-                name="hand-heart-outline"
-                size={16}
-                color={primaryColor}
-              />
-            }
+            icon={<Ionicons name="heart-outline" size={16} color={primaryColor} />}
             label="Lịch sử ủng hộ"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -603,13 +473,7 @@ const LoggedInProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={
-              <MaterialCommunityIcons
-                name="hand-coin-outline"
-                size={16}
-                color="#ff8c38"
-              />
-            }
+            icon={<Ionicons name="cash-outline" size={16} color="#ff8c38" />}
             label="Ủng hộ HPA"
             badge="Tặng 1kg"
             textColor={textColor}
@@ -624,7 +488,7 @@ const LoggedInProfile = () => {
             }
           />
           <GuestMenuRow
-            icon={<Feather name="users" size={16} color="#44b882" />}
+            icon={<Ionicons name="paw-outline" size={16} color="#44b882" />}
             label="Thú cưng của tôi"
             badge="Corgi 1"
             textColor={textColor}
@@ -659,7 +523,7 @@ const LoggedInProfile = () => {
             onPress={() => router.push("/application" as never)}
           />
           <GuestMenuRow
-            icon={<Feather name="star" size={16} color={primaryColor} />}
+            icon={<Ionicons name="star-outline" size={16} color={primaryColor} />}
             label="Đánh giá ứng dụng"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -681,7 +545,7 @@ const LoggedInProfile = () => {
           titleColor={sectionTitle}
         >
           <GuestMenuRow
-            icon={<Feather name="help-circle" size={16} color={primaryColor} />}
+            icon={<Ionicons name="help-circle-outline" size={16} color={primaryColor} />}
             label="Câu hỏi thường gặp"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -695,7 +559,7 @@ const LoggedInProfile = () => {
             }
           />
           <GuestMenuRow
-            icon={<Feather name="info" size={16} color={primaryColor} />}
+            icon={<Ionicons name="information-circle-outline" size={16} color={primaryColor} />}
             label="Chính sách bảo mật"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -709,7 +573,7 @@ const LoggedInProfile = () => {
             }
           />
           <GuestMenuRow
-            icon={<Feather name="phone-call" size={16} color={primaryColor} />}
+            icon={<Ionicons name="call-outline" size={16} color={primaryColor} />}
             label="Liên hệ chúng tôi"
             textColor={textColor}
             mutedColor={mutedColor}
@@ -778,33 +642,12 @@ const LoggedInProfile = () => {
           }}
           accessibilityRole="button"
           accessibilityLabel="Đăng xuất"
-          style={{
-            marginTop: 14,
-            borderRadius: 16,
-            backgroundColor: "rgba(218,65,47,0.10)",
-            borderWidth: 1,
-            borderColor: "rgba(218,65,47,0.18)",
-            height: 46,
-            paddingHorizontal: 16,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
+          className="mt-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 h-11 px-4 items-start justify-center active:opacity-90"
         >
-          <Text
-            style={{ color: "rgb(218 65 47)", fontSize: 14, fontWeight: "700" }}
-          >
-            Đăng xuất
-          </Text>
+          <Text className="text-red-500 text-sm font-bold">Đăng xuất</Text>
         </TouchableOpacity>
 
-        <Text
-          style={{
-            marginTop: 16,
-            textAlign: "center",
-            color: mutedColor,
-            fontSize: 11,
-          }}
-        >
+        <Text className="mt-4 text-center text-muted-foreground text-[10px] font-medium tracking-wide">
           Hanoi Pet Adoption v{APP_VERSION} - Made with love
         </Text>
       </View>
@@ -814,51 +657,26 @@ const LoggedInProfile = () => {
 
 function ProfileStat({ value, label }: { value: string; label: string }) {
   return (
-    <View
-      style={{
-        flex: 1,
-        borderRadius: 18,
-        backgroundColor: "rgba(255,255,255,0.16)",
-        paddingVertical: 10,
-        alignItems: "center",
-      }}
-    >
-      <Text style={{ color: "#ffb36a", fontSize: 18, fontWeight: "800" }}>
-        {value}
-      </Text>
-      <Text
-        style={{ color: "rgba(255,255,255,0.82)", fontSize: 11, marginTop: 2 }}
-      >
-        {label}
-      </Text>
+    <View className="flex-1 rounded-[18px] bg-white/15 py-2.5 items-center">
+      <Text className="text-orange-300 text-lg font-black">{value}</Text>
+      <Text className="text-white/80 text-[11px] mt-0.5">{label}</Text>
     </View>
   );
 }
 
 function InterestChip({ label, color }: { label: string; color: string }) {
   return (
-    <View
-      style={{
-        borderRadius: PROFILE_TOKENS.radius.pill,
-        backgroundColor: "rgba(255,255,255,0.9)",
-        paddingHorizontal: 9,
-        paddingVertical: 5,
-        flexDirection: "row",
-        alignItems: "center",
-      }}
-    >
+    <View className="rounded-full bg-white/90 px-2 py-1 flex-row items-center shadow-sm">
       <View
         style={{
           width: 6,
           height: 6,
-          borderRadius: PROFILE_TOKENS.radius.pill,
+          borderRadius: 99,
           backgroundColor: color,
           marginRight: 6,
         }}
       />
-      <Text style={{ color: "#344054", fontSize: 11, fontWeight: "600" }}>
-        {label}
-      </Text>
+      <Text className="text-slate-700 text-[10px] font-bold uppercase tracking-wider">{label}</Text>
     </View>
   );
 }
@@ -868,6 +686,7 @@ function ProfileSection({
   titleColor,
   cardColor,
   children,
+  ...rest
 }: {
   title: string;
   titleColor: string;
@@ -929,10 +748,9 @@ function GuestMenuRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      className="flex-row items-center active:bg-muted/10"
       style={{
         minHeight: 54,
-        flexDirection: "row",
-        alignItems: "center",
         borderBottomWidth: isLast ? 0 : 1,
         borderBottomColor: borderColor,
       }}
@@ -950,30 +768,15 @@ function GuestMenuRow({
       >
         {icon}
       </View>
-      <Text
-        style={{ flex: 1, color: textColor, fontSize: 14, fontWeight: "600" }}
-      >
+      <Text className="flex-1 text-sm font-semibold" style={{ color: textColor }}>
         {label}
       </Text>
       {badge ? (
-        <View
-          style={{
-            minWidth: 18,
-            height: 18,
-            borderRadius: PROFILE_TOKENS.radius.pill,
-            backgroundColor: "#ff9f43",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: 5,
-            marginRight: 10,
-          }}
-        >
-          <Text style={{ color: "white", fontSize: 10, fontWeight: "700" }}>
-            {badge}
-          </Text>
+        <View className="min-w-[18px] h-[18px] rounded-full bg-orange-400 items-center justify-center px-1.5 mr-2.5">
+          <Text className="text-white text-[10px] font-bold">{badge}</Text>
         </View>
       ) : null}
-      <Feather name="chevron-right" size={16} color={mutedColor} />
+      <Ionicons name="chevron-forward" size={16} color={mutedColor} />
     </Pressable>
   );
 }

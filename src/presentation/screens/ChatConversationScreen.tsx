@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
     FlatList,
     Keyboard,
@@ -254,10 +255,11 @@ export default function ChatConversationScreen({ route }: any) {
           const isMe = !!item.isMine;
           return (
             <View
-              style={[
-                styles.bubble,
-                isMe ? styles.bubbleRight : styles.bubbleLeft,
-              ]}
+              className={`p-3 my-1 rounded-2xl max-w-[75%] ${
+                isMe
+                  ? "bg-primary rounded-tr-none align-self-end ml-auto"
+                  : "bg-muted/40 rounded-tl-none align-self-start mr-auto"
+              }`}
             >
               <Text
                 style={{
@@ -442,15 +444,22 @@ function decodeJwtSubject(token: string): string | null {
     if (!payloadPart) return null;
     const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
     const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-    const json =
-      typeof globalThis.atob === "function"
-        ? globalThis.atob(padded)
-        : (() => {
-            throw new Error("atob unavailable");
-          })();
-    const parsed = JSON.parse(json);
+    
+    const base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let binaryString = "";
+    for (let i = 0; i < padded.length; i += 4) {
+      const chunk = (base64Chars.indexOf(padded[i]) << 18) |
+                    (base64Chars.indexOf(padded[i+1]) << 12) |
+                    ((padded[i+2] === "=" ? 0 : base64Chars.indexOf(padded[i+2])) << 6) |
+                    (padded[i+3] === "=" ? 0 : base64Chars.indexOf(padded[i+3]));
+      binaryString += String.fromCharCode((chunk >> 16) & 255);
+      if (padded[i+2] !== "=") binaryString += String.fromCharCode((chunk >> 8) & 255);
+      if (padded[i+3] !== "=") binaryString += String.fromCharCode(chunk & 255);
+    }
+    const parsed = JSON.parse(binaryString);
     return typeof parsed?.sub === "string" ? parsed.sub : null;
-  } catch {
+  } catch (e) {
+    console.warn("JWT decode error:", e);
     return null;
   }
 }
