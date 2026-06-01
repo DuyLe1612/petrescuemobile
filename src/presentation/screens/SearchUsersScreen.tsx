@@ -1,15 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSearchUsers, useFriendActions } from '../hooks/useFriend';
-import { UserListItem } from '../components/friend/UserListItem';
-import { Feather } from '@expo/vector-icons';
+import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useFriendActions, useSearchUsers } from "../hooks/useFriend";
 
 export default function SearchUsersScreen() {
   const router = useRouter();
-  const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
-  
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
   const { data, isLoading } = useSearchUsers(debouncedQuery, 20);
   const { sendRequest } = useFriendActions();
 
@@ -21,26 +28,37 @@ export default function SearchUsersScreen() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const items = data?.pages.flatMap(p => p.items) || [];
+  const items = data?.pages.flatMap((p) => p.items) || [];
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <Feather name="arrow-left" size={24} color="#0b93f6" />
-        </TouchableOpacity>
-        <View className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full flex-row items-center px-3 h-10">
+      <View className="px-5 pt-3 pb-4 border-b border-gray-100 dark:border-gray-800">
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <Feather name="arrow-left" size={22} color="#0b93f6" />
+          </TouchableOpacity>
+          <View className="flex-1">
+            <Text className="text-lg font-semibold text-gray-900 dark:text-white">
+              Tìm bạn
+            </Text>
+            <Text className="text-xs text-gray-500 dark:text-gray-400">
+              Kết nối và nhắn tin ngay
+            </Text>
+          </View>
+        </View>
+
+        <View className="mt-4 bg-gray-100 dark:bg-gray-900 rounded-2xl flex-row items-center px-4 h-12">
           <Feather name="search" size={18} color="#9ca3af" />
-          <TextInput 
+          <TextInput
             className="flex-1 ml-2 text-gray-900 dark:text-white"
-            placeholder="Tìm kiếm người dùng..."
+            placeholder="Nhập tên hoặc username..."
             placeholderTextColor="#9ca3af"
             value={query}
             onChangeText={setQuery}
             autoFocus
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
+            <TouchableOpacity onPress={() => setQuery("")} className="pl-2">
               <Feather name="x-circle" size={18} color="#9ca3af" />
             </TouchableOpacity>
           )}
@@ -52,27 +70,64 @@ export default function SearchUsersScreen() {
       ) : items.length > 0 ? (
         <FlatList
           data={items}
-          keyExtractor={item => item.userId}
+          keyExtractor={(item) => item.userId}
           renderItem={({ item }) => (
-            <UserListItem 
-              user={item}
-              actionText="Kết bạn"
-              onAction={(userId) => {
-                sendRequest.mutate(userId);
-                // Can add optimistic UI or toast here
-              }}
-              variant="primary"
-            />
+            <View className="mx-4 mt-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-neutral-900">
+              <View className="flex-row items-center px-4 pt-4">
+                <Image
+                  source={{
+                    uri: item.avatarUrl || "https://via.placeholder.com/150",
+                  }}
+                  className="w-12 h-12 rounded-full"
+                  contentFit="cover"
+                />
+                <View className="flex-1 ml-3">
+                  <Text
+                    className="text-base font-semibold text-gray-900 dark:text-gray-100"
+                    numberOfLines={1}
+                  >
+                    {item.fullName || item.username}
+                  </Text>
+                  {item.username && (
+                    <Text className="text-sm text-gray-500">
+                      @{item.username}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              <View className="flex-row gap-3 px-4 pb-4 pt-3">
+                <TouchableOpacity
+                  className="flex-1 bg-blue-500 rounded-full py-2 items-center"
+                  onPress={() => sendRequest.mutate(item.userId)}
+                >
+                  <Text className="text-white text-sm font-semibold">
+                    Kết bạn
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 border border-blue-500 rounded-full py-2 items-center"
+                  onPress={() => router.push(`/chat/${item.userId}` as never)}
+                >
+                  <Text className="text-blue-500 text-sm font-semibold">
+                    Nhắn tin
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
+          ListFooterComponent={() => <View className="h-6" />}
         />
       ) : debouncedQuery.length > 0 ? (
         <View className="items-center mt-20">
           <Text className="text-gray-500">Không tìm thấy người dùng nào.</Text>
         </View>
       ) : (
-        <View className="items-center mt-20">
+        <View className="items-center mt-20 px-6">
           <Feather name="search" size={48} color="#cbd5e1" />
-          <Text className="text-gray-500 mt-4">Nhập tên để tìm kiếm bạn bè.</Text>
+          <Text className="text-gray-500 mt-4 text-center">
+            Nhập tên hoặc username để tìm kiếm bạn bè.
+          </Text>
         </View>
       )}
     </View>

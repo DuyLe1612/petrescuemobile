@@ -1,41 +1,43 @@
-import { 
-  listFriends, 
-  listPending, 
-  sendRequest, 
-  reject, 
-  accept 
-} from './generated/pet-rescue-api';
-import { 
-  ApiResponseCursorPageDtoFriendSummaryDto, 
-  ApiResponseCursorPageDtoFriendRequestDto, 
-  ApiResponseVoid 
-} from './generated/model';
+import {
+  ApiResponseCursorPageDtoFriendRequestDto,
+  ApiResponseCursorPageDtoFriendSummaryDto,
+  ApiResponsePageResponseUserPublicSearchDto,
+  ApiResponseVoid,
+} from "./generated/model";
+import {
+  accept,
+  listFriends,
+  listPending,
+  reject,
+  searchPublicUsers,
+  sendRequest,
+} from "./generated/pet-rescue-api";
 
 /**
  * REAL API Client wrapper
  */
 export const friendApi = {
-  listFriends: async (limit?: number, cursor?: string): Promise<ApiResponseCursorPageDtoFriendSummaryDto> => {
+  listFriends: async (
+    limit?: number,
+    cursor?: string,
+  ): Promise<ApiResponseCursorPageDtoFriendSummaryDto> => {
     return listFriends({ limit, cursor });
   },
 
-  listRequests: async (limit?: number, cursor?: string): Promise<ApiResponseCursorPageDtoFriendRequestDto> => {
+  listRequests: async (
+    limit?: number,
+    cursor?: string,
+  ): Promise<ApiResponseCursorPageDtoFriendRequestDto> => {
     return listPending({ limit, cursor });
   },
 
-  searchUsers: async (query: string, limit?: number, cursor?: string): Promise<ApiResponseCursorPageDtoFriendSummaryDto> => {
-    // Nếu BE đã implement hàm search friends, gọi hàm tương ứng. Tạm thời trả về rỗng nếu chưa có
-    // return searchFriends({ query, limit, cursor });
-    return {
-      success: true,
-      status: 200,
-      message: "API Search User chưa được implement từ BE",
-      data: {
-        items: [],
-        hasMore: false,
-        nextCursor: undefined
-      }
-    };
+  searchUsers: async (
+    query: string,
+    limit?: number,
+    cursor?: string,
+  ): Promise<ApiResponsePageResponseUserPublicSearchDto> => {
+    const page = cursor ? Number(cursor) : 0;
+    return searchPublicUsers({ search: query, page, pageSize: limit });
   },
 
   sendFriendRequest: async (userId: string): Promise<ApiResponseVoid> => {
@@ -53,5 +55,5 @@ export const friendApi = {
   declineFriendRequest: async (requestId: string): Promise<ApiResponseVoid> => {
     const res = await reject(requestId);
     return res as unknown as ApiResponseVoid;
-  }
+  },
 };

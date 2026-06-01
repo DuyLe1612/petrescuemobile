@@ -14,6 +14,14 @@ export default function TabLayout() {
         headerStyle: { backgroundColor: t.background },
         headerTintColor: t.foreground,
         headerShadowVisible: false,
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => router.push("/search-users" as never)}
+            style={{ marginRight: 16 }}
+          >
+            <Feather name="search" size={22} color={t.foreground} />
+          </TouchableOpacity>
+        ),
 
         tabBarActiveTintColor: t.primary,
         tabBarInactiveTintColor: t.mutedForeground,
@@ -52,14 +60,6 @@ export default function TabLayout() {
               size={size}
               color={color}
             />
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push("/search-users" as never)}
-              style={{ marginRight: 16 }}
-            >
-              <Feather name="search" size={24} color={t.foreground} />
-            </TouchableOpacity>
           ),
         }}
       />

@@ -48,6 +48,7 @@ import type {
   ApiResponsePageResponseRescueCaseSummaryResponseDto,
   ApiResponsePageResponseRoleSummaryResponseDto,
   ApiResponsePageResponseTagSummaryResponseDto,
+  ApiResponsePageResponseUserPublicSearchDto,
   ApiResponsePageResponseUserSummaryResponseDto,
   ApiResponsePetMediaResponseDto,
   ApiResponsePetMedicalRecordResponseDto,
@@ -129,6 +130,7 @@ import type {
   RegisterRequestDto,
   ResendVerificationParams,
   ResetPasswordRequestDto,
+  SearchPublicUsersParams,
   SendRequestParams,
   TransferOwnershipRequestDto,
   UpdateBannerRequestDto,
@@ -1419,6 +1421,19 @@ export const getReputation = (
     }
 
 /**
+ * @summary Search users for friend discovery
+ */
+export const searchPublicUsers = (
+    params: SearchPublicUsersParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseUserPublicSearchDto>>,) => {
+      return customInstance<ApiResponsePageResponseUserPublicSearchDto>(
+      {url: `/api/v1/users/search`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
  * @summary Get current user info
  */
 export const getCurrentUser = (
@@ -1932,6 +1947,7 @@ export type LockUserResult = NonNullable<Awaited<ReturnType<typeof lockUser>>>
 export type GetAll8Result = NonNullable<Awaited<ReturnType<typeof getAll8>>>
 export type GetById5Result = NonNullable<Awaited<ReturnType<typeof getById5>>>
 export type GetReputationResult = NonNullable<Awaited<ReturnType<typeof getReputation>>>
+export type SearchPublicUsersResult = NonNullable<Awaited<ReturnType<typeof searchPublicUsers>>>
 export type GetCurrentUserResult = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
 export type GetById6Result = NonNullable<Awaited<ReturnType<typeof getById6>>>
 export type Delete3Result = NonNullable<Awaited<ReturnType<typeof delete3>>>
