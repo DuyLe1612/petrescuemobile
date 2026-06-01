@@ -11,5 +11,6 @@ export interface ChatMessageDto {
   senderId?: string;
   content?: string;
   time?: string;
+  messageSeq?: number;
   seen?: boolean;
 }

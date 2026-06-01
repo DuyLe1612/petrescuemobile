@@ -7,6 +7,8 @@
  */
 
 export type ListMessagesParams = {
-page?: number;
-size?: number;
+cursor?: string;
+cursorSeq?: number;
+pageSize?: number;
+direction?: string;
 };

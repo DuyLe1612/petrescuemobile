@@ -1,3 +1,3 @@
-import MyAdoptionsScreen from "@/src/presentation/screens/MyAdoptionsScreen";
+import AdoptionScreen from "@/src/presentation/screens/AdoptionScreen";
 
-export default MyAdoptionsScreen;
+export default AdoptionScreen;

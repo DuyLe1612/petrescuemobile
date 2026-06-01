@@ -7,6 +7,7 @@
  */
 
 export type ListPendingParams = {
-page?: number;
-size?: number;
+cursor?: string;
+pageSize?: number;
+search?: string;
 };

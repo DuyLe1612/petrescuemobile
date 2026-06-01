@@ -18,4 +18,5 @@ export interface PostSummaryResponseDto {
   likeCount?: number;
   commentCount?: number;
   createdAt?: string;
+  imageUrls?: string[];
 }

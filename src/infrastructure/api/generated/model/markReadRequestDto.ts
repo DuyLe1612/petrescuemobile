@@ -7,5 +7,5 @@
  */
 
 export interface MarkReadRequestDto {
-  messageId?: string;
+  messageId: string;
 }

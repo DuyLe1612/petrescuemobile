@@ -7,12 +7,14 @@
  */
 
 export type GetAll4Params = {
+search?: string;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 species?: string;
 breed?: string;
 gender?: string;
-searchName?: string;
 status?: string[];
 userId?: string;
 organizationId?: string;

@@ -8,5 +8,7 @@
 
 export type GetMediaParams = {
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

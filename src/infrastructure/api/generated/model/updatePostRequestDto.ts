@@ -7,7 +7,19 @@
  */
 
 export interface UpdatePostRequestDto {
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
   content?: string;
+  /**
+     * @minItems 0
+     * @maxItems 10
+     */
   mediaIds?: string[];
+  /**
+     * @minItems 0
+     * @maxItems 20
+     */
   tagCodes?: string[];
 }

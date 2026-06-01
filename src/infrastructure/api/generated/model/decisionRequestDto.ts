@@ -7,7 +7,15 @@
  */
 
 export interface DecisionRequestDto {
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
   note?: string;
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
   rejectReason?: string;
   readyAt?: string;
 }

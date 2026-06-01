@@ -7,5 +7,9 @@
  */
 
 export interface CreateMessageRequestDto {
-  content?: string;
+  /**
+     * @minLength 0
+     * @maxLength 4000
+     */
+  content: string;
 }

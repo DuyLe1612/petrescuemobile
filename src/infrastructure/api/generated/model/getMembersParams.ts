@@ -8,5 +8,7 @@
 
 export type GetMembersParams = {
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

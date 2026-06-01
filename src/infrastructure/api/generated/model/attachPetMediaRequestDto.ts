@@ -7,6 +7,6 @@
  */
 
 export interface AttachPetMediaRequestDto {
-  mediaFileId?: string;
+  mediaFileId: string;
   primary?: boolean;
 }

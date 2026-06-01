@@ -7,5 +7,6 @@
  */
 
 export interface UpdateRescueCaseStatusRequestDto {
-  status?: string;
+  /** @pattern ^(REPORTED|IN_PROGRESS|RESCUED|CLOSED)$ */
+  status: string;
 }

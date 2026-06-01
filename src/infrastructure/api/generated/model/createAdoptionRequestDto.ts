@@ -7,8 +7,16 @@
  */
 
 export interface CreateAdoptionRequestDto {
-  petId?: string;
-  organizationId?: string;
-  experience?: string;
-  liveCondition?: string;
+  petId: string;
+  organizationId: string;
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
+  experience: string;
+  /**
+     * @minLength 0
+     * @maxLength 2000
+     */
+  liveCondition: string;
 }

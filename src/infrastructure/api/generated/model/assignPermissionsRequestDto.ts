@@ -7,5 +7,9 @@
  */
 
 export interface AssignPermissionsRequestDto {
-  permissionIds?: number[];
+  /**
+     * @minItems 0
+     * @maxItems 100
+     */
+  permissionIds: number[];
 }

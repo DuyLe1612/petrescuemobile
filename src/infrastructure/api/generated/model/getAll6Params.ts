@@ -9,6 +9,9 @@
 export type GetAll6Params = {
 targetPage?: string;
 status?: string;
+search?: string;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

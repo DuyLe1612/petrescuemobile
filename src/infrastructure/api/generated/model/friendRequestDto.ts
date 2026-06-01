@@ -7,9 +7,11 @@
  */
 
 export interface FriendRequestDto {
-  id?: string;
-  requesterId?: string;
-  addresseeId?: string;
-  status?: string;
+  id: string;
+  requesterId: string;
+  requesterName?: string;
+  requesterAvatarUrl?: string;
+  addresseeId: string;
+  status: string;
   createdAt?: string;
 }

@@ -9,7 +9,6 @@ import type { CreateRescueCaseRequestDtoPriority } from './createRescueCaseReque
 
 export interface CreateRescueCaseRequestDto {
   petId?: string;
-  organizationId?: string;
   species?: string;
   color?: string;
   size?: string;

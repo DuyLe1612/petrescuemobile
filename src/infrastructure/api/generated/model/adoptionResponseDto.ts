@@ -22,6 +22,7 @@ export interface AdoptionResponseDto {
   organizationId?: string;
   organizationName?: string;
   status?: AdoptionResponseDtoStatus;
+  note?: string;
   experience?: string;
   liveCondition?: string;
   createdAt?: string;

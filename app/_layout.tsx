@@ -1,13 +1,12 @@
-import { Stack, useRouter, useSegments } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
-
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
-import "./../global.css";
-
 import { useSessionBootstrap } from "@/src/presentation/hooks/use-session-bootstrap";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import "react-native-reanimated";
+
+import "./../global.css";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -25,15 +24,11 @@ export default function RootLayout() {
       return;
     }
 
-    const isInAuthRoute = segments[0] === "login";
+    const route = segments[0];
+    const isInAuthRoute = route === "login" || route === "register";
 
     if (status === "authenticated" && isInAuthRoute) {
-      router.replace("/(tabs)");
-      return;
-    }
-
-    if (status === "unauthenticated" && !isInAuthRoute) {
-      router.replace("/login");
+      router.replace("/(tabs)/profile");
     }
   }, [router, segments, status]);
 
@@ -44,6 +39,19 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
+          <Stack.Screen name="register" options={{ title: "Đăng ký" }} />
+          <Stack.Screen name="application/index" options={{ headerShown: false }} />
+          <Stack.Screen name="application/form" options={{ headerShown: false }} />
+          <Stack.Screen name="application/success" options={{ headerShown: false }} />
+          <Stack.Screen name="my-pets/index" options={{ headerShown: false }} />
+          <Stack.Screen name="my-pets/create" options={{ headerShown: false }} />
+          <Stack.Screen name="my-pets/create-success" options={{ headerShown: false }} />
+          <Stack.Screen name="my-pets/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="my-pets/[id]/edit" options={{ headerShown: false }} />
+          <Stack.Screen name="my-pets/[id]/diary" options={{ headerShown: false }} />
+          <Stack.Screen name="pet/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="post/create" options={{ headerShown: false }} />
+          <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
         </Stack>
       </QueryClientProvider>
 

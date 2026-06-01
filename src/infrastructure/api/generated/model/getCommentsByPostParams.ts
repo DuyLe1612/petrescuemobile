@@ -9,5 +9,7 @@
 export type GetCommentsByPostParams = {
 cursor?: string;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };

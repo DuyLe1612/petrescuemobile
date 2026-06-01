@@ -11,4 +11,5 @@ export interface FriendSummaryDto {
   username?: string;
   fullName?: string;
   avatarUrl?: string;
+  createdAt?: string;
 }

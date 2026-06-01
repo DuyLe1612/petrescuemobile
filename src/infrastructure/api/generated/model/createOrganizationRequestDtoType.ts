@@ -6,6 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * @minLength 0
+ * @maxLength 50
+ */
 export type CreateOrganizationRequestDtoType = typeof CreateOrganizationRequestDtoType[keyof typeof CreateOrganizationRequestDtoType];
 
 

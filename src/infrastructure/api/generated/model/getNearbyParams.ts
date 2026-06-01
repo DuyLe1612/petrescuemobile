@@ -11,5 +11,7 @@ lat: number;
 lng: number;
 distance?: number;
 page?: number;
-size?: number;
+pageSize?: number;
+sortBy?: string;
+sortOrder?: string;
 };
