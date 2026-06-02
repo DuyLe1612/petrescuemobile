@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { queryClient } from "@/app/_layout";
 import type { AdoptionPet } from "@/src/domain/entities/adoption-pet";
 import { FastImage } from "@/src/presentation/components/adoption/FastImage";
@@ -5,10 +6,13 @@ import { fetchPetDetail } from "@/src/presentation/data/pet-api";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, KeyboardAvoidingView, Platform, Pressable } from "react-native";
 import { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, Svg } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderBar } from "@/components/ui/header-bar";
+import { FormField, Input } from "@/components/ui";
+import { submit as submitAdoptionApi } from "@/src/infrastructure/api/generated/pet-rescue-api";
+import type { CreateAdoptionRequestDto } from "@/src/infrastructure/api/generated/model";
 
 const InfoTile = ({ label, value }: { label: string; value: string }) => (
   <View className="flex-1 rounded-3xl bg-muted px-4 py-4">
@@ -56,6 +60,60 @@ export default function PetDetailScreen() {
   });
 
   const pet = detailQuery.data;
+
+  const [adoptVisible, setAdoptVisible] = useState(false);
+  const [experience, setExperience] = useState("");
+  const [liveCondition, setLiveCondition] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleAdoptSubmit = async () => {
+    if (!pet) return;
+    setSubmitError(null);
+
+    if (!experience.trim()) {
+      setSubmitError("Vui lòng chia sẻ kinh nghiệm nuôi dưỡng.");
+      return;
+    }
+
+    if (!liveCondition.trim()) {
+      setSubmitError("Vui lòng mô tả điều kiện sống của bạn.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload: CreateAdoptionRequestDto = {
+        petId: pet.id,
+        organizationId: pet.organizationId || "",
+        experience: experience.trim(),
+        liveCondition: liveCondition.trim(),
+      };
+
+      await submitAdoptionApi(payload);
+
+      Alert.alert(
+        "Thành công",
+        `Đơn đăng ký nhận nuôi bé ${pet.name} đã được gửi thành công!`,
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setAdoptVisible(false);
+              setExperience("");
+              setLiveCondition("");
+              router.push("/(tabs)/map");
+            },
+          },
+        ]
+      );
+    } catch (err) {
+      console.error("Error submitting adoption request:", err);
+      setSubmitError("Không thể gửi đơn nhận nuôi. Vui lòng thử lại sau.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (detailQuery.isLoading && !pet) {
     return (
@@ -177,13 +235,112 @@ export default function PetDetailScreen() {
           <View className="flex-1">
             <GradientButton
               label="Nhận nuôi bé ngay"
-              onPress={() =>
-                Alert.alert("Adoption Form", "Luồng tạo đơn nhận nuôi sẽ được nối ở bước tiếp theo.")
-              }
+              onPress={() => setAdoptVisible(true)}
             />
           </View>
         </View>
       </View>
+
+      {/* Form Modal Nhận Nuôi Thú Cưng */}
+      <Modal
+        transparent
+        visible={adoptVisible}
+        animationType="slide"
+        onRequestClose={() => setAdoptVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/40">
+          <Pressable className="flex-1" onPress={() => setAdoptVisible(false)} />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            className="max-h-[90%] rounded-t-[30px] bg-card border-t border-border"
+          >
+            <ScrollView
+              className="px-4 pt-4 pb-6"
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="items-center pb-2">
+                <View className="h-1.5 w-12 rounded-full bg-muted" />
+              </View>
+
+              <View className="mb-4 flex-row items-center justify-between border-b border-border/30 pb-2">
+                <View className="flex-1">
+                  <Text className="text-xl font-black text-foreground">
+                    📝 Đăng ký nhận nuôi {pet.name}
+                  </Text>
+                  <Text className="mt-1 text-xs text-muted-foreground">
+                    Vui lòng cung cấp đầy đủ thông tin để hoàn thiện hồ sơ
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setAdoptVisible(false)}
+                  className="h-8 w-8 items-center justify-center rounded-full bg-muted/60"
+                >
+                  <Ionicons name="close" size={18} className="text-muted-foreground" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Form Content */}
+              <View className="mb-4 rounded-2xl border border-border bg-card p-4">
+                <FormField label="Kinh nghiệm nuôi dưỡng" required>
+                  <Input
+                    value={experience}
+                    onChangeText={setExperience}
+                    placeholder="Bạn đã từng nuôi chó/mèo hay thú cưng khác chưa? Vui lòng chia sẻ ngắn gọn về kinh nghiệm của bạn..."
+                    multiline
+                    numberOfLines={4}
+                    style={{ textAlignVertical: "top", minHeight: 96 }}
+                  />
+                </FormField>
+
+                <FormField label="Điều kiện sống & gia đình" required>
+                  <Input
+                    value={liveCondition}
+                    onChangeText={setLiveCondition}
+                    placeholder="Không gian nhà ở (nhà riêng, chung cư, sân vườn...)? Các thành viên trong gia đình có đồng ý và hỗ trợ bạn chăm sóc bé không?..."
+                    multiline
+                    numberOfLines={4}
+                    style={{ textAlignVertical: "top", minHeight: 96 }}
+                  />
+                </FormField>
+              </View>
+
+              {/* Error Message */}
+              {submitError && (
+                <View className="mb-4 rounded-xl bg-destructive/10 px-3 py-2.5 flex-row items-center">
+                  <Ionicons name="alert-circle" size={16} className="text-destructive mr-2" />
+                  <Text className="text-xs font-bold text-destructive flex-1">
+                    {submitError}
+                  </Text>
+                </View>
+              )}
+
+              {/* Action Buttons */}
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={() => setAdoptVisible(false)}
+                  className="flex-1 items-center justify-center rounded-xl border border-border bg-muted/20 px-4 py-3.5"
+                >
+                  <Text className="font-bold text-foreground">Hủy</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => void handleAdoptSubmit()}
+                  disabled={isSubmitting}
+                  className="flex-1 items-center justify-center rounded-xl bg-[#277f8f] px-4 py-3.5 active:opacity-90"
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text className="font-bold text-white">
+                      Gửi đơn đăng ký
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }

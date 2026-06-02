@@ -14,4 +14,5 @@ export const AdoptionResponseDtoStatus = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
   CANCELLED: 'CANCELLED',
+  COMPLETE: 'COMPLETE',
 } as const;

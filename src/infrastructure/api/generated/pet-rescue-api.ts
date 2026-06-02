@@ -45,6 +45,7 @@ import type {
   ApiResponsePageResponsePetSummaryResponseDto,
   ApiResponsePageResponsePostSummaryResponseDto,
   ApiResponsePageResponseProvinceSummaryDto,
+  ApiResponsePageResponseRescueCaseCompletionResponseDto,
   ApiResponsePageResponseRescueCaseSummaryResponseDto,
   ApiResponsePageResponseRoleSummaryResponseDto,
   ApiResponsePageResponseTagSummaryResponseDto,
@@ -56,6 +57,8 @@ import type {
   ApiResponsePostCursorResponseDto,
   ApiResponsePostResponseDto,
   ApiResponseProvinceDetailDto,
+  ApiResponseRescueCaseCompletion,
+  ApiResponseRescueCaseCompletionResponseDto,
   ApiResponseRescueCaseResponseDto,
   ApiResponseRoleResponseDto,
   ApiResponseString,
@@ -82,8 +85,10 @@ import type {
   CreatePetRequestDto,
   CreatePostRequestDto,
   CreateRescueCaseRequestDto,
+  CreateRescueCompletionRequestDto,
   CreateRoleRequestDto,
   CreateTagRequestDto,
+  DashboardOverviewDto,
   DecisionRequestDto,
   ForgotPasswordRequestDto,
   GeoLocationUpdateRequestDto,
@@ -96,6 +101,7 @@ import type {
   GetAll6Params,
   GetAll7Params,
   GetAll8Params,
+  GetAllCompletionsParams,
   GetAllParams,
   GetAvailableParams,
   GetByOrganizationIdParams,
@@ -494,6 +500,33 @@ export const report = (
       {url: `/api/v1/rescue-cases`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createRescueCaseRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Submit rescue completion
+ */
+export const complete = (
+    id: string,
+    createRescueCompletionRequestDto: BodyType<CreateRescueCompletionRequestDto>,
+ options?: SecondParameter<typeof customInstance<ApiResponseRescueCaseCompletion>>,) => {
+      return customInstance<ApiResponseRescueCaseCompletion>(
+      {url: `/api/v1/rescue-cases/${id}/complete`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRescueCompletionRequestDto
+    },
+      options);
+    }
+
+/**
+ * @summary Approve rescue completion
+ */
+export const approveCompletion = (
+    id: string,
+ options?: SecondParameter<typeof customInstance<ApiResponseRescueCaseCompletion>>,) => {
+      return customInstance<ApiResponseRescueCaseCompletion>(
+      {url: `/api/v1/rescue-cases/completions/${id}/approve`, method: 'POST'
     },
       options);
     }
@@ -1323,7 +1356,7 @@ export const reject = (
  * Completes an adoption that has been approved. This transfers pet ownership to the adopter and marks the pet as ADOPTED.
  * @summary Complete an approved adoption
  */
-export const complete = (
+export const complete1 = (
     id: string,
  options?: SecondParameter<typeof customInstance<ApiResponseAdoptionResponseDto>>,) => {
       return customInstance<ApiResponseAdoptionResponseDto>(
@@ -1505,6 +1538,31 @@ export const getInBoundingBox = (
       return customInstance<ApiResponsePageResponseRescueCaseSummaryResponseDto>(
       {url: `/api/v1/rescue-cases/map/bounding-box`, method: 'GET',
         params
+    },
+      options);
+    }
+
+/**
+ * @summary List all rescue completions (paginated)
+ */
+export const getAllCompletions = (
+    params?: GetAllCompletionsParams,
+ options?: SecondParameter<typeof customInstance<ApiResponsePageResponseRescueCaseCompletionResponseDto>>,) => {
+      return customInstance<ApiResponsePageResponseRescueCaseCompletionResponseDto>(
+      {url: `/api/v1/rescue-cases/completions`, method: 'GET',
+        params
+    },
+      options);
+    }
+
+/**
+ * @summary Get rescue completion details
+ */
+export const getCompletionDetails = (
+    id: string,
+ options?: SecondParameter<typeof customInstance<ApiResponseRescueCaseCompletionResponseDto>>,) => {
+      return customInstance<ApiResponseRescueCaseCompletionResponseDto>(
+      {url: `/api/v1/rescue-cases/completions/${id}`, method: 'GET'
     },
       options);
     }
@@ -1819,6 +1877,18 @@ export const getByOrganizationId = (
     }
 
 /**
+ * @summary Get admin dashboard stats
+ */
+export const getDashboardOverview = (
+
+ options?: SecondParameter<typeof customInstance<DashboardOverviewDto>>,) => {
+      return customInstance<DashboardOverviewDto>(
+      {url: `/api/v1/admin/dashboard`, method: 'GET'
+    },
+      options);
+    }
+
+/**
  * @summary Delete a tag
  */
 export const delete5 = (
@@ -1882,6 +1952,8 @@ export type GetPermissionsResult = NonNullable<Awaited<ReturnType<typeof getPerm
 export type AssignPermissionsResult = NonNullable<Awaited<ReturnType<typeof assignPermissions>>>
 export type GetAll2Result = NonNullable<Awaited<ReturnType<typeof getAll2>>>
 export type ReportResult = NonNullable<Awaited<ReturnType<typeof report>>>
+export type CompleteResult = NonNullable<Awaited<ReturnType<typeof complete>>>
+export type ApproveCompletionResult = NonNullable<Awaited<ReturnType<typeof approveCompletion>>>
 export type GetAll3Result = NonNullable<Awaited<ReturnType<typeof getAll3>>>
 export type Create2Result = NonNullable<Awaited<ReturnType<typeof create2>>>
 export type LikePostResult = NonNullable<Awaited<ReturnType<typeof likePost>>>
@@ -1939,7 +2011,7 @@ export type UpdateMemberRoleResult = NonNullable<Awaited<ReturnType<typeof updat
 export type ToggleActiveResult = NonNullable<Awaited<ReturnType<typeof toggleActive>>>
 export type UpdateDisplayOrderResult = NonNullable<Awaited<ReturnType<typeof updateDisplayOrder>>>
 export type RejectResult = NonNullable<Awaited<ReturnType<typeof reject>>>
-export type CompleteResult = NonNullable<Awaited<ReturnType<typeof complete>>>
+export type Complete1Result = NonNullable<Awaited<ReturnType<typeof complete1>>>
 export type CancelResult = NonNullable<Awaited<ReturnType<typeof cancel>>>
 export type ApproveResult = NonNullable<Awaited<ReturnType<typeof approve>>>
 export type UnlockUserResult = NonNullable<Awaited<ReturnType<typeof unlockUser>>>
@@ -1954,6 +2026,8 @@ export type Delete3Result = NonNullable<Awaited<ReturnType<typeof delete3>>>
 export type GetNearbyResult = NonNullable<Awaited<ReturnType<typeof getNearby>>>
 export type GetMapMarkersResult = NonNullable<Awaited<ReturnType<typeof getMapMarkers>>>
 export type GetInBoundingBoxResult = NonNullable<Awaited<ReturnType<typeof getInBoundingBox>>>
+export type GetAllCompletionsResult = NonNullable<Awaited<ReturnType<typeof getAllCompletions>>>
+export type GetCompletionDetailsResult = NonNullable<Awaited<ReturnType<typeof getCompletionDetails>>>
 export type GetFeedResult = NonNullable<Awaited<ReturnType<typeof getFeed>>>
 export type GetOwnershipsResult = NonNullable<Awaited<ReturnType<typeof getOwnerships>>>
 export type GetByUserResult = NonNullable<Awaited<ReturnType<typeof getByUser>>>
@@ -1977,6 +2051,7 @@ export type VerifyEmailResult = NonNullable<Awaited<ReturnType<typeof verifyEmai
 export type GetById8Result = NonNullable<Awaited<ReturnType<typeof getById8>>>
 export type GetByUserIdResult = NonNullable<Awaited<ReturnType<typeof getByUserId>>>
 export type GetByOrganizationIdResult = NonNullable<Awaited<ReturnType<typeof getByOrganizationId>>>
+export type GetDashboardOverviewResult = NonNullable<Awaited<ReturnType<typeof getDashboardOverview>>>
 export type Delete5Result = NonNullable<Awaited<ReturnType<typeof delete5>>>
 export type DeleteMediaResult = NonNullable<Awaited<ReturnType<typeof deleteMedia>>>
 export type DeleteMessageResult = NonNullable<Awaited<ReturnType<typeof deleteMessage>>>

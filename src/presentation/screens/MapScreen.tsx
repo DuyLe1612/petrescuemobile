@@ -1,8 +1,9 @@
 import { Input, FormField, Select } from "@/components/ui";
 import { httpAxios } from "@/src/infrastructure/api/client/http";
-import type { CreateRescueCaseRequestDto } from "@/src/infrastructure/api/generated/model";
-import { report } from "@/src/infrastructure/api/generated/pet-rescue-api";
+import type { CreateRescueCaseRequestDto, CreateRescueCompletionRequestDto } from "@/src/infrastructure/api/generated/model";
+import { report, complete as submitRescueCompleteApi } from "@/src/infrastructure/api/generated/pet-rescue-api";
 import { container } from "@/src/infrastructure/di";
+import { useQueryClient } from "@tanstack/react-query";
 import { MapMarkerCard } from "@/src/presentation/components/map/MapMarkerCard";
 import { MapSidebar } from "@/src/presentation/components/map/MapSidebar";
 import {
@@ -20,12 +21,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -139,6 +142,16 @@ export default function MapScreen() {
     null,
   );
   const provinceLoadInitiatedRef = useRef(false);
+  const queryClient = useQueryClient();
+
+  // State variables for rescue completion
+  const [completeVisible, setCompleteVisible] = useState(false);
+  const [completeImages, setCompleteImages] = useState<{ uri: string; name: string; type: string }[]>([]);
+  const [completeNote, setCompleteNote] = useState("");
+  const [completeLocationNote, setCompleteLocationNote] = useState("");
+  const [completeConfirmRescued, setCompleteConfirmRescued] = useState(false);
+  const [completeSending, setCompleteSending] = useState(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
 
   const toggleFilter = useCallback((key: HeaderFilter) => {
     setSelectedFilters((prev) => {
@@ -402,6 +415,104 @@ export default function MapScreen() {
 
     return uploaded.map((item) => item.publicId);
   }, [selectedImages]);
+
+  const pickCompleteImage = useCallback(async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setCompleteError("Cần cấp quyền truy cập thư viện ảnh.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.85,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+
+    setCompleteImages((current) => [
+      ...current,
+      ...result.assets.map(normalizeMediaAsset),
+    ]);
+  }, []);
+
+  const removeCompleteImage = useCallback((index: number) => {
+    setCompleteImages((current) =>
+      current.filter((_, currentIndex) => currentIndex !== index),
+    );
+  }, []);
+
+  const uploadCompleteImages = useCallback(async () => {
+    if (completeImages.length === 0) {
+      return [] as string[];
+    }
+
+    const uploaded = await Promise.all(
+      completeImages.map((asset) =>
+        container.media.uploadMediaUseCase.execute(asset, "rescue-cases"),
+      ),
+    );
+
+    return uploaded.map((item) => item.mediaId);
+  }, [completeImages]);
+
+  const handleRescueComplete = useCallback(async () => {
+    if (!selectedMarker) return;
+    setCompleteError(null);
+
+    if (completeImages.length === 0) {
+      setCompleteError("Vui lòng cung cấp ít nhất 1 ảnh xác minh.");
+      return;
+    }
+
+    if (!completeConfirmRescued) {
+      setCompleteError("Vui lòng xác nhận đã cứu hộ thành công thú cưng.");
+      return;
+    }
+
+    try {
+      setCompleteSending(true);
+      const mediaIds = await uploadCompleteImages();
+      
+      const payload: CreateRescueCompletionRequestDto = {
+        caseId: selectedMarker.id,
+        verificationImageIds: mediaIds,
+        rescueNote: completeNote.trim() || undefined,
+        locationNote: completeLocationNote.trim() || undefined,
+        confirmRescued: completeConfirmRescued,
+        rescuedAt: new Date().toISOString(),
+      };
+
+      await submitRescueCompleteApi(selectedMarker.id, payload);
+      
+      // Reset form states
+      setCompleteVisible(false);
+      setMarkerDetailVisible(false);
+      setCompleteNote("");
+      setCompleteLocationNote("");
+      setCompleteConfirmRescued(false);
+      setCompleteImages([]);
+
+      // Invalidate queries to refresh the map markers
+      await queryClient.invalidateQueries({ queryKey: ["map-markers"] });
+      Alert.alert("Thành công", "Chúc mừng! Ca cứu hộ đã hoàn thành thành công.");
+    } catch (error) {
+      console.error("Failed to complete rescue case:", error);
+      setCompleteError("Không thể hoàn thành ca cứu hộ. Vui lòng thử lại.");
+    } finally {
+      setCompleteSending(false);
+    }
+  }, [
+    selectedMarker,
+    completeImages,
+    completeConfirmRescued,
+    completeNote,
+    completeLocationNote,
+    uploadCompleteImages,
+    queryClient,
+  ]);
 
   const loadMarkerDetail = useCallback(async () => {
     if (!selectedMarker) return;
@@ -1012,16 +1123,189 @@ export default function MapScreen() {
               ) : null}
             </ScrollView>
 
-            {/* Close Button */}
-            <View className="border-t border-border/50 bg-card px-4 py-3">
+            {/* Footer Buttons */}
+            <View className="border-t border-border/50 bg-card px-4 py-3 flex-row gap-3">
               <Pressable
                 onPress={() => setMarkerDetailVisible(false)}
-                className="items-center justify-center rounded-xl bg-muted/60 py-3 active:bg-muted"
+                className="flex-1 items-center justify-center rounded-xl bg-muted/60 py-3 active:bg-muted"
               >
                 <Text className="font-bold text-foreground text-sm">Đóng</Text>
               </Pressable>
+              {selectedMarker?.source === "rescue" &&
+                markerDetail?.status !== "RESCUED" &&
+                markerDetail?.status !== "CLOSED" && (
+                  <Pressable
+                    onPress={() => setCompleteVisible(true)}
+                    className="flex-1 items-center justify-center rounded-xl bg-green-600 py-3 active:opacity-90"
+                  >
+                    <Text className="font-bold text-white text-sm">Hoàn thành</Text>
+                  </Pressable>
+                )}
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Form Modal Hoàn thành Cứu hộ */}
+      <Modal
+        transparent
+        visible={completeVisible}
+        animationType="slide"
+        onRequestClose={() => setCompleteVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/40">
+          <Pressable className="flex-1" onPress={() => setCompleteVisible(false)} />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            className="max-h-[92%] rounded-t-[30px] bg-card border-t border-border"
+          >
+            <ScrollView
+              className="px-4 pt-4 pb-6"
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="items-center pb-2">
+                <View className="h-1.5 w-12 rounded-full bg-muted" />
+              </View>
+
+              <View className="mb-4 flex-row items-center justify-between border-b border-border/30 pb-2">
+                <View>
+                  <Text className="text-xl font-black text-foreground">
+                    🏁 Hoàn thành ca cứu hộ
+                  </Text>
+                  <Text className="mt-1 text-xs text-muted-foreground">
+                    Cung cấp thông tin xác minh để hoàn thành cứu hộ
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setCompleteVisible(false)}
+                  className="h-8 w-8 items-center justify-center rounded-full bg-muted/60"
+                >
+                  <Ionicons name="close" size={18} className="text-muted-foreground" />
+                </Pressable>
+              </View>
+
+              {/* Photos Card */}
+              <View className="mb-4 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  Ảnh xác minh *
+                </Text>
+
+                <Pressable
+                  onPress={() => void pickCompleteImage()}
+                  className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-4 py-6"
+                >
+                  <Ionicons name="camera" size={18} className="text-muted-foreground mr-2" />
+                  <Text className="text-center font-bold text-foreground text-sm">
+                    Thêm ảnh từ thư viện
+                  </Text>
+                </Pressable>
+
+                {completeImages.length > 0 && (
+                  <View className="mt-4">
+                    <Text className="mb-3 text-xs font-semibold text-muted-foreground">
+                      Đã chọn ({completeImages.length})
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {completeImages.map((image, index) => (
+                        <View
+                          key={`${image.uri}-${index}`}
+                          className="relative w-[30%] overflow-hidden rounded-xl bg-muted"
+                        >
+                          <ExpoImage
+                            source={{ uri: image.uri }}
+                            style={{ width: "100%", aspectRatio: 1 }}
+                            contentFit="cover"
+                          />
+                          <Pressable
+                            onPress={() => removeCompleteImage(index)}
+                            className="absolute right-1 top-1 h-5 w-5 items-center justify-center rounded-full bg-black/60"
+                          >
+                            <Ionicons name="close" size={12} color="white" />
+                          </Pressable>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {/* Completion Notes Card */}
+              <View className="mb-4 rounded-2xl border border-border bg-card p-4">
+                <Text className="mb-3 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  Ghi chú hoàn thành
+                </Text>
+
+                <FormField label="Chi tiết cứu hộ">
+                  <Input
+                    value={completeNote}
+                    onChangeText={setCompleteNote}
+                    placeholder="Mô tả lại quá trình cứu hộ, tình trạng sức khỏe hiện tại của bé..."
+                    multiline
+                  />
+                </FormField>
+
+                <FormField label="Ghi chú vị trí bàn giao">
+                  <Input
+                    value={completeLocationNote}
+                    onChangeText={setCompleteLocationNote}
+                    placeholder="Nhập địa chỉ hoặc ghi chú vị trí đưa bé đến (ví dụ: Phòng khám thú y X)..."
+                  />
+                </FormField>
+              </View>
+
+              {/* Confirmation Card */}
+              <View className="mb-4 rounded-2xl border border-border bg-card p-4 flex-row items-center justify-between">
+                <View className="flex-1 mr-4">
+                  <Text className="text-sm font-bold text-foreground">
+                    Xác nhận cứu hộ thành công
+                  </Text>
+                  <Text className="text-xs text-muted-foreground mt-1">
+                    Tôi xác nhận rằng thú cưng đã được cứu hộ an toàn và đúng thực tế.
+                  </Text>
+                </View>
+                <Switch
+                  value={completeConfirmRescued}
+                  onValueChange={setCompleteConfirmRescued}
+                  trackColor={{ false: "rgb(210 210 210)", true: "#16a34a" }}
+                  thumbColor="white"
+                />
+              </View>
+
+              {/* Error Message */}
+              {completeError && (
+                <View className="mb-4 rounded-xl bg-destructive/10 px-3 py-2.5 flex-row items-center">
+                  <Ionicons name="alert-circle" size={16} className="text-destructive mr-2" />
+                  <Text className="text-xs font-bold text-destructive flex-1">
+                    {completeError}
+                  </Text>
+                </View>
+              )}
+
+              {/* Action Buttons */}
+              <View className="flex-row gap-3">
+                <Pressable
+                  onPress={() => setCompleteVisible(false)}
+                  className="flex-1 items-center justify-center rounded-xl border border-border bg-muted/20 px-4 py-3.5"
+                >
+                  <Text className="font-bold text-foreground">Hủy</Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => void handleRescueComplete()}
+                  disabled={completeSending}
+                  className="flex-1 items-center justify-center rounded-xl bg-green-600 px-4 py-3.5 active:opacity-90"
+                >
+                  {completeSending ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text className="font-bold text-white">
+                      Xác nhận hoàn thành
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </View>

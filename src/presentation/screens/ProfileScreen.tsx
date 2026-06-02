@@ -8,6 +8,7 @@ import { type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   ScrollView,
   StatusBar,
@@ -17,6 +18,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCurrentUser } from "@/src/infrastructure/api/generated/pet-rescue-api";
 
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
@@ -384,6 +387,16 @@ const GuestProfile = () => {
 const LoggedInProfile = () => {
   const [pushEnabled, setPushEnabled] = useState(true);
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+
+  const userQuery = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const res = await getCurrentUser();
+      return res.data;
+    },
+  });
+  const user = userQuery.data;
 
   const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
   const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
@@ -435,38 +448,54 @@ const LoggedInProfile = () => {
                 justifyContent: "center",
                 marginRight: 14,
                 backgroundColor: "rgba(255, 255, 255, 0.12)",
+                overflow: "hidden",
               }}
             >
-              <Ionicons name="person-outline" size={28} color="white" />
+              {user?.avatarUrl ? (
+                <Image
+                  source={{ uri: user.avatarUrl }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons name="person-outline" size={28} color="white" />
+              )}
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "white", fontSize: 20, fontWeight: "800" }}>
-                Nguyễn Văn An
-              </Text>
-              <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: 12, marginTop: 3 }}>
-                nguyenvana@example.com
-              </Text>
-              <View
-                style={{
-                  marginTop: 6,
-                  alignSelf: "flex-start",
-                  backgroundColor: "#ff8c38",
-                  borderRadius: 12,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                }}
-              >
-                <Text style={{ color: "white", fontSize: 10, fontWeight: "800" }}>
-                  Người dùng
-                </Text>
-              </View>
+              {userQuery.isLoading ? (
+                <ActivityIndicator size="small" color="white" style={{ alignSelf: "flex-start" }} />
+              ) : (
+                <>
+                  <Text style={{ color: "white", fontSize: 20, fontWeight: "800" }}>
+                    {user?.fullName || user?.username || "Chưa đặt tên"}
+                  </Text>
+                  <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: 12, marginTop: 3 }}>
+                    {user?.email || "Chưa cập nhật email"}
+                  </Text>
+                  <View
+                    style={{
+                      marginTop: 6,
+                      alignSelf: "flex-start",
+                      backgroundColor: "#ff8c38",
+                      borderRadius: 12,
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                    }}
+                  >
+                    <Text style={{ color: "white", fontSize: 10, fontWeight: "800" }}>
+                      {user?.roles && user.roles.length > 0
+                        ? user.roles.join(", ")
+                        : "Thành viên"}
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
           </View>
 
           <View style={{ marginTop: 18, flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
-            <ProfileStat value="3" label="Lượt cứu hộ" />
-            <ProfileStat value="5" label="Bài đăng" />
-            <ProfileStat value="8" label="Quan tâm" />
+            <ProfileStat value={userQuery.isLoading ? "..." : `${user?.reputation?.score ?? 0}`} label="Điểm uy tín" />
+            <ProfileStat value={userQuery.isLoading ? "..." : `${user?.reputation?.level || "Thành viên"}`} label="Cấp độ" />
           </View>
         </View>
 
@@ -488,10 +517,10 @@ const LoggedInProfile = () => {
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: "700", color: textColor }}>
-              Điểm uy tín: 340+
+              Điểm uy tín: {user?.reputation?.score ?? 0}
               <Text style={{ color: mutedColor, fontWeight: "500", fontSize: 12 }}>
                 {" "}
-                | Tình nguyện viên
+                | {user?.reputation?.level || "Thành viên"}
               </Text>
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
@@ -562,7 +591,7 @@ const LoggedInProfile = () => {
             <GuestMenuRow
               icon={<Ionicons name="paw-outline" size={16} color="#0a4c73" />}
               label="Thú cưng của tôi"
-              badge="Corgi 1"
+              badge="Xem hết"
               textColor={textColor}
               mutedColor={mutedColor}
               subtleSurface={subtleSurface}
@@ -705,6 +734,7 @@ const LoggedInProfile = () => {
           <TouchableOpacity
             onPress={async () => {
               await tokenStorage.clear();
+              queryClient.clear();
             }}
             accessibilityRole="button"
             accessibilityLabel="Đăng xuất"

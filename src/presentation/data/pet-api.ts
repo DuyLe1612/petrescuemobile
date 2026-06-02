@@ -12,7 +12,8 @@ import {
 } from "@/src/infrastructure/api/generated/pet-rescue-api";
 import type {
   MediaFileResponseDto,
-  PetOwnershipResponseDto,
+  PetMediaResponseDto,
+  PetOwnershipHistoryDisplayDto,
   PetResponseDto,
   PetSummaryResponseDto,
   UpdatePetRequestDto,
@@ -107,6 +108,7 @@ const mapSummaryToAdoptionPet = (pet: PetSummaryResponseDto): AdoptionPet => ({
   shelterName: pet.organization?.name ?? pet.owner?.name ?? "Pet Rescue",
   healthBadges: buildHealthBadges(pet),
   story: "Thông tin chi tiết về hành trình của bé sẽ được cập nhật từ hồ sơ rescue.",
+  organizationId: pet.organization?.organizationId || "",
 });
 
 const mapDetailToAdoptionPet = (pet: PetResponseDto): AdoptionPet => ({
@@ -129,19 +131,20 @@ const mapDetailToAdoptionPet = (pet: PetResponseDto): AdoptionPet => ({
     pet.rescueDate || pet.rescueLocation
       ? `Bé được ghi nhận rescue ${pet.rescueDate ? `từ ${new Date(pet.rescueDate).toLocaleDateString("vi-VN")}` : ""}${pet.rescueLocation ? ` tại ${pet.rescueLocation}` : ""}.`
       : "Hành trình rescue của bé đang được cập nhật.",
+  organizationId: pet.organization?.organizationId || pet.shelterId || "",
 });
 
-const mapOwnershipToDiary = (item: PetOwnershipResponseDto, index: number): PetDiaryEntry => ({
-  id: `${item.petId ?? "pet"}-${item.ownerId ?? index}-${index}`,
+const mapOwnershipToDiary = (item: PetOwnershipHistoryDisplayDto, index: number): PetDiaryEntry => ({
+  id: `ownership-${index}`,
   title: `Chuyển chăm sóc cho ${item.ownerName ?? "người nuôi"}`,
-  subtitle: item.fromTime ? new Date(item.fromTime).toLocaleDateString("vi-VN") : "Lịch sử sở hữu",
-  note: `${item.ownerType ?? "OWNER"}${item.toTime ? `, kết thúc ${new Date(item.toTime).toLocaleDateString("vi-VN")}` : ", đang là người nuôi hiện tại"}.`,
+  subtitle: item.timestamp ? new Date(item.timestamp).toLocaleDateString("vi-VN") : "Lịch sử sở hữu",
+  note: `${item.ownerType ?? "OWNER"}, đang là người nuôi hiện tại.`,
   mood: "Sức khỏe",
   moodTone: "good",
   tags: [item.ownerType ?? "owner"],
 });
 
-const mapMediaToDiary = (item: MediaFileResponseDto, index: number): PetDiaryEntry => ({
+const mapMediaToDiary = (item: PetMediaResponseDto, index: number): PetDiaryEntry => ({
   id: item.mediaId ?? `media-${index}`,
   title: "Cập nhật hình ảnh",
   subtitle: item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : "Ảnh đính kèm",
@@ -184,7 +187,7 @@ export const fetchAvailablePets = async ({
 }): Promise<PaginatedPets> => {
   const response = await getAvailable({
     page,
-    size: pageSize,
+    pageSize: pageSize,
     species: filters.species !== "all" ? filters.species.toUpperCase() : undefined,
     breed: filters.keyword.trim() || undefined,
   });
@@ -222,7 +225,7 @@ export const fetchMyPets = async (): Promise<MyPetRecord[]> => {
   const userId = me.data?.userId;
   if (!userId) return [];
 
-  const response = await getByUser(userId, { page: 0, size: 50 });
+  const response = await getByUser(userId, { page: 0, pageSize: 50 });
   return (response.data?.content ?? []).map((pet) => ({
     id: pet.petId ?? pet.petCode ?? `${pet.name}-${pet.imageUrl}`,
     name: pet.name ?? "Chưa đặt tên",
@@ -257,8 +260,8 @@ export const fetchMyPets = async (): Promise<MyPetRecord[]> => {
 export const fetchMyPetDetail = async (id: string): Promise<MyPetRecord | null> => {
   const [petResponse, mediaResponse, ownershipResponse] = await Promise.all([
     getById2(id),
-    getMedia(id, { page: 0, size: 10 }).catch(() => null),
-    getOwnerships(id, { page: 0, size: 10 }).catch(() => null),
+    getMedia(id, { page: 0, pageSize: 10 }).catch(() => null),
+    getOwnerships(id, { page: 0, pageSize: 10 }).catch(() => null),
   ]);
 
   const pet = petResponse.data;

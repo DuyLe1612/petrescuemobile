@@ -5,10 +5,10 @@ import {
   ApiResponseVoid,
 } from "./generated/model";
 import {
-  accept,
+  acceptRequest,
   listFriends,
   listPending,
-  reject,
+  rejectRequest,
   searchPublicUsers,
   sendRequest,
 } from "./generated/pet-rescue-api";
@@ -21,14 +21,14 @@ export const friendApi = {
     limit?: number,
     cursor?: string,
   ): Promise<ApiResponseCursorPageDtoFriendSummaryDto> => {
-    return listFriends({ limit, cursor });
+    return listFriends({ pageSize: limit, cursor });
   },
 
   listRequests: async (
     limit?: number,
     cursor?: string,
   ): Promise<ApiResponseCursorPageDtoFriendRequestDto> => {
-    return listPending({ limit, cursor });
+    return listPending({ pageSize: limit, cursor });
   },
 
   searchUsers: async (
@@ -48,12 +48,12 @@ export const friendApi = {
   },
 
   acceptFriendRequest: async (requestId: string): Promise<ApiResponseVoid> => {
-    const res = await accept(requestId);
+    const res = await acceptRequest(requestId);
     return res as unknown as ApiResponseVoid;
   },
 
   declineFriendRequest: async (requestId: string): Promise<ApiResponseVoid> => {
-    const res = await reject(requestId);
+    const res = await rejectRequest(requestId);
     return res as unknown as ApiResponseVoid;
   },
 };
