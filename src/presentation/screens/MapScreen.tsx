@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MapMarkerCard } from "@/src/presentation/components/map/MapMarkerCard";
 import { MapSidebar } from "@/src/presentation/components/map/MapSidebar";
 import {
-  DEFAULT_MAP_BOUNDS,
   MAP_PANEL_HEIGHT,
   MAP_VIEWPORT,
   type MapBounds,
@@ -61,6 +60,13 @@ const regionToBounds = (region: Region): MapBounds => ({
   maxLng: region.longitude + region.longitudeDelta / 2,
 });
 
+const DEFAULT_REGION: Region = {
+  latitude: MAP_VIEWPORT.latitude,
+  longitude: MAP_VIEWPORT.longitude,
+  latitudeDelta: MAP_VIEWPORT.latitudeDelta,
+  longitudeDelta: MAP_VIEWPORT.longitudeDelta,
+};
+
 const normalizeMediaAsset = (asset: ImagePicker.ImagePickerAsset) => ({
   uri: asset.uri,
   name: asset.fileName ?? `image-${Date.now()}.jpg`,
@@ -100,8 +106,10 @@ export default function MapScreen() {
   const [selectedFilters, setSelectedFilters] = useState<Set<HeaderFilter>>(
     new Set(["rescue"]),
   );
-  const [viewportBounds, setViewportBounds] =
-    useState<MapBounds>(DEFAULT_MAP_BOUNDS);
+  const [mapRegion, setMapRegion] = useState<Region>(DEFAULT_REGION);
+  const [viewportBounds, setViewportBounds] = useState<MapBounds>(
+    regionToBounds(DEFAULT_REGION),
+  );
   const [appliedBounds, setAppliedBounds] = useState<MapBounds | undefined>(
     undefined,
   );
@@ -238,13 +246,6 @@ export default function MapScreen() {
       );
   }, [markerDetail]);
 
-  const mapRegion: Region = {
-    latitude: MAP_VIEWPORT.latitude,
-    longitude: MAP_VIEWPORT.longitude,
-    latitudeDelta: MAP_VIEWPORT.latitudeDelta,
-    longitudeDelta: MAP_VIEWPORT.longitudeDelta,
-  };
-
   const isWeb = Platform.OS === "web";
 
   const openCreateModal = async (latitude: number, longitude: number) => {
@@ -373,6 +374,45 @@ export default function MapScreen() {
     }, 300);
     return () => clearTimeout(timer);
   }, [wardSearchRaw]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchLocationAndCenter = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.warn("Location permission not granted");
+          return;
+        }
+
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        if (active && loc?.coords) {
+          const { latitude, longitude } = loc.coords;
+          console.log("📍 [MapScreen] User current location on mount:", latitude, longitude);
+
+          const nextRegion: Region = {
+            latitude,
+            longitude,
+            latitudeDelta: MAP_VIEWPORT.latitudeDelta,
+            longitudeDelta: MAP_VIEWPORT.longitudeDelta,
+          };
+
+          setMapRegion(nextRegion);
+          setViewportBounds(regionToBounds(nextRegion));
+        }
+      } catch (err) {
+        console.warn("Error fetching current user location:", err);
+      }
+    };
+
+    void fetchLocationAndCenter();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const pickImage = useCallback(async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -621,8 +661,11 @@ export default function MapScreen() {
             provider={PROVIDER_GOOGLE}
             googleRenderer="LEGACY"
             style={{ flex: 1 }}
-            initialRegion={mapRegion}
+            region={mapRegion}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
             onRegionChangeComplete={(region) => {
+              setMapRegion(region);
               setViewportBounds(regionToBounds(region));
             }}
             onPress={() => {

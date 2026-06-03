@@ -27,9 +27,9 @@ const STATUS_STYLE: Record<
   { pill: string; text: string; accent: string }
 > = {
   PENDING: {
-    pill: "bg-orange-100",
-    text: "text-orange-600",
-    accent: "bg-orange-500",
+    pill: "bg-sky-100",
+    text: "text-sky-600",
+    accent: "bg-sky-500",
   },
   APPROVED: {
     pill: "bg-emerald-100",
@@ -153,7 +153,7 @@ const AdoptionCard = ({
                 : isDone
                   ? "bg-emerald-500"
                   : isActive
-                    ? "bg-orange-500"
+                    ? "bg-sky-500"
                     : "bg-muted";
 
               const textClass = isRejected
@@ -161,7 +161,7 @@ const AdoptionCard = ({
                 : isDone
                   ? "text-emerald-600"
                   : isActive
-                    ? "text-orange-600"
+                    ? "text-sky-600"
                     : "text-muted-foreground";
 
               return (
@@ -317,7 +317,7 @@ export default function MyAdoptionsScreen() {
                   borderRadius: 999,
                   paddingHorizontal: 14,
                   paddingVertical: 8,
-                  backgroundColor: isActive ? "#ff8c38" : "rgba(255,255,255,0.15)",
+                  backgroundColor: isActive ? "#38bdf8" : "rgba(255,255,255,0.15)",
                 }}
               >
                 <Text

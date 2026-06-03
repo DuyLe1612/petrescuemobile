@@ -10,19 +10,29 @@ import { Image as ExpoImage } from "expo-image";
 import { container } from "@/src/infrastructure/di";
 import { useCreatePost } from "@/src/presentation/hooks/use-post-like";
 import { type LocalMediaAsset } from "@/src/domain/entities/media";
+import { useQuery } from "@tanstack/react-query";
+import { getCurrentUser } from "@/src/infrastructure/api/generated/pet-rescue-api";
+
+const buildInitials = (name?: string) =>
+  (name ?? "PR")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "PR";
 
 const POST_CREATE_TOKENS = {
   radius: {
-    card: 22,
+    card: 24,
     pill: 999,
-    input: 16,
+    input: 14,
   },
   shadow: {
-    shadowColor: "#171717",
-    shadowOpacity: 0.08,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    elevation: 3,
   },
 } as const;
 
@@ -31,25 +41,25 @@ const POST_TYPES = [
     id: "rescue",
     label: "Cần cứu hộ",
     icon: "medical" as const,
-    activeBg: "#ff6f61",
+    activeBg: "#0a4c73",
     activeText: "#ffffff",
-    surface: "rgba(255,111,97,0.12)",
+    surface: "rgba(10, 76, 115, 0.06)",
   },
   {
     id: "found",
     label: "Đã tìm thấy",
     icon: "search" as const,
-    activeBg: "#78c99a",
+    activeBg: "#0a4c73",
     activeText: "#ffffff",
-    surface: "rgba(120,201,154,0.14)",
+    surface: "rgba(10, 76, 115, 0.06)",
   },
   {
     id: "lost",
     label: "Thất lạc",
     icon: "paw-outline" as const,
-    activeBg: "#ffbc80",
+    activeBg: "#0a4c73",
     activeText: "#ffffff",
-    surface: "rgba(255,188,128,0.16)",
+    surface: "rgba(10, 76, 115, 0.06)",
   },
 ] as const;
 
@@ -72,16 +82,27 @@ export default function PostCreateScreen() {
 
   const createPostMutation = useCreatePost();
 
-  const backgroundColor = useThemeColor({}, "background");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
+  const cardColor = useThemeColor({ light: "#ffffff", dark: "#1f1f1e" }, "background");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
-  const primaryColor = useThemeColor({}, "tint");
+  const borderColor = useThemeColor({ light: "#e2e8f0", dark: "#2d2d2c" }, "icon");
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
+
+  const userQuery = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const res = await getCurrentUser();
+      return res.data;
+    },
+  });
+  const user = userQuery.data;
+  const displayName = user?.fullName || user?.username || "Người dùng";
+  const initials = buildInitials(displayName);
 
   const canSubmit = useMemo(() => {
-    return content.trim().length > 12 && location.trim().length > 0 && !isSubmitting;
-  }, [content, location, isSubmitting]);
+    return content.trim().length > 12 && !isSubmitting;
+  }, [content, isSubmitting]);
 
   const activeType = POST_TYPES.find((item) => item.id === postType) ?? POST_TYPES[0];
 
@@ -127,7 +148,6 @@ export default function PostCreateScreen() {
     try {
       let mediaIds: string[] = [];
       if (selectedImages.length > 0) {
-        // Upload images one by one through uploadMediaUseCase
         const uploadPromises = selectedImages.map((asset) =>
           container.media.uploadMediaUseCase.execute(asset, "community-posts")
         );
@@ -136,7 +156,7 @@ export default function PostCreateScreen() {
       }
 
       await createPostMutation.mutateAsync({
-        content: `${content}\n📍 Vị trí: ${location}`,
+        content: location.trim() ? `${content}\n📍 Vị trí: ${location}` : content,
         tagCodes: selectedTags,
         mediaIds,
       });
@@ -166,7 +186,7 @@ export default function PostCreateScreen() {
             accessibilityLabel="Đăng bài"
             style={{
               borderRadius: POST_CREATE_TOKENS.radius.pill,
-              backgroundColor: canSubmit ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)",
+              backgroundColor: canSubmit ? "#0a4c73" : "rgba(255,255,255,0.08)",
               paddingHorizontal: 16,
               paddingVertical: 7,
               minWidth: 60,
@@ -177,7 +197,7 @@ export default function PostCreateScreen() {
             {isSubmitting ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Text style={{ color: canSubmit ? "white" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: "700" }}>
+              <Text style={{ color: canSubmit ? "white" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: "800" }}>
                 Đăng
               </Text>
             )}
@@ -193,20 +213,12 @@ export default function PostCreateScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-
-        <View
-          style={{
-            marginTop: 8,
-            borderTopWidth: 1,
-            borderTopColor: borderColor,
-            paddingTop: 16,
-          }}
-        >
-          <Text style={{ color: mutedColor, fontSize: 11, fontWeight: "700", letterSpacing: 0.7 }}>
+        <View style={{ marginTop: 4 }}>
+          <Text style={{ color: mutedColor, fontSize: 11, fontWeight: "800", letterSpacing: 0.8 }}>
             LOẠI BÀI ĐĂNG
           </Text>
 
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
             {POST_TYPES.map((type) => {
               const isActive = type.id === postType;
 
@@ -219,17 +231,17 @@ export default function PostCreateScreen() {
                     alignItems: "center",
                     borderRadius: POST_CREATE_TOKENS.radius.pill,
                     backgroundColor: isActive ? type.activeBg : type.surface,
-                    paddingHorizontal: 12,
+                    paddingHorizontal: 16,
                     paddingVertical: 9,
                   }}
                 >
-                  <Ionicons name={type.icon} size={13} color={isActive ? type.activeText : primaryColor} />
+                  <Ionicons name={type.icon} size={14} color={isActive ? type.activeText : "#0a4c73"} />
                   <Text
                     style={{
                       marginLeft: 6,
-                      color: isActive ? type.activeText : primaryColor,
+                      color: isActive ? type.activeText : "#0a4c73",
                       fontSize: 12,
-                      fontWeight: "700",
+                      fontWeight: "800",
                     }}
                   >
                     {type.label}
@@ -240,14 +252,15 @@ export default function PostCreateScreen() {
           </View>
         </View>
 
+        {/* Content Card */}
         <View
           style={{
-            marginTop: 16,
+            marginTop: 18,
             borderRadius: POST_CREATE_TOKENS.radius.card,
             backgroundColor: cardColor,
-            paddingHorizontal: 14,
-            paddingTop: 14,
-            paddingBottom: 18,
+            padding: 16,
+            borderWidth: 1,
+            borderColor,
             ...POST_CREATE_TOKENS.shadow,
           }}
         >
@@ -256,16 +269,16 @@ export default function PostCreateScreen() {
               style={{
                 width: 36,
                 height: 36,
-                borderRadius: POST_CREATE_TOKENS.radius.pill,
-                backgroundColor: primaryColor,
+                borderRadius: 18,
+                backgroundColor: "#0a4c73",
                 alignItems: "center",
                 justifyContent: "center",
                 marginRight: 10,
               }}
             >
-              <Text style={{ color: "white", fontSize: 12, fontWeight: "800" }}>VA</Text>
+              <Text style={{ color: "white", fontSize: 12, fontWeight: "800" }}>{initials}</Text>
             </View>
-            <Text style={{ color: textColor, fontSize: 16, fontWeight: "800" }}>Nguyễn Văn An</Text>
+            <Text style={{ color: textColor, fontSize: 15, fontWeight: "800" }}>{displayName}</Text>
           </View>
 
           <TextInput
@@ -285,9 +298,10 @@ export default function PostCreateScreen() {
               marginTop: 14,
               minHeight: 140,
               color: textColor,
-              fontSize: 15,
+              fontSize: 14,
               lineHeight: 22,
               paddingVertical: 0,
+              fontWeight: "500",
             }}
           />
 
@@ -319,7 +333,7 @@ export default function PostCreateScreen() {
                       width: 20,
                       height: 20,
                       borderRadius: 10,
-                      backgroundColor: "rgba(0,0,0,0.6)",
+                      backgroundColor: "rgba(0,0,0,0.65)",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
@@ -342,42 +356,44 @@ export default function PostCreateScreen() {
             }}
           >
             <ActionPill
-              icon={<Feather name="image" size={14} color={primaryColor} />}
-              label="Ảnh"
+              icon={<Feather name="image" size={14} color="#0a4c73" />}
+              label="Đính kèm ảnh"
               onPress={pickImage}
-            />
-            <ActionPill
-              icon={<Ionicons name="location-outline" size={14} color={primaryColor} />}
-              label="Vị trí"
+              borderColor={borderColor}
             />
           </View>
         </View>
 
-        <View style={{ marginTop: 18 }}>
-          <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>
-            <Text style={{ color: "#ff6f61" }}>• </Text>
-            Vị trí sự việc
-          </Text>
+        {/* Location Section */}
+        <View style={{ marginTop: 20 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={{ color: textColor, fontSize: 13, fontWeight: "800" }}>
+              📍 Vị trí sự việc
+            </Text>
+            <Text style={{ color: mutedColor, fontSize: 11, fontWeight: "600" }}>
+              Không bắt buộc
+            </Text>
+          </View>
 
           <View
             style={{
-              marginTop: 10,
-              height: 46,
+              marginTop: 8,
+              height: 48,
               borderRadius: POST_CREATE_TOKENS.radius.input,
               backgroundColor: cardColor,
               borderWidth: 1,
               borderColor,
-              paddingHorizontal: 14,
+              paddingHorizontal: 12,
               justifyContent: "center",
               ...POST_CREATE_TOKENS.shadow,
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="location-outline" size={15} color={mutedColor} />
+              <Ionicons name="location-outline" size={16} color={mutedColor} />
               <TextInput
                 value={location}
                 onChangeText={setLocation}
-                placeholder="Nhập địa chỉ hoặc dùng vị trí hiện tại..."
+                placeholder="Có thể bỏ trống hoặc nhập địa chỉ của sự việc..."
                 placeholderTextColor={mutedColor}
                 style={{
                   flex: 1,
@@ -385,33 +401,38 @@ export default function PostCreateScreen() {
                   color: textColor,
                   fontSize: 14,
                   paddingVertical: 0,
+                  fontWeight: "500",
                 }}
               />
             </View>
           </View>
+          <Text style={{ color: mutedColor, fontSize: 11, marginTop: 8, lineHeight: 16 }}>
+            Bạn vẫn có thể đăng bài mà không cần nhập vị trí.
+          </Text>
         </View>
 
+        {/* AI Suggested Tags Section */}
         <View
           style={{
             marginTop: 20,
             borderRadius: POST_CREATE_TOKENS.radius.card,
-            backgroundColor: "rgba(37,150,214,0.08)",
-            paddingHorizontal: 14,
-            paddingVertical: 14,
+            backgroundColor: "rgba(10, 76, 115, 0.05)",
+            paddingHorizontal: 16,
+            paddingVertical: 16,
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>Nhãn gợi ý AI</Text>
+            <Text style={{ color: textColor, fontSize: 13, fontWeight: "800" }}>Nhãn gợi ý tự động</Text>
             <View
               style={{
                 marginLeft: 8,
                 borderRadius: POST_CREATE_TOKENS.radius.pill,
-                backgroundColor: "rgba(37,150,214,0.14)",
+                backgroundColor: "rgba(10, 76, 115, 0.1)",
                 paddingHorizontal: 8,
                 paddingVertical: 4,
               }}
             >
-              <Text style={{ color: "#2596d6", fontSize: 10, fontWeight: "700" }}>Tự động</Text>
+              <Text style={{ color: "#0a4c73", fontSize: 9, fontWeight: "800", textTransform: "uppercase" }}>AI Tags</Text>
             </View>
           </View>
 
@@ -425,19 +446,21 @@ export default function PostCreateScreen() {
                   onPress={() => toggleTag(tag)}
                   style={{
                     borderRadius: POST_CREATE_TOKENS.radius.pill,
-                    backgroundColor: active ? "rgba(37,150,214,0.18)" : "rgba(255,255,255,0.8)",
-                    paddingHorizontal: 9,
+                    backgroundColor: active ? "rgba(10, 76, 115, 0.15)" : "rgba(255,255,255,0.75)",
+                    paddingHorizontal: 10,
                     paddingVertical: 5,
+                    borderWidth: 1,
+                    borderColor: active ? "rgba(10, 76, 115, 0.25)" : "transparent",
                   }}
                 >
-                  <Text style={{ color: "#2596d6", fontSize: 11, fontWeight: "700" }}>#{tag}</Text>
+                  <Text style={{ color: "#0a4c73", fontSize: 11, fontWeight: "700" }}>#{tag}</Text>
                 </Pressable>
               );
             })}
           </View>
 
-          <Text style={{ color: mutedColor, fontSize: 11, lineHeight: 16, marginTop: 12 }}>
-            AI sẽ tự động phân loại và gắn thêm nhãn phù hợp sau khi đăng.
+          <Text style={{ color: mutedColor, fontSize: 11, lineHeight: 16, marginTop: 12, fontWeight: "500" }}>
+            Các thẻ nhãn giúp bài viết của bạn được tiếp cận và phân loại chính xác hơn trên bảng tin cứu hộ.
           </Text>
         </View>
       </ScrollView>
@@ -449,14 +472,15 @@ function ActionPill({
   icon,
   label,
   onPress,
+  borderColor,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress?: () => void;
+  borderColor: string;
 }) {
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const cardColor = useThemeColor({ light: "#ffffff", dark: "#1f1f1e" }, "background");
   const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
 
   return (
     <Pressable
@@ -473,7 +497,7 @@ function ActionPill({
       }}
     >
       {icon}
-      <Text style={{ color: textColor, fontSize: 12, fontWeight: "600", marginLeft: 6 }}>{label}</Text>
+      <Text style={{ color: textColor, fontSize: 12, fontWeight: "700", marginLeft: 6 }}>{label}</Text>
     </Pressable>
   );
 }

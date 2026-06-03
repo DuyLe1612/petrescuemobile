@@ -91,7 +91,8 @@ export default function SearchUsersScreen() {
 
               <View className="flex-row gap-3 px-4 pb-4 pt-3">
                 <TouchableOpacity
-                  className="flex-1 bg-blue-500 rounded-full py-2 items-center"
+                  className="flex-1 rounded-full py-2 items-center"
+                  style={{ backgroundColor: '#0a4c73' }}
                   onPress={() => sendRequest.mutate(item.userId)}
                 >
                   <Text className="text-white text-sm font-semibold">
@@ -99,10 +100,11 @@ export default function SearchUsersScreen() {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 border border-blue-500 rounded-full py-2 items-center"
+                  className="flex-1 border rounded-full py-2 items-center"
+                  style={{ borderColor: '#0a4c73' }}
                   onPress={() => router.push(`/chat/${item.userId}` as never)}
                 >
-                  <Text className="text-blue-500 text-sm font-semibold">
+                  <Text className="text-sm font-semibold" style={{ color: '#0a4c73' }}>
                     Nhắn tin
                   </Text>
                 </TouchableOpacity>

@@ -71,9 +71,9 @@ const NOTIFICATIONS: NotificationItem[] = [
     message: "Bài đăng về bé mèo thất lạc Nhem đang được lan truyền!",
     time: "1 giờ trước",
     isUnread: true,
-    dotColor: "#ff9f43",
-    iconBg: "rgba(255,159,67,0.14)",
-    iconColor: "#ff9f43",
+    dotColor: "#38bdf8",
+    iconBg: "rgba(56,189,248,0.14)",
+    iconColor: "#38bdf8",
     icon: { set: "ion", name: "heart-outline" },
   },
   {
@@ -101,7 +101,7 @@ const NOTIFICATIONS: NotificationItem[] = [
   {
     id: "rescue-done",
     title: "Ca cứu hộ hoàn thành!",
-    message: "Bé mèo cam tại Tây Hồ đã được đưa về HPA Trạm Tây Hồ an toàn.",
+    message: "Bé mèo cam tại Tây Hồ đã được đưa về PAW HOME Trạm Tây Hồ an toàn.",
     time: "2 ngày trước",
     isUnread: false,
     dotColor: "#a49a91",
@@ -207,7 +207,7 @@ export default function NotificationScreen() {
                 width: 7,
                 height: 7,
                 borderRadius: 3.5,
-                backgroundColor: "#ff8c38",
+                backgroundColor: "#38bdf8",
                 marginRight: 7,
               }}
             />

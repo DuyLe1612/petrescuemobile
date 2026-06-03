@@ -38,7 +38,7 @@ export default function MyPetsScreen() {
               width: 24,
               height: 24,
               borderRadius: MY_PET_TOKENS.radius.pill,
-              backgroundColor: "#ff8c38", // Orange badge matching color theme
+              backgroundColor: "#0a4c73", // Blue badge matching color theme
               alignItems: "center",
               justifyContent: "center",
             }}

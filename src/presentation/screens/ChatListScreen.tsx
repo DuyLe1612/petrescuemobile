@@ -79,14 +79,13 @@ export default function ChatListScreen() {
     <View className="flex-1 bg-white dark:bg-black">
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0b93f6" />
+          <ActivityIndicator size="large" color="#0a4c73" />
         </View>
       ) : items.length === 0 ? (
         <View className="flex-1 justify-center items-center px-6">
           <Feather name="message-circle" size={48} color="#cbd5e1" />
           <Text className="text-gray-500 text-center mt-4">
-            Chưa có tin nhắn nào. Bấm vào biểu tượng tìm kiếm để bắt đầu trò
-            chuyện.
+            Chưa có tin nhắn nào. Bấm vào biểu tượng ở góc trên bên phải để tìm bạn và bắt đầu trò chuyện.
           </Text>
         </View>
       ) : (

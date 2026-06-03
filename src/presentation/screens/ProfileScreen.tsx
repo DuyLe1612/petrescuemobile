@@ -4,7 +4,7 @@ import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { router } from "expo-router";
-import { type ReactNode, useState } from "react";
+import React, { type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -116,16 +116,18 @@ const GuestProfile = () => {
                 onPress={() => router.push("/login")}
                 accessibilityRole="button"
                 accessibilityLabel="Đăng nhập"
-                style={{
+                style={({ pressed }) => ({
                   marginTop: 8,
-                  backgroundColor: "#ff8c38",
+                  backgroundColor: pressed ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.18)",
                   borderRadius: 999,
                   paddingHorizontal: 20,
                   paddingVertical: 6,
                   alignSelf: "flex-start",
-                }}
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.25)",
+                })}
               >
-                <Text style={{ color: "white", fontSize: 12, fontWeight: "700" }}>
+                <Text style={{ color: "white", fontSize: 12, fontWeight: "800" }}>
                   Đăng nhập
                 </Text>
               </Pressable>
@@ -179,7 +181,7 @@ const GuestProfile = () => {
                 Trở thành Tình nguyện viên
               </Text>
               <Text style={{ color: "#5c6b73", fontSize: 11, marginTop: 4 }}>
-                Cùng HPA thay đổi cuộc đời thú cưng
+                Cùng PAW HOME thay đổi cuộc đời thú cưng
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#0a4c73" />
@@ -376,7 +378,7 @@ const GuestProfile = () => {
             fontWeight: "500",
             letterSpacing: 0.5,
           }}>
-            Hanoi Pet Adoption v{APP_VERSION} · Made with ❤️
+            PAW HOME v{APP_VERSION} · Made with ❤️
           </Text>
         </View>
       </ScrollView>
@@ -476,7 +478,7 @@ const LoggedInProfile = () => {
                     style={{
                       marginTop: 6,
                       alignSelf: "flex-start",
-                      backgroundColor: "#ff8c38",
+                      backgroundColor: "rgba(255, 255, 255, 0.2)",
                       borderRadius: 12,
                       paddingHorizontal: 8,
                       paddingVertical: 3,
@@ -524,7 +526,7 @@ const LoggedInProfile = () => {
               </Text>
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-              <InterestChip label="Nuôi chó" color="#ff8c38" />
+              <InterestChip label="Nuôi chó" color="#0a4c73" />
               <InterestChip label="Nhận nuôi" color="#d46474" />
               <InterestChip label="Mèo nhỏ" color="#1f9bd1" />
               <InterestChip label="Người tin cậy" color="#5fb95c" />
@@ -575,7 +577,7 @@ const LoggedInProfile = () => {
           >
             <GuestMenuRow
               icon={<Ionicons name="cash-outline" size={16} color="#0a4c73" />}
-              label="Ủng hộ HPA"
+              label="Ủng hộ PAW HOME"
               badge="Tặng 1kg"
               textColor={textColor}
               mutedColor={mutedColor}
@@ -762,7 +764,7 @@ const LoggedInProfile = () => {
             fontWeight: "500",
             letterSpacing: 0.5,
           }}>
-            Hanoi Pet Adoption v{APP_VERSION} · Made with ❤️
+            PAW HOME v{APP_VERSION} · Made with ❤️
           </Text>
         </View>
       </ScrollView>
@@ -773,7 +775,7 @@ const LoggedInProfile = () => {
 function ProfileStat({ value, label }: { value: string; label: string }) {
   return (
     <View style={{ flex: 1, borderRadius: 18, backgroundColor: "rgba(255, 255, 255, 0.15)", paddingVertical: 10, alignItems: "center" }}>
-      <Text style={{ color: "#ffc27a", fontSize: 18, fontWeight: "900" }}>{value}</Text>
+      <Text style={{ color: "#38bdf8", fontSize: 18, fontWeight: "900" }}>{value}</Text>
       <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: 11, marginTop: 2 }}>{label}</Text>
     </View>
   );
@@ -872,6 +874,9 @@ function GuestMenuRow({
   onPress?: () => void;
   isLast?: boolean;
 }) {
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
+  const badgeBg = useThemeColor({ light: "rgba(10, 76, 115, 0.1)", dark: "rgba(41, 182, 246, 0.15)" }, "background");
+
   return (
     <Pressable
       onPress={onPress}
@@ -881,6 +886,7 @@ function GuestMenuRow({
         flexDirection: "row",
         alignItems: "center",
         minHeight: 54,
+        paddingVertical: 12,
         borderBottomWidth: isLast ? 0 : 1,
         borderBottomColor: borderColor,
         backgroundColor: pressed ? "rgba(10, 76, 115, 0.04)" : "transparent",
@@ -897,26 +903,43 @@ function GuestMenuRow({
           marginRight: 12,
         }}
       >
-        {icon}
+        {React.isValidElement(icon)
+          ? React.cloneElement(icon as React.ReactElement<any>, { color: primaryColor })
+          : icon}
       </View>
-      <Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: textColor }}>
+      <Text
+        style={{
+          flex: 1,
+          flexShrink: 1,
+          fontSize: 14,
+          fontWeight: "600",
+          color: textColor,
+          lineHeight: 20,
+          marginRight: 8,
+        }}
+      >
         {label}
       </Text>
       {badge ? (
-        <View style={{
-          minWidth: 18,
-          height: 18,
-          borderRadius: 9,
-          backgroundColor: "#ff8c38",
-          alignItems: "center",
-          justifyContent: "center",
-          paddingHorizontal: 5,
-          marginRight: 10,
-        }}>
-          <Text style={{ color: "white", fontSize: 10, fontWeight: "800" }}>{badge}</Text>
+        <View
+          style={{
+            flexShrink: 0,
+            minWidth: 20,
+            borderRadius: 10,
+            backgroundColor: badgeBg,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            marginRight: 10,
+          }}
+        >
+          <Text style={{ color: primaryColor, fontSize: 10, fontWeight: "800" }}>{badge}</Text>
         </View>
       ) : null}
-      <Ionicons name="chevron-forward" size={16} color={mutedColor} />
+      <View style={{ flexShrink: 0 }}>
+        <Ionicons name="chevron-forward" size={16} color={mutedColor} />
+      </View>
     </Pressable>
   );
 }

@@ -98,7 +98,7 @@ export default function ApplicationFormScreen() {
         }}
       >
         <Text style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, fontWeight: "700" }}>
-          HPA Onboarding
+          PAW HOME Onboarding
         </Text>
         <Text style={{ color: "white", fontSize: 22, fontWeight: "800", marginTop: 6 }}>
           Điền hồ sơ phù hợp với vai trò của bạn
@@ -147,7 +147,7 @@ export default function ApplicationFormScreen() {
           <Input
             value={name}
             onChangeText={setName}
-            placeholder={role === "center" ? "Ví dụ: HPA Rescue Team" : "Ví dụ: Nguyễn Văn An"}
+            placeholder={role === "center" ? "Ví dụ: PAW HOME Rescue Team" : "Ví dụ: Nguyễn Văn An"}
             left={<Ionicons name="person-outline" size={16} color={mutedColor} />}
           />
         </FormField>

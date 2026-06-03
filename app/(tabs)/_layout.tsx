@@ -85,30 +85,41 @@ export default function TabLayout() {
       <Tabs.Screen
         name="news"
         options={{
-          headerShown: false,
-          title: "Thông báo",
-          tabBarLabel: "Thông báo",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "notifications" : "notifications-outline"}
-              size={size}
-              color={color}
-            />
-          ),
+          href: null,
         }}
       />
 
       <Tabs.Screen
-        name="chat"
+        name="chat/index"
         options={{
-          title: "Chat",
+          headerShown: true,
+          title: "Trò chuyện",
           tabBarLabel: "Chat",
-          title: "Thong bao",
-          tabBarLabel: "Thong bao",
+          header: () => (
+            <HeaderBar
+              title="Trò chuyện"
+              rightSlot={
+                <TouchableOpacity
+                  onPress={() => router.push("/friends")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Tìm bạn"
+                  style={{
+                    height: 36,
+                    width: 36,
+                    borderRadius: 18,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  }}
+                >
+                  <Ionicons name="people" size={18} color="white" />
+                </TouchableOpacity>
+              }
+            />
+          ),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "chatbubble" : "chatbubble-outline"}
-              name={focused ? "notifications" : "notifications-outline"}
               size={size}
               color={color}
             />

@@ -56,7 +56,7 @@ export default function ApplicationSuccessScreen() {
             Đăng ký thành công!
           </Text>
           <Text style={{ color: mutedColor, fontSize: 13, lineHeight: 20, textAlign: "center", marginTop: 8 }}>
-            HPA đã ghi nhận hồ sơ ứng tuyển của bạn. Bước tiếp theo chỉ là UI mô phỏng.
+            PAW HOME đã ghi nhận hồ sơ ứng tuyển của bạn. Bước tiếp theo chỉ là UI mô phỏng.
           </Text>
 
           <View

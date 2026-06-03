@@ -22,6 +22,23 @@ export default function FriendsScreen() {
       <HeaderBar
         title="Bạn bè"
         onBack={() => router.back()}
+        rightSlot={
+          <TouchableOpacity
+            onPress={() => router.push("/search-users")}
+            accessibilityRole="button"
+            accessibilityLabel="Tìm bạn"
+            style={{
+              height: 36,
+              width: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+            }}
+          >
+            <Feather name="search" size={18} color="white" />
+          </TouchableOpacity>
+        }
       />
 
       <View className="flex-row border-b border-gray-100 dark:border-gray-800">

@@ -16,24 +16,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fetchFeedPosts, type FeedPostViewModel } from "@/src/presentation/data/post-api";
 
 const HOME_TOKENS = {
-  spacing: {
-    screenX: 20,
-    top: 68,
-    section: 22,
-    blockGap: 16,
-  },
   radius: {
-    hero: 30,
     card: 24,
-    inner: 18,
     pill: 999,
   },
   shadow: {
-    shadowColor: "#171717",
-    shadowOpacity: 0.08,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    elevation: 3,
   },
 } as const;
 
@@ -48,10 +40,11 @@ export default function AuthenticatedFeedScreen() {
   const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
   const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const cardColor = useThemeColor({ light: "#ffffff", dark: "#1f1f1e" }, "background");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "#e9eff4", dark: "rgb(58 58 58)" }, "icon");
+  const borderColor = useThemeColor({ light: "#e2e8f0", dark: "#2d2d2c" }, "icon");
+
   const feedQuery = useQuery({
     queryKey: ["community-feed"],
     queryFn: () => fetchFeedPosts({ size: 10 }),
@@ -63,26 +56,30 @@ export default function AuthenticatedFeedScreen() {
       <StatusBar barStyle="light-content" />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 108 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Full-width header */}
+        {/* Modern Header */}
         <View
           style={{
             backgroundColor: "#0a4c73",
             paddingTop: insets.top + 20,
-            paddingBottom: 18,
+            paddingBottom: 22,
             paddingHorizontal: 24,
+            borderBottomLeftRadius: 28,
+            borderBottomRightRadius: 28,
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text style={{ fontSize: 22, marginRight: 8 }}>🐾</Text>
-                <Text style={{ color: "white", fontSize: 26, fontWeight: "800" }}>Cộng đồng</Text>
+                <Text style={{ color: "white", fontSize: 26, fontWeight: "900", letterSpacing: -0.5 }}>
+                  Cộng đồng
+                </Text>
               </View>
-              <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: 12, marginTop: 4 }}>
-                Hanoi Pet Adoption
+              <Text style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: 13, marginTop: 4, fontWeight: "500" }}>
+                Hanoi Pet Rescue & Adoption
               </Text>
             </View>
 
@@ -92,10 +89,10 @@ export default function AuthenticatedFeedScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Tìm kiếm"
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "rgba(255, 255, 255, 0.12)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -107,10 +104,10 @@ export default function AuthenticatedFeedScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Thông báo"
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "rgba(255, 255, 255, 0.12)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -120,22 +117,24 @@ export default function AuthenticatedFeedScreen() {
                   style={{
                     position: "absolute",
                     top: 8,
-                    right: 9,
-                    width: 7,
-                    height: 7,
-                    borderRadius: 3.5,
-                    backgroundColor: "#ff8c38",
+                    right: 8,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: "#38bdf8",
+                    borderWidth: 1.5,
+                    borderColor: "#0a4c73",
                   }}
                 />
               </Pressable>
             </View>
           </View>
 
-          {/* Horizontal scrollable filters */}
+          {/* Premium Filter Chips */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingTop: 16 }}
+            contentContainerStyle={{ gap: 8, paddingTop: 20 }}
           >
             {FEED_FILTERS.map((filter) => (
               <Pressable
@@ -144,9 +143,9 @@ export default function AuthenticatedFeedScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   borderRadius: 999,
-                  backgroundColor: filter.active ? "white" : "rgba(255, 255, 255, 0.15)",
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
+                  backgroundColor: filter.active ? "white" : "rgba(255, 255, 255, 0.12)",
+                  paddingHorizontal: 16,
+                  paddingVertical: 9,
                 }}
               >
                 <Ionicons
@@ -159,7 +158,7 @@ export default function AuthenticatedFeedScreen() {
                     marginLeft: 6,
                     color: filter.active ? "#0a4c73" : "white",
                     fontSize: 12,
-                    fontWeight: "700",
+                    fontWeight: "800",
                   }}
                 >
                   {filter.label}
@@ -169,23 +168,24 @@ export default function AuthenticatedFeedScreen() {
           </ScrollView>
         </View>
 
-        {/* Content Wrapper */}
+        {/* Feed Content */}
         <View
           style={{
-            paddingHorizontal: HOME_TOKENS.spacing.screenX,
-            marginTop: 16,
+            paddingHorizontal: 20,
+            marginTop: 18,
           }}
         >
-
-          <View style={{ marginTop: 14, gap: 14 }}>
+          <View style={{ gap: 16 }}>
             {feedQuery.isLoading ? (
               <View
                 style={{
                   borderRadius: HOME_TOKENS.radius.card,
                   backgroundColor: cardColor,
-                  paddingVertical: 32,
+                  paddingVertical: 48,
                   alignItems: "center",
                   justifyContent: "center",
+                  borderWidth: 1,
+                  borderColor: borderColor,
                   ...HOME_TOKENS.shadow,
                 }}
               >
@@ -201,6 +201,7 @@ export default function AuthenticatedFeedScreen() {
                 textColor={textColor}
                 mutedColor={mutedColor}
                 borderColor={borderColor}
+                primaryColor={primaryColor}
               />
             ))}
 
@@ -209,16 +210,18 @@ export default function AuthenticatedFeedScreen() {
                 style={{
                   borderRadius: HOME_TOKENS.radius.card,
                   backgroundColor: cardColor,
-                  paddingVertical: 24,
-                  paddingHorizontal: 18,
+                  paddingVertical: 32,
+                  paddingHorizontal: 20,
+                  borderWidth: 1,
+                  borderColor: borderColor,
                   ...HOME_TOKENS.shadow,
                 }}
               >
-                <Text style={{ color: textColor, fontSize: 15, fontWeight: "700" }}>
+                <Text style={{ color: textColor, fontSize: 16, fontWeight: "800" }}>
                   Chưa có bài viết cộng đồng.
                 </Text>
-                <Text style={{ color: mutedColor, fontSize: 12, marginTop: 6 }}>
-                  Feed sẽ hiển thị dữ liệu thật từ API khi có bài đăng.
+                <Text style={{ color: mutedColor, fontSize: 13, marginTop: 6, lineHeight: 18, fontWeight: "500" }}>
+                  Feed sẽ hiển thị các bài viết chia sẻ từ cộng đồng khi có bài đăng mới từ hệ thống.
                 </Text>
               </View>
             ) : null}
@@ -226,6 +229,7 @@ export default function AuthenticatedFeedScreen() {
         </View>
       </ScrollView>
 
+      {/* Floating Add Post Button */}
       <Pressable
         onPress={() => router.push("/post/create")}
         accessibilityRole="button"
@@ -233,14 +237,18 @@ export default function AuthenticatedFeedScreen() {
         style={{
           position: "absolute",
           right: 20,
-          bottom: 20,
-          width: 58,
-          height: 58,
-          borderRadius: HOME_TOKENS.radius.pill,
-          backgroundColor: primaryColor,
+          bottom: 24,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: "#0a4c73",
           alignItems: "center",
           justifyContent: "center",
-          ...HOME_TOKENS.shadow,
+          shadowColor: "#0a4c73",
+          shadowOpacity: 0.3,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 5,
         }}
       >
         <Feather name="plus" size={24} color="white" />
@@ -257,12 +265,14 @@ function FeedCard({
   textColor,
   mutedColor,
   borderColor,
+  primaryColor,
 }: {
   post: FeedPostViewModel;
   cardColor: string;
   textColor: string;
   mutedColor: string;
   borderColor: string;
+  primaryColor: string;
 }) {
   const likeMutation = useLikePost();
   const unlikeMutation = useUnlikePost();
@@ -290,98 +300,111 @@ function FeedCard({
         borderRadius: HOME_TOKENS.radius.card,
         backgroundColor: cardColor,
         overflow: "hidden",
+        borderWidth: 1,
+        borderColor: borderColor,
         ...HOME_TOKENS.shadow,
       }}
     >
       {post.urgent ? (
         <View
           style={{
-            backgroundColor: "#ff8250",
-            paddingHorizontal: 12,
-            paddingVertical: 7,
+            backgroundColor: "rgba(239, 68, 68, 0.08)",
+            paddingHorizontal: 16,
+            paddingVertical: 10,
             flexDirection: "row",
             alignItems: "center",
+            borderBottomWidth: 1,
+            borderBottomColor: "rgba(239, 68, 68, 0.12)",
           }}
         >
-          <Ionicons name="alert-circle" size={14} color="white" />
-          <Text style={{ color: "white", fontSize: 12, fontWeight: "800", marginLeft: 6 }}>
-            KHẨN CẤP - Cần hỗ trợ ngay
+          <Ionicons name="alert-circle" size={16} color="#ef4444" />
+          <Text style={{ color: "#ef4444", fontSize: 12, fontWeight: "800", marginLeft: 6, letterSpacing: 0.5, textTransform: "uppercase" }}>
+            Khẩn cấp - Cần hỗ trợ ngay
           </Text>
         </View>
       ) : null}
 
-      <View style={{ padding: 14 }}>
+      <View style={{ padding: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: HOME_TOKENS.radius.pill,
-              backgroundColor: post.urgent ? "#44b882" : "#2596d6",
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: post.urgent ? "rgba(239, 68, 68, 0.1)" : "rgba(10, 76, 115, 0.1)",
               alignItems: "center",
               justifyContent: "center",
-              marginRight: 10,
+              marginRight: 12,
             }}
           >
-            <Text style={{ color: "white", fontSize: 14, fontWeight: "800" }}>{post.initials}</Text>
+            <Text style={{ color: post.urgent ? "#ef4444" : "#0a4c73", fontSize: 14, fontWeight: "800" }}>
+              {post.initials}
+            </Text>
           </View>
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={{ color: textColor, fontSize: 17, fontWeight: "800" }}>{post.author}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text style={{ color: textColor, fontSize: 16, fontWeight: "800" }}>{post.author}</Text>
               <View
                 style={{
-                  marginLeft: 8,
-                  borderRadius: HOME_TOKENS.radius.pill,
-                  backgroundColor: `${post.statusColor}22`,
+                  borderRadius: 12,
+                  backgroundColor: `${post.statusColor}12`,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
+                  borderWidth: 1,
+                  borderColor: `${post.statusColor}25`,
                 }}
               >
-                <Text style={{ color: post.statusColor, fontSize: 10, fontWeight: "700" }}>{post.status}</Text>
+                <Text style={{ color: post.statusColor, fontSize: 10, fontWeight: "800" }}>
+                  {post.status}
+                </Text>
               </View>
             </View>
-            <Text style={{ color: mutedColor, fontSize: 12, marginTop: 3 }}>{post.time}</Text>
+            <Text style={{ color: mutedColor, fontSize: 12, marginTop: 3, fontWeight: "500" }}>{post.time}</Text>
           </View>
         </View>
 
-        <Text style={{ color: textColor, fontSize: 15, lineHeight: 22, marginTop: 12 }}>{post.title}</Text>
+        <Text style={{ color: textColor, fontSize: 15, lineHeight: 22, marginTop: 12, fontWeight: "500" }}>
+          {post.title}
+        </Text>
 
         {post.imageUrl ? (
           <FastImage
             source={{ uri: post.imageUrl }}
             style={{
               width: "100%",
-              height: 240,
-              borderRadius: 18,
+              height: 200,
+              borderRadius: 16,
               marginTop: 12,
             }}
           />
         ) : null}
 
-        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12, gap: 4 }}>
           <Ionicons name="location-outline" size={14} color={mutedColor} />
-          <Text style={{ color: mutedColor, fontSize: 12, marginLeft: 6 }}>{post.location}</Text>
+          <Text style={{ color: mutedColor, fontSize: 12, fontWeight: "500" }}>{post.location}</Text>
         </View>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-          {post.tags.map((tag) => (
-            <View
-              key={tag}
-              style={{
-                borderRadius: HOME_TOKENS.radius.pill,
-                backgroundColor: "rgba(37,150,214,0.10)",
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-              }}
-            >
-              <Text style={{ color: "#2596d6", fontSize: 11, fontWeight: "700" }}>#{tag}</Text>
-            </View>
-          ))}
-        </View>
+        {post.tags && post.tags.length > 0 ? (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
+            {post.tags.map((tag) => (
+              <View
+                key={tag}
+                style={{
+                  borderRadius: 8,
+                  backgroundColor: "rgba(10, 76, 115, 0.05)",
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                }}
+              >
+                <Text style={{ color: "#0a4c73", fontSize: 11, fontWeight: "700" }}>#{tag}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View
           style={{
-            marginTop: 14,
+            marginTop: 16,
             paddingTop: 12,
             borderTopWidth: 1,
             borderTopColor: borderColor,
@@ -391,29 +414,32 @@ function FeedCard({
         >
           <Pressable
             onPress={handleLike}
-            style={{ flexDirection: "row", alignItems: "center", marginRight: 18 }}
+            style={{ flexDirection: "row", alignItems: "center", marginRight: 24, paddingVertical: 4, paddingHorizontal: 4 }}
           >
             <Ionicons
               name={liked ? "heart" : "heart-outline"}
-              size={16}
-              color={liked ? "#ff6f61" : mutedColor}
+              size={18}
+              color={liked ? "#ef4444" : mutedColor}
             />
-            <Text style={{ color: liked ? "#ff6f61" : mutedColor, fontSize: 12, marginLeft: 6 }}>
+            <Text style={{ color: liked ? "#ef4444" : mutedColor, fontSize: 13, marginLeft: 6, fontWeight: "700" }}>
               {likeCount}
             </Text>
           </Pressable>
 
-          <View style={{ flexDirection: "row", alignItems: "center", marginRight: 18 }}>
-            <Ionicons name="chatbubble-outline" size={16} color={mutedColor} />
-            <Text style={{ color: mutedColor, fontSize: 12, marginLeft: 6 }}>{post.comments}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", marginRight: 24, paddingVertical: 4 }}>
+            <Ionicons name="chatbubble-outline" size={18} color={mutedColor} />
+            <Text style={{ color: mutedColor, fontSize: 13, marginLeft: 6, fontWeight: "700" }}>
+              {post.comments}
+            </Text>
           </View>
+          
           <Pressable
             onPress={() => router.push({ pathname: "/post/[id]", params: { id: post.id } })}
             style={{
               marginLeft: "auto",
-              borderRadius: HOME_TOKENS.radius.pill,
-              backgroundColor: "#ff6f61",
-              paddingHorizontal: 14,
+              borderRadius: 14,
+              backgroundColor: "#0a4c73",
+              paddingHorizontal: 16,
               paddingVertical: 8,
             }}
           >
@@ -460,5 +486,5 @@ const notificationDotStyle = {
   width: 7,
   height: 7,
   borderRadius: HOME_TOKENS.radius.pill,
-  backgroundColor: "#ff8c38",
+  backgroundColor: "#38bdf8",
 };

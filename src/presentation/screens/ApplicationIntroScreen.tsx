@@ -52,7 +52,7 @@ export default function ApplicationIntroScreen() {
         }}
       >
         <Text style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, fontWeight: "700" }}>
-          THAM GIA CÙNG HPA
+          THAM GIA CÙNG PAW HOME
         </Text>
         <Text style={{ color: "white", fontSize: 26, fontWeight: "800", marginTop: 6 }}>
           Cộng đồng tử tế cho thú cưng
@@ -99,7 +99,7 @@ export default function ApplicationIntroScreen() {
           />
           <OptionCard
             title="Ứng tuyển trung tâm"
-            description="Dành cho đội nhóm hoặc cơ sở có thể tiếp nhận, chăm sóc và phối hợp cùng HPA."
+            description="Dành cho đội nhóm hoặc cơ sở có thể tiếp nhận, chăm sóc và phối hợp cùng PAW HOME."
             accent="#ff9f43"
             selected={selectedType === "center"}
             onPress={() => setSelectedType("center")}
@@ -118,7 +118,7 @@ export default function ApplicationIntroScreen() {
         <ProgressRow
           icon={<Ionicons name="checkmark-circle-outline" size={18} color="#44b882" />}
           title="Đối chiếu hồ sơ"
-          detail="Đội ngũ HPA rà soát thông tin và gắn nhãn ưu tiên phù hợp."
+          detail="Đội ngũ PAW HOME rà soát thông tin và gắn nhãn ưu tiên phù hợp."
         />
         <ProgressRow
           icon={<Ionicons name="heart-outline" size={18} color="#277f8f" />}
