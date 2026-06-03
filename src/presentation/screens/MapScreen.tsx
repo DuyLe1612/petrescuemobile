@@ -1,5 +1,6 @@
 import { Input, FormField, Select } from "@/components/ui";
 import { httpAxios } from "@/src/infrastructure/api/client/http";
+import { mediaApi } from "@/src/infrastructure/api/media/media-api";
 import type { CreateRescueCaseRequestDto, CreateRescueCompletionRequestDto } from "@/src/infrastructure/api/generated/model";
 import { report, complete as submitRescueCompleteApi } from "@/src/infrastructure/api/generated/pet-rescue-api";
 import { container } from "@/src/infrastructure/di";
@@ -510,11 +511,13 @@ export default function MapScreen() {
 
     const uploaded = await Promise.all(
       selectedImages.map((asset) =>
-        container.media.uploadMediaUseCase.execute(asset, "rescue-cases"),
+        mediaApi.uploadTemp(asset, "rescue-cases"),
       ),
     );
 
-    return uploaded.map((item) => item.publicId);
+    return uploaded
+      .map((item) => item?.mediaId)
+      .filter((item): item is string => typeof item === "string" && item.length > 0);
   }, [selectedImages]);
 
   const pickCompleteImage = useCallback(async () => {
@@ -666,11 +669,11 @@ export default function MapScreen() {
       return;
     }
 
-    let imageUrls: string[] | undefined;
+    let mediaIds: string[] | undefined;
 
     try {
       setCreateSending(true);
-      imageUrls = await uploadSelectedImages();
+      mediaIds = await uploadSelectedImages();
       const payload: CreateRescueCaseRequestDto = {
         species: createTitle.trim(),
         description: createDescription.trim() || undefined,
@@ -689,7 +692,7 @@ export default function MapScreen() {
         provinceName: provinceName || undefined,
         wardCode: wardCode || undefined,
         wardName: wardName || undefined,
-        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+        mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
         contactPhone: createContact || undefined,
       };
 

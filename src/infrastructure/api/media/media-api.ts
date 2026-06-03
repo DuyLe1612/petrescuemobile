@@ -1,4 +1,6 @@
 import { httpAxios } from "@/src/infrastructure/api/client/http";
+import { uploadTemp } from "@/src/infrastructure/api/generated/pet-rescue-api";
+import type { LocalMediaAsset } from "@/src/domain/entities/media";
 
 export type SignedMediaUploadResponse = {
   uploadUrl: string;
@@ -34,5 +36,20 @@ export const mediaApi = {
   }) {
     const response = await httpAxios.post("/api/v1/media/register", input);
     return response.data?.data as RegisteredMediaResponse;
+  },
+
+  async uploadTemp(asset: LocalMediaAsset, folder = "temp") {
+    const response = await uploadTemp(
+      {
+        file: {
+          uri: asset.uri,
+          name: asset.name,
+          type: asset.type,
+        } as unknown as Blob,
+      },
+      { folder },
+    );
+
+    return response.data;
   },
 };

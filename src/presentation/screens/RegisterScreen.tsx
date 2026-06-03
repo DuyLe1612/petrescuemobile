@@ -86,27 +86,27 @@ export default function RegisterScreen() {
     setFormNotice(null);
 
     if (fullName.trim().length < 2) {
-      setFormError("Vui long nhap ho va ten hop le.");
+      setFormError("Vui lòng nhập họ và tên hợp lệ.");
       return;
     }
 
     if (!email.includes("@")) {
-      setFormError("Vui long nhap email hop le.");
+      setFormError("Vui lòng nhập email hợp lệ.");
       return;
     }
 
     if (phone.replace(/\D/g, "").length < 9) {
-      setFormError("Vui long nhap so dien thoai hop le.");
+      setFormError("Vui lòng nhập số điện thoại hợp lệ.");
       return;
     }
 
     if (password.length < 8) {
-      setFormError("Mat khau phai co it nhat 8 ky tu.");
+      setFormError("Mật khẩu phải có ít nhất 8 ký tự.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setFormError("Xac nhan mat khau chua khop.");
+      setFormError("Xác nhận mật khẩu chưa khớp.");
       return;
     }
 
@@ -118,7 +118,7 @@ export default function RegisterScreen() {
       .slice(0, 50);
 
     if (username.length < 3) {
-      setFormError("Khong the tao ten nguoi dung hop le tu thong tin dang ky.");
+      setFormError("Không thể tạo tên người dùng hợp lệ từ thông tin đăng ký.");
       return;
     }
 
@@ -141,7 +141,7 @@ export default function RegisterScreen() {
         }
 
         setFormNotice(
-          "Dang ky thanh cong. Vui long kiem tra email hoac dang nhap de tiep tuc.",
+          "Đăng ký thành công. Vui lòng kiểm tra email hoặc đăng nhập để tiếp tục.",
         );
         setTimeout(() => {
           router.replace("/login");
@@ -150,7 +150,7 @@ export default function RegisterScreen() {
       onError(error: any) {
         setFormError(
           error?.message ||
-            "Dang ky that bai. Vui long kiem tra lai thong tin.",
+            "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
         );
       },
     });
@@ -189,7 +189,7 @@ export default function RegisterScreen() {
                   letterSpacing: -0.5,
                 }}
               >
-                Tao tai khoan
+                Tạo tài khoản
               </Text>
               <Text
                 style={{
@@ -199,7 +199,7 @@ export default function RegisterScreen() {
                   fontWeight: "500",
                 }}
               >
-                Tham gia cong dong yeu thuong va cuu ho thu cung.
+                Tham gia cộng đồng yêu thương và cứu hộ thú cưng.
               </Text>
             </View>
           </View>
@@ -221,11 +221,11 @@ export default function RegisterScreen() {
             }}
           >
             <View style={{ gap: 16 }}>
-              <FormField label="Ho va ten" required>
+              <FormField label="Họ và tên" required>
                 <Input
                   value={fullName}
                   onChangeText={setFullName}
-                  placeholder="Nguyen Van An"
+                  placeholder="Nguyễn Văn An"
                   style={inputStyle(borderColor)}
                   left={
                     <Ionicons
@@ -257,7 +257,7 @@ export default function RegisterScreen() {
                 />
               </FormField>
 
-              <FormField label="So dien thoai" required>
+              <FormField label="Số điện thoại" required>
                 <Input
                   value={phone}
                   onChangeText={setPhone}
@@ -275,11 +275,11 @@ export default function RegisterScreen() {
                 />
               </FormField>
 
-              <FormField label="Mat khau" required>
+              <FormField label="Mật khẩu" required>
                 <Input
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="It nhat 8 ky tu"
+                  placeholder="Ít nhất 8 ký tự"
                   secureTextEntry={!showPassword}
                   style={inputStyle(borderColor)}
                   left={
@@ -295,7 +295,7 @@ export default function RegisterScreen() {
                       onPress={() => setShowPassword((value) => !value)}
                       accessibilityRole="button"
                       accessibilityLabel={
-                        showPassword ? "An mat khau" : "Hien mat khau"
+                        showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
                       }
                       hitSlop={12}
                       style={{ paddingHorizontal: 4 }}
@@ -310,11 +310,11 @@ export default function RegisterScreen() {
                 />
               </FormField>
 
-              <FormField label="Xac nhan mat khau" required>
+              <FormField label="Xác nhận mật khẩu" required>
                 <Input
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="Nhap lai mat khau"
+                  placeholder="Nhập lại mật khẩu"
                   secureTextEntry={!showConfirmPassword}
                   style={inputStyle(borderColor)}
                   left={
@@ -332,7 +332,7 @@ export default function RegisterScreen() {
                       }
                       accessibilityRole="button"
                       accessibilityLabel={
-                        showConfirmPassword ? "An mat khau" : "Hien mat khau"
+                        showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
                       }
                       hitSlop={12}
                       style={{ paddingHorizontal: 4 }}
@@ -377,15 +377,15 @@ export default function RegisterScreen() {
                 fontWeight: "500",
               }}
             >
-              Bang cach dang ky, ban dong y voi{" "}
+              Bằng cách đăng ký, bạn đồng ý với{" "}
               <Text style={{ color: primaryColor, fontWeight: "700" }}>
-                Dieu khoan su dung
+                Điều khoản sử dụng
               </Text>{" "}
-              va{" "}
+              và{" "}
               <Text style={{ color: primaryColor, fontWeight: "700" }}>
-                Chinh sach bao mat
+                Chính sách bảo mật
               </Text>{" "}
-              cua chung toi.
+              của chúng tôi.
             </Text>
 
             <Button
@@ -412,14 +412,14 @@ export default function RegisterScreen() {
                 <ButtonText
                   style={{ color: "white", fontSize: 15, fontWeight: "800" }}
                 >
-                  Tao tai khoan
+                  Tạo tài khoản
                 </ButtonText>
               )}
             </Button>
 
             <View style={{ alignItems: "center", marginTop: 16 }}>
               <Text style={{ color: mutedColor, fontSize: 12, fontWeight: "500" }}>
-                hoac
+                hoặc
               </Text>
             </View>
 
@@ -434,13 +434,13 @@ export default function RegisterScreen() {
               <Text
                 style={{ color: mutedColor, fontSize: 13, fontWeight: "500" }}
               >
-                Da co tai khoan?{" "}
+                Đã có tài khoản?{" "}
               </Text>
               <Pressable onPress={() => router.push("/login")}>
                 <Text
                   style={{ color: primaryColor, fontSize: 13, fontWeight: "700" }}
                 >
-                  Dang nhap ngay
+                  Đăng nhập ngay
                 </Text>
               </Pressable>
             </View>
