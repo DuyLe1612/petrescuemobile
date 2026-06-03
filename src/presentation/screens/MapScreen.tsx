@@ -12,6 +12,7 @@ import {
   type MapBounds,
   type MapSourceKey,
 } from "@/src/presentation/constants/map-config";
+import type { MapMarker } from "@/src/domain/entities/map";
 import { useMapMarkers } from "@/src/presentation/hooks/use-map-markers";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -100,6 +101,54 @@ const formatDetailValue = (value: unknown): string | null => {
     return primitiveValues.join(", ");
   }
   return null;
+};
+
+const extractDetailImages = (detail: unknown): string[] => {
+  if (!detail || typeof detail !== "object") return [];
+
+  const imageUrls = new Set<string>();
+
+  const appendImage = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) {
+      imageUrls.add(value.trim());
+      return;
+    }
+
+    if (!value || typeof value !== "object") return;
+
+    const record = value as Record<string, unknown>;
+    const candidates = [
+      record.url,
+      record.imageUrl,
+      record.secureUrl,
+      record.thumbnailUrl,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === "string" && candidate.trim()) {
+        imageUrls.add(candidate.trim());
+      }
+    }
+  };
+
+  const sources = [
+    (detail as Record<string, unknown>).imageUrl,
+    (detail as Record<string, unknown>).imageUrls,
+    (detail as Record<string, unknown>).images,
+    (detail as Record<string, unknown>).media,
+    (detail as Record<string, unknown>).attachments,
+  ];
+
+  for (const source of sources) {
+    if (Array.isArray(source)) {
+      source.forEach(appendImage);
+      continue;
+    }
+
+    appendImage(source);
+  }
+
+  return Array.from(imageUrls);
 };
 
 export default function MapScreen() {
@@ -234,7 +283,9 @@ export default function MapScreen() {
       return [] as { label: string; value: string }[];
     return Object.entries(markerDetail)
       .filter(([key]) => isDisplayableDetailKey(key))
-      .filter(([key]) => !["imageUrl", "imageUrls"].includes(key))
+      .filter(([key]) =>
+        !["imageUrl", "imageUrls", "images", "media", "attachments"].includes(key),
+      )
       .map(([key, value]) => {
         const formatted = formatDetailValue(value);
         return formatted
@@ -245,6 +296,16 @@ export default function MapScreen() {
         (item): item is { label: string; value: string } => item !== null,
       );
   }, [markerDetail]);
+
+  const detailImages = useMemo(() => extractDetailImages(markerDetail), [markerDetail]);
+  const detailStatus =
+    typeof markerDetail?.status === "string"
+      ? markerDetail.status.trim().toUpperCase()
+      : "";
+  const canCompleteRescue =
+    selectedMarker?.source === "rescue" &&
+    detailStatus !== "RESCUED" &&
+    detailStatus !== "CLOSED";
 
   const isWeb = Platform.OS === "web";
 
@@ -554,16 +615,25 @@ export default function MapScreen() {
     queryClient,
   ]);
 
-  const loadMarkerDetail = useCallback(async () => {
-    if (!selectedMarker) return;
+  const openCompleteModal = useCallback(() => {
+    setCompleteError(null);
+    setCompleteNote("");
+    setCompleteLocationNote("");
+    setCompleteConfirmRescued(false);
+    setCompleteImages([]);
+    setCompleteVisible(true);
+  }, []);
+
+  const loadMarkerDetail = useCallback(async (marker: MapMarker | null) => {
+    if (!marker) return;
     setMarkerDetailLoading(true);
     setMarkerDetailError(null);
     try {
       let endpoint = "";
-      if (selectedMarker.source === "rescue") {
-        endpoint = `/api/v1/rescue-cases/${selectedMarker.id}`;
-      } else if (selectedMarker.source === "organization") {
-        endpoint = `/api/v1/organizations/${selectedMarker.id}`;
+      if (marker.source === "rescue") {
+        endpoint = `/api/v1/rescue-cases/${marker.id}`;
+      } else if (marker.source === "organization") {
+        endpoint = `/api/v1/organizations/${marker.id}`;
       }
 
       if (!endpoint) throw new Error("Unknown marker source");
@@ -579,7 +649,7 @@ export default function MapScreen() {
     } finally {
       setMarkerDetailLoading(false);
     }
-  }, [selectedMarker]);
+  }, []);
 
   const submitRescue = useCallback(async () => {
     setCreateError(null);
@@ -686,6 +756,7 @@ export default function MapScreen() {
                 anchor={{ x: 0.5, y: 0.5 }}
                 onPress={() => {
                   setSelectedMarkerId(marker.id);
+                  void loadMarkerDetail(marker);
                 }}
               >
                 <MapPinMarker source={marker.source} />
@@ -734,7 +805,7 @@ export default function MapScreen() {
               <MapMarkerCard marker={selectedMarker} compact />
             </View>
             <Pressable
-              onPress={() => void loadMarkerDetail()}
+              onPress={() => void loadMarkerDetail(selectedMarker)}
               className="h-12 w-12 items-center justify-center rounded-full bg-primary shadow-md active:opacity-90"
               accessibilityRole="button"
               accessibilityLabel="Xem chi tiết"
@@ -1090,15 +1161,11 @@ export default function MapScreen() {
               ) : markerDetail ? (
                 <>
                   {/* Images Section */}
-                  {(Array.isArray(markerDetail.imageUrls) &&
-                    markerDetail.imageUrls.length > 0) ||
-                  (typeof markerDetail.imageUrl === "string" &&
-                    markerDetail.imageUrl.trim()) ? (
+                  {detailImages.length > 0 ? (
                     <View>
-                      {Array.isArray(markerDetail.imageUrls) &&
-                      markerDetail.imageUrls.length > 0 ? (
+                      {detailImages.length > 1 ? (
                         <View className="flex-row flex-wrap gap-1.5 bg-muted/20 p-4">
-                          {markerDetail.imageUrls
+                          {detailImages
                             .slice(0, 4)
                             .map((url: string, i: number) => (
                               <ExpoImage
@@ -1113,11 +1180,10 @@ export default function MapScreen() {
                               />
                             ))}
                         </View>
-                      ) : typeof markerDetail.imageUrl === "string" &&
-                        markerDetail.imageUrl.trim() ? (
+                      ) : (
                         <View className="p-4 pb-0">
                           <ExpoImage
-                            source={{ uri: markerDetail.imageUrl }}
+                            source={{ uri: detailImages[0] }}
                             style={{
                               width: "100%",
                               height: 200,
@@ -1126,16 +1192,14 @@ export default function MapScreen() {
                             contentFit="cover"
                           />
                         </View>
-                      ) : null}
+                      )}
                     </View>
                   ) : null}
 
                   {/* Header Section */}
                   <View className="border-b border-border/50 px-4 py-4">
                     <Text className="text-lg font-black text-foreground">
-                      {selectedMarker?.source === "rescue"
-                        ? "Chi tiết cứu hộ"
-                        : "Chi tiết tổ chức"}
+                      {"Chi ti\u1ebft"}
                     </Text>
                     <Text className="mt-1 text-xs text-muted-foreground">
                       {selectedMarker?.source === "rescue"
@@ -1174,11 +1238,9 @@ export default function MapScreen() {
               >
                 <Text className="font-bold text-foreground text-sm">Đóng</Text>
               </Pressable>
-              {selectedMarker?.source === "rescue" &&
-                markerDetail?.status !== "RESCUED" &&
-                markerDetail?.status !== "CLOSED" && (
+              {canCompleteRescue && (
                   <Pressable
-                    onPress={() => setCompleteVisible(true)}
+                    onPress={openCompleteModal}
                     className="flex-1 items-center justify-center rounded-xl bg-green-600 py-3 active:opacity-90"
                   >
                     <Text className="font-bold text-white text-sm">Hoàn thành</Text>

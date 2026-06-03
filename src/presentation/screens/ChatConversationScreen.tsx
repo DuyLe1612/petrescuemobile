@@ -1,27 +1,26 @@
+import { HeaderBar } from "@/components/ui/header-bar";
 import { chatApi } from "@/src/infrastructure/api/chat-api";
 import { ChatSocket } from "@/src/infrastructure/api/chatSocket";
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import {
-    FlatList,
-    Keyboard,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    StatusBar
+  FlatList,
+  Keyboard,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMessages, useSendMessage } from "../hooks/useChat";
-import { HeaderBar } from "@/components/ui/header-bar";
+import { formatChatClock } from "../utils/chat-time";
 
-// Lấy WS base URL từ env — giống http client
 const WS_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080")
   .replace(/^https/, "wss")
   .replace(/^http/, "ws");
@@ -49,7 +48,6 @@ export default function ChatConversationScreen({ route }: any) {
   const messagesQ = useMessages(conversationId);
   const { mutateAsync: sendMessageAsync } = useSendMessage(conversationId);
 
-  // Keyboard listener — hoạt động trên cả Android edgeToEdge lẫn iOS
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
@@ -88,7 +86,6 @@ export default function ChatConversationScreen({ route }: any) {
     chatApi.markRead(conversationId).catch((e) => console.warn(e));
   }, [conversationId, messages.length]);
 
-  // WebSocket setup — dùng WS_BASE_URL từ env
   useEffect(() => {
     if (!conversationId) return;
     let mounted = true;
@@ -136,8 +133,9 @@ export default function ChatConversationScreen({ route }: any) {
         }
         if (ev.type === "presence") {
           const status = ev.payload?.status;
-          if (status === "online" || status === "offline")
+          if (status === "online" || status === "offline") {
             setPresenceStatus(status);
+          }
         }
         if (ev.type === "conversation_update" && ev.conversationId) {
           qc.setQueryData(["chats"], (old: any) => {
@@ -169,14 +167,16 @@ export default function ChatConversationScreen({ route }: any) {
       });
       socketRef.current?.close();
     };
-  }, [conversationId]);
+  }, [conversationId, qc]);
 
   const send = async () => {
     const trimmed = text.trim();
     if (!trimmed || !conversationId) return;
+
     setText("");
     socketRef.current?.sendTyping(conversationId, false);
     const tempId = `local-${Date.now()}`;
+
     setMessages((prev) => [
       ...prev,
       {
@@ -188,6 +188,7 @@ export default function ChatConversationScreen({ route }: any) {
         isMine: true,
       },
     ]);
+
     try {
       await sendMessageAsync(trimmed);
       chatApi.markRead(conversationId).catch(() => {});
@@ -201,10 +202,9 @@ export default function ChatConversationScreen({ route }: any) {
   const presenceLabel = useMemo(() => {
     if (presenceStatus === "online") return "Online";
     if (presenceStatus === "offline") return "Offline";
-    return "";
+    return "Unknown";
   }, [presenceStatus]);
 
-  // Padding bottom = keyboard height trừ safe area bottom (tránh double-padding trên iPhone)
   const composerBottom = Math.max(0, keyboardHeight - insets.bottom);
 
   return (
@@ -212,7 +212,7 @@ export default function ChatConversationScreen({ route }: any) {
       <StatusBar barStyle="light-content" />
       <HeaderBar
         title={(params.name as string) || "Chat"}
-        subtitle={presenceLabel || "Đang hoạt động"}
+        subtitle={presenceStatus === "online" ? "Dang hoat dong" : "Trong cuoc tro chuyen"}
         onBack={() => router.back()}
         rightSlot={
           <View
@@ -221,7 +221,6 @@ export default function ChatConversationScreen({ route }: any) {
               presenceStatus === "online"
                 ? styles.badgeOnline
                 : styles.badgeOffline,
-              { backgroundColor: presenceStatus === "online" ? "rgba(40,167,69,0.2)" : "rgba(255,255,255,0.15)" }
             ]}
           >
             <View
@@ -232,135 +231,136 @@ export default function ChatConversationScreen({ route }: any) {
                   : styles.dotOffline,
               ]}
             />
-            <Text style={[styles.badgeText, { color: presenceStatus === "online" ? "#28a745" : "#fff" }]}>
-              {presenceLabel || "Unknown"}
+            <Text
+              style={[
+                styles.badgeText,
+                presenceStatus === "online"
+                  ? styles.badgeTextOnline
+                  : styles.badgeTextOffline,
+              ]}
+            >
+              {presenceLabel}
             </Text>
           </View>
         }
       />
 
-      {/* Messages */}
       <FlatList
         ref={flatListRef}
         data={messages}
         keyExtractor={(m) => m.id}
         inverted
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "flex-end",
-          paddingHorizontal: 8,
-          paddingVertical: 4,
-        }}
+        contentContainerStyle={styles.messagesContent}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconWrap}>
+              <Feather name="message-circle" size={28} color="#6f8799" />
+            </View>
+            <Text style={styles.emptyTitle}>Chua co tin nhan</Text>
+            <Text style={styles.emptyText}>
+              Hay gui loi chao dau tien de bat dau cuoc tro chuyen.
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => {
           const isMe = !!item.isMine;
           return (
             <View
-              className={`p-3 my-1 rounded-2xl max-w-[75%] ${
-                isMe
-                  ? "bg-primary rounded-tr-none align-self-end ml-auto"
-                  : "bg-muted/40 rounded-tl-none align-self-start mr-auto"
-              }`}
+              style={[
+                styles.messageRow,
+                isMe ? styles.messageRowRight : styles.messageRowLeft,
+              ]}
             >
-              <Text
-                style={{
-                  color: isMe ? "#fff" : "#111",
-                  fontSize: 15,
-                  lineHeight: 21,
-                }}
+              <View
+                style={[
+                  styles.messageBubble,
+                  isMe ? styles.messageBubbleRight : styles.messageBubbleLeft,
+                ]}
               >
-                {item.content}
-              </Text>
-              {!!item.time && (
                 <Text
                   style={[
-                    styles.meta,
-                    { color: isMe ? "rgba(255,255,255,0.7)" : "#aaa" },
+                    styles.messageText,
+                    isMe ? styles.messageTextRight : styles.messageTextLeft,
                   ]}
                 >
-                  {new Date(item.time).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {item.content}
                 </Text>
-              )}
+                {!!item.time ? (
+                  <Text
+                    style={[
+                      styles.meta,
+                      isMe ? styles.metaRight : styles.metaLeft,
+                    ]}
+                  >
+                    {formatChatClock(item.time)}
+                  </Text>
+                ) : null}
+              </View>
             </View>
           );
         }}
       />
 
-      {/* Typing indicator */}
-      {remoteTyping && (
-        <View style={styles.typingRow}>
-          <View style={styles.typingDots}>
-            <View style={[styles.typingDot, { opacity: 0.4 }]} />
-            <View style={[styles.typingDot, { opacity: 0.7 }]} />
-            <View style={styles.typingDot} />
+      {remoteTyping ? (
+        <View style={styles.typingWrap}>
+          <View style={styles.typingRow}>
+            <View style={styles.typingDots}>
+              <View style={[styles.typingDot, { opacity: 0.4 }]} />
+              <View style={[styles.typingDot, { opacity: 0.7 }]} />
+              <View style={styles.typingDot} />
+            </View>
+            <Text style={styles.typingText}>dang nhap...</Text>
           </View>
-          <Text style={styles.typingText}>đang nhập...</Text>
         </View>
-      )}
+      ) : null}
 
-      {/* Composer — đẩy lên theo bàn phím qua paddingBottom */}
       <View
         style={[
-          styles.composer,
+          styles.composerWrap,
           {
             paddingBottom: composerBottom + insets.bottom + 8,
-            paddingTop: 8,
           },
         ]}
       >
-        <TextInput
-          ref={inputRef}
-          style={styles.input}
-          value={text}
-          onChangeText={(t) => {
-            setText(t);
-            socketRef.current?.sendTyping(conversationId, t.length > 0);
-          }}
-          placeholder="Nhập tin nhắn..."
-          placeholderTextColor="#aaa"
-          multiline
-          maxLength={2000}
-          returnKeyType="default"
-        />
-        <TouchableOpacity
-          style={[styles.sendButton, !text.trim() && styles.sendButtonDisabled]}
-          onPress={send}
-          disabled={!text.trim()}
-          activeOpacity={0.75}
-        >
-          <Feather
-            name="send"
-            size={19}
-            color="#fff"
-            style={{ marginLeft: 2 }}
+        <View style={styles.composer}>
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            value={text}
+            onChangeText={(t) => {
+              setText(t);
+              socketRef.current?.sendTyping(conversationId, t.length > 0);
+            }}
+            placeholder="Nhap tin nhan..."
+            placeholderTextColor="#90a0ad"
+            multiline
+            maxLength={2000}
+            returnKeyType="default"
           />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              !text.trim() && styles.sendButtonDisabled,
+            ]}
+            onPress={send}
+            disabled={!text.trim()}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="paper-plane" size={18} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f6fa" },
-
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ececec",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#fff",
+  container: {
+    flex: 1,
+    backgroundColor: "#eef3f8",
   },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: "#111" },
-  headerSubtitle: { fontSize: 12, color: "#777", marginTop: 1 },
-
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -368,76 +368,196 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
   },
-  badgeOnline: { backgroundColor: "#e9f9ef" },
-  badgeOffline: { backgroundColor: "#f2f2f2" },
-  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 5 },
-  dotOnline: { backgroundColor: "#28a745" },
-  dotOffline: { backgroundColor: "#bbb" },
-  badgeText: { fontSize: 12, fontWeight: "700", color: "#111" },
-
-  bubble: {
-    maxWidth: "78%",
-    marginVertical: 3,
+  badgeOnline: {
+    backgroundColor: "rgba(64, 197, 120, 0.18)",
+  },
+  badgeOffline: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  dotOnline: {
+    backgroundColor: "#33b864",
+  },
+  dotOffline: {
+    backgroundColor: "#d5dde4",
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  badgeTextOnline: {
+    color: "#dff7e7",
+  },
+  badgeTextOffline: {
+    color: "#ffffff",
+  },
+  messagesContent: {
+    flexGrow: 1,
+    justifyContent: "flex-end",
     paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 18,
+    paddingTop: 14,
+    paddingBottom: 16,
   },
-  bubbleLeft: {
-    backgroundColor: "#fff",
-    alignSelf: "flex-start",
-    borderBottomLeftRadius: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+    paddingTop: 96,
   },
-  bubbleRight: {
-    backgroundColor: "#0b93f6",
-    alignSelf: "flex-end",
-    borderBottomRightRadius: 4,
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    marginBottom: 16,
   },
-  meta: { fontSize: 10, marginTop: 3, textAlign: "right" },
-
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#16344b",
+  },
+  emptyText: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+    color: "#70818f",
+  },
+  messageRow: {
+    width: "100%",
+    marginVertical: 4,
+    flexDirection: "row",
+  },
+  messageRowLeft: {
+    justifyContent: "flex-start",
+  },
+  messageRowRight: {
+    justifyContent: "flex-end",
+  },
+  messageBubble: {
+    maxWidth: "78%",
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  messageBubbleLeft: {
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 8,
+    shadowColor: "#16344b",
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  messageBubbleRight: {
+    backgroundColor: "#0a4c73",
+    borderTopRightRadius: 8,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  messageTextLeft: {
+    color: "#17354d",
+  },
+  messageTextRight: {
+    color: "#ffffff",
+  },
+  meta: {
+    marginTop: 4,
+    fontSize: 10,
+    textAlign: "right",
+  },
+  metaLeft: {
+    color: "#8a98a5",
+  },
+  metaRight: {
+    color: "rgba(255,255,255,0.72)",
+  },
+  typingWrap: {
+    paddingHorizontal: 14,
+    paddingBottom: 8,
+  },
   typingRow: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 4,
+    borderRadius: 999,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: "#16344b",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
-  typingDots: { flexDirection: "row", gap: 3, marginRight: 6 },
-  typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#999" },
-  typingText: { fontSize: 12, color: "#999", fontStyle: "italic" },
-
+  typingDots: {
+    flexDirection: "row",
+    gap: 4,
+    marginRight: 8,
+  },
+  typingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#8b9aaa",
+  },
+  typingText: {
+    fontSize: 12,
+    color: "#7a8a98",
+    fontStyle: "italic",
+  },
+  composerWrap: {
+    backgroundColor: "rgba(255,255,255,0.72)",
+    paddingHorizontal: 10,
+    paddingTop: 8,
+  },
   composer: {
     flexDirection: "row",
     alignItems: "flex-end",
-    paddingHorizontal: 10,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#ececec",
+    borderRadius: 28,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#dbe6f0",
+    paddingLeft: 14,
+    paddingRight: 8,
+    paddingVertical: 8,
+    shadowColor: "#16344b",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 2,
   },
   input: {
     flex: 1,
     minHeight: 42,
     maxHeight: 120,
-    backgroundColor: "#f1f3f5",
-    borderRadius: 21,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 8,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingRight: 12,
     fontSize: 15,
-    color: "#111",
+    lineHeight: 21,
+    color: "#17354d",
   },
   sendButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#0b93f6",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 0,
+    backgroundColor: "#0a4c73",
   },
-  sendButtonDisabled: { backgroundColor: "#c2e0fb" },
+  sendButtonDisabled: {
+    backgroundColor: "#b8cfe0",
+  },
 });
 
 function decodeJwtSubject(token: string): string | null {
@@ -446,17 +566,23 @@ function decodeJwtSubject(token: string): string | null {
     if (!payloadPart) return null;
     const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
     const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-    
-    const base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    const base64Chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let binaryString = "";
     for (let i = 0; i < padded.length; i += 4) {
-      const chunk = (base64Chars.indexOf(padded[i]) << 18) |
-                    (base64Chars.indexOf(padded[i+1]) << 12) |
-                    ((padded[i+2] === "=" ? 0 : base64Chars.indexOf(padded[i+2])) << 6) |
-                    (padded[i+3] === "=" ? 0 : base64Chars.indexOf(padded[i+3]));
+      const chunk =
+        (base64Chars.indexOf(padded[i]) << 18) |
+        (base64Chars.indexOf(padded[i + 1]) << 12) |
+        ((padded[i + 2] === "=" ? 0 : base64Chars.indexOf(padded[i + 2])) << 6) |
+        (padded[i + 3] === "=" ? 0 : base64Chars.indexOf(padded[i + 3]));
       binaryString += String.fromCharCode((chunk >> 16) & 255);
-      if (padded[i+2] !== "=") binaryString += String.fromCharCode((chunk >> 8) & 255);
-      if (padded[i+3] !== "=") binaryString += String.fromCharCode(chunk & 255);
+      if (padded[i + 2] !== "=") {
+        binaryString += String.fromCharCode((chunk >> 8) & 255);
+      }
+      if (padded[i + 3] !== "=") {
+        binaryString += String.fromCharCode(chunk & 255);
+      }
     }
     const parsed = JSON.parse(binaryString);
     return typeof parsed?.sub === "string" ? parsed.sub : null;

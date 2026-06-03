@@ -94,22 +94,6 @@ export default function LoginScreen() {
               borderBottomRightRadius: 32,
             }}
           >
-            <Pressable
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Quay lại"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: LOGIN_TOKENS.radius.pill,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(255,255,255,0.12)",
-              }}
-            >
-              <Ionicons name="arrow-back" size={20} color="white" />
-            </Pressable>
-
             <View style={{ marginTop: 24 }}>
               <Text
                 style={{
@@ -328,3 +312,4 @@ function MessageBox({
     </View>
   );
 }
+

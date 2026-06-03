@@ -15,6 +15,7 @@ import {
   Switch,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -876,6 +877,8 @@ function GuestMenuRow({
 }) {
   const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
   const badgeBg = useThemeColor({ light: "rgba(10, 76, 115, 0.1)", dark: "rgba(41, 182, 246, 0.15)" }, "background");
+  const { width } = useWindowDimensions();
+  const isCompactLayout = width < 380;
 
   return (
     <Pressable
@@ -907,24 +910,55 @@ function GuestMenuRow({
           ? React.cloneElement(icon as React.ReactElement<any>, { color: primaryColor })
           : icon}
       </View>
-      <Text
+      <View
         style={{
           flex: 1,
-          flexShrink: 1,
-          fontSize: 14,
-          fontWeight: "600",
-          color: textColor,
-          lineHeight: 20,
+          minWidth: 0,
           marginRight: 8,
         }}
       >
-        {label}
-      </Text>
-      {badge ? (
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: textColor,
+            lineHeight: 20,
+            flexShrink: 1,
+          }}
+          numberOfLines={isCompactLayout ? 2 : 1}
+        >
+          {label}
+        </Text>
+        {isCompactLayout && badge ? (
+          <View
+            style={{
+              alignSelf: "flex-start",
+              minWidth: 20,
+              maxWidth: "100%",
+              borderRadius: 10,
+              backgroundColor: badgeBg,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              marginTop: 6,
+            }}
+          >
+            <Text
+              style={{ color: primaryColor, fontSize: 10, fontWeight: "800" }}
+              numberOfLines={1}
+            >
+              {badge}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      {!isCompactLayout && badge ? (
         <View
           style={{
             flexShrink: 0,
             minWidth: 20,
+            maxWidth: 96,
             borderRadius: 10,
             backgroundColor: badgeBg,
             alignItems: "center",
@@ -934,10 +968,12 @@ function GuestMenuRow({
             marginRight: 10,
           }}
         >
-          <Text style={{ color: primaryColor, fontSize: 10, fontWeight: "800" }}>{badge}</Text>
+          <Text style={{ color: primaryColor, fontSize: 10, fontWeight: "800" }} numberOfLines={1}>
+            {badge}
+          </Text>
         </View>
       ) : null}
-      <View style={{ flexShrink: 0 }}>
+      <View style={{ flexShrink: 0, marginLeft: isCompactLayout ? 8 : 0 }}>
         <Ionicons name="chevron-forward" size={16} color={mutedColor} />
       </View>
     </Pressable>
