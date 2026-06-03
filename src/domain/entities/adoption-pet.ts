@@ -21,6 +21,7 @@ export interface AdoptionPet {
   shelterName: string;
   healthBadges: string[];
   story: string;
+  organizationId?: string;
 }
 
 export interface PetFilters {

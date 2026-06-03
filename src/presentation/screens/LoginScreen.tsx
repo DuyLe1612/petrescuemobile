@@ -1,10 +1,10 @@
-import { Feather } from "@expo/vector-icons";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Ionicons } from "@expo/vector-icons";
+import { Button, ButtonText, Input, FormField } from "@/components/ui";
 import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
 import { useLogin } from "@/src/presentation/hooks/use-login";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { router } from "expo-router";
-import { type ComponentProps, type ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,36 +12,14 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const LOGIN_TOKENS = {
-  spacing: {
-    screenX: 24,
-    top: 20,
-    section: 24,
-    field: 18,
-    inputX: 16,
-  },
-  size: {
-    backButton: 36,
-    icon: 18,
-    input: 52,
-    button: 52,
-  },
   radius: {
-    hero: 32,
-    card: 28,
-    input: 16,
+    card: 24,
     pill: 999,
-  },
-  elevation: {
-    shadowColor: "#171717",
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
   },
 } as const;
 
@@ -52,17 +30,14 @@ export default function LoginScreen() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const { mutate, isPending, error } = useLogin();
+  const insets = useSafeAreaInsets();
 
-  const primaryColor = useThemeColor({}, "tint");
-  const backgroundColor = useThemeColor({}, "background");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
+  const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
+  const cardColor = useThemeColor({ light: "#ffffff", dark: "#1f1f1e" }, "background");
   const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
   const mutedColor = useThemeColor({}, "icon");
-  const mutedSurfaceColor = useThemeColor(
-    { light: "rgb(243 242 240)", dark: "rgb(42 39 36)" },
-    "background",
-  );
+  const borderColor = useThemeColor({ light: "#e2e8f0", dark: "#2d2d2c" }, "icon");
 
   const canSubmit = useMemo(() => {
     return email.trim().length > 0 && password.length >= 6 && !isPending;
@@ -105,141 +80,151 @@ export default function LoginScreen() {
         bounces={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View
-          style={{
-            flex: 1,
-            paddingHorizontal: LOGIN_TOKENS.spacing.screenX,
-            paddingTop: 64,
-            paddingBottom: 32,
-          }}
-        >
+        <View style={{ flex: 1, paddingBottom: Math.max(insets.bottom + 24, 32) }}>
+          {/* Elegant header */}
           <View
             style={{
-              borderRadius: LOGIN_TOKENS.radius.hero,
-              backgroundColor: primaryColor,
-              paddingHorizontal: LOGIN_TOKENS.spacing.screenX,
-              paddingTop: LOGIN_TOKENS.spacing.top,
-              paddingBottom: 96,
+              backgroundColor: "#0a4c73",
+              paddingTop: insets.top + 20,
+              paddingBottom: 84,
+              paddingHorizontal: 24,
+              borderBottomLeftRadius: 32,
+              borderBottomRightRadius: 32,
             }}
           >
-            <Pressable
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Quay lại"
-              style={{
-                width: LOGIN_TOKENS.size.backButton,
-                height: LOGIN_TOKENS.size.backButton,
-                borderRadius: LOGIN_TOKENS.radius.pill,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(255,255,255,0.12)",
-              }}
-            >
-              <Feather name="chevron-left" size={20} color="rgb(246 252 252)" />
-            </Pressable>
-
-            <View style={{ marginTop: LOGIN_TOKENS.spacing.section }}>
+            <View style={{ marginTop: 24 }}>
               <Text
                 style={{
-                  color: "rgb(246 252 252)",
+                  color: "white",
                   fontSize: 32,
                   fontWeight: "800",
+                  letterSpacing: -0.5,
                 }}
               >
                 Đăng nhập
               </Text>
               <Text
                 style={{
-                  marginTop: 8,
-                  color: "rgba(246,252,252,0.8)",
-                  fontSize: 15,
+                  marginTop: 6,
+                  color: "rgba(255,255,255,0.75)",
+                  fontSize: 14,
+                  fontWeight: "500",
                 }}
               >
-                Chào mừng bạn quay lại.
+                Chào mừng bạn quay lại với Hanoi Pet Rescue.
               </Text>
             </View>
           </View>
 
+          {/* Login Card */}
           <View
             style={{
-              marginTop: -56,
+              marginTop: -52,
+              marginHorizontal: 20,
               borderRadius: LOGIN_TOKENS.radius.card,
               backgroundColor: cardColor,
-              padding: LOGIN_TOKENS.spacing.screenX,
-              ...LOGIN_TOKENS.elevation,
+              padding: 24,
+              borderWidth: 1,
+              borderColor: borderColor,
+              shadowColor: "#0f172a",
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.05,
+              shadowRadius: 20,
+              elevation: 4,
             }}
           >
-            <View style={{ gap: LOGIN_TOKENS.spacing.field }}>
-              <Field
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="email@gmail.com"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                icon="mail"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+            <View style={{ gap: 18 }}>
+              <FormField label="Email hoặc tên người dùng" required>
+                <Input
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="nhapemail@gmail.com"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  style={{
+                    height: 48,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: borderColor,
+                    paddingHorizontal: 12,
+                    backgroundColor: Platform.OS === "web" ? "transparent" : undefined,
+                  }}
+                  left={
+                    <Ionicons
+                      name="mail-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Mật khẩu"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                secureTextEntry={!showPassword}
-                icon="lock"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-                rightAction={
-                  <Pressable
-                    onPress={() => setShowPassword((value) => !value)}
-                    accessibilityRole="button"
-                    accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                    hitSlop={8}
-                  >
-                    <Text
-                      style={{
-                        color: primaryColor,
-                        fontSize: 13,
-                        fontWeight: "700",
-                      }}
+              <FormField label="Mật khẩu" required>
+                <Input
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="••••••••"
+                  secureTextEntry={!showPassword}
+                  style={{
+                    height: 48,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: borderColor,
+                    paddingHorizontal: 12,
+                    backgroundColor: Platform.OS === "web" ? "transparent" : undefined,
+                  }}
+                  left={
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                  right={
+                    <Pressable
+                      onPress={() => setShowPassword((value) => !value)}
+                      accessibilityRole="button"
+                      accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      hitSlop={12}
+                      style={{ paddingHorizontal: 4 }}
                     >
-                      {showPassword ? "Ẩn" : "Hiện"}
-                    </Text>
-                  </Pressable>
-                }
-              />
+                      <Text style={{ color: primaryColor, fontSize: 13, fontWeight: "700" }}>
+                        {showPassword ? "Ẩn" : "Hiện"}
+                      </Text>
+                    </Pressable>
+                  }
+                />
+              </FormField>
             </View>
 
             {formError ? (
               <MessageBox
                 text={formError}
-                backgroundColor="rgba(218,65,47,0.08)"
-                borderColor="rgba(218,65,47,0.24)"
-                textColor="rgb(218 65 47)"
+                backgroundColor="rgba(239,68,68,0.06)"
+                borderColor="rgba(239,68,68,0.15)"
+                textColor="#ef4444"
               />
             ) : error ? (
               <MessageBox
                 text="Đăng nhập thất bại. Vui lòng thử lại."
-                backgroundColor="rgba(218,65,47,0.08)"
-                borderColor="rgba(218,65,47,0.24)"
-                textColor="rgb(218 65 47)"
+                backgroundColor="rgba(239,68,68,0.06)"
+                borderColor="rgba(239,68,68,0.15)"
+                textColor="#ef4444"
               />
             ) : (
               <Text
                 style={{
-                  marginTop: 14,
+                  marginTop: 12,
                   color: mutedColor,
                   fontSize: 12,
+                  fontWeight: "500",
                 }}
               >
-                Tối thiểu 6 ký tự cho mật khẩu.
+                Mật khẩu có tối thiểu 6 ký tự.
               </Text>
             )}
 
@@ -249,10 +234,17 @@ export default function LoginScreen() {
               action="primary"
               disabled={!canSubmit}
               onPress={onSubmit}
-              className="mt-6 rounded-2xl"
-              style={{ height: LOGIN_TOKENS.size.button }}
+              style={{
+                marginTop: 24,
+                borderRadius: 16,
+                height: 48,
+                backgroundColor: canSubmit ? "#0a4c73" : "rgba(10, 76, 115, 0.4)",
+                justifyContent: "center",
+                alignItems: "center",
+                borderWidth: 0,
+              }}
             >
-              <ButtonText className="font-bold">
+              <ButtonText style={{ color: "white", fontSize: 15, fontWeight: "800" }}>
                 {isPending ? "Đang đăng nhập..." : "Đăng nhập"}
               </ButtonText>
             </Button>
@@ -265,16 +257,18 @@ export default function LoginScreen() {
 
             <View
               style={{
-                marginTop: 18,
+                marginTop: 20,
                 flexDirection: "row",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: mutedColor, fontSize: 13 }}>Chưa có tài khoản? </Text>
+              <Text style={{ color: mutedColor, fontSize: 13, fontWeight: "500" }}>
+                Chưa có tài khoản?{" "}
+              </Text>
               <Pressable onPress={() => router.push("/register")}>
                 <Text style={{ color: primaryColor, fontSize: 13, fontWeight: "700" }}>
-                  Đăng ký
+                  Đăng ký ngay
                 </Text>
               </Pressable>
             </View>
@@ -282,69 +276,6 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  );
-}
-
-type FieldProps = ComponentProps<typeof TextInput> & {
-  label: string;
-  icon: keyof typeof Feather.glyphMap;
-  textColor: string;
-  mutedColor: string;
-  surfaceColor: string;
-  borderColor: string;
-  rightAction?: ReactNode;
-};
-
-function Field({
-  label,
-  icon,
-  textColor,
-  mutedColor,
-  surfaceColor,
-  borderColor,
-  rightAction,
-  ...inputProps
-}: FieldProps) {
-  return (
-    <View>
-      <Text
-        style={{
-          marginBottom: 8,
-          color: textColor,
-          fontSize: 13,
-          fontWeight: "700",
-        }}
-      >
-        {label}
-      </Text>
-
-      <View
-        style={{
-          height: LOGIN_TOKENS.size.input,
-          borderRadius: LOGIN_TOKENS.radius.input,
-          borderWidth: 1,
-          borderColor,
-          backgroundColor: surfaceColor,
-          paddingHorizontal: LOGIN_TOKENS.spacing.inputX,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <Feather name={icon} size={LOGIN_TOKENS.size.icon} color={mutedColor} />
-        <TextInput
-          {...inputProps}
-          placeholderTextColor={mutedColor}
-          style={{
-            flex: 1,
-            color: textColor,
-            fontSize: 15,
-            paddingVertical: 0,
-          }}
-        />
-        {rightAction}
-      </View>
-    </View>
   );
 }
 
@@ -363,15 +294,22 @@ function MessageBox({
     <View
       style={{
         marginTop: 14,
-        borderRadius: 16,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor,
         backgroundColor,
-        paddingHorizontal: 14,
+        paddingHorizontal: 16,
         paddingVertical: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
       }}
     >
-      <Text style={{ color: textColor, fontSize: 13 }}>{text}</Text>
+      <Ionicons name="alert-circle-outline" size={16} color={textColor} />
+      <Text style={{ color: textColor, fontSize: 13, fontWeight: "600", flex: 1 }}>
+        {text}
+      </Text>
     </View>
   );
 }
+

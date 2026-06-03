@@ -14,11 +14,17 @@ import {
  */
 export const chatApi = {
   listConversations: async (limit?: number, cursor?: string): Promise<ApiResponseConversationCursorResponseDto> => {
-    return listConversations({ limit, cursor });
+    return listConversations({ pageSize: limit, cursor });
   },
   
-  listMessages: async (conversationId: string, limit?: number, cursor?: string): Promise<ApiResponseChatMessageCursorResponseDto> => {
-    return listMessages(conversationId, { limit, cursor });
+  listMessages: async (
+    conversationId: string,
+    limit?: number,
+    cursor?: string,
+    cursorSeq?: number,
+    direction?: string,
+  ): Promise<ApiResponseChatMessageCursorResponseDto> => {
+    return listMessages(conversationId, { pageSize: limit, cursor, cursorSeq, direction });
   },
   
   sendMessage: async (conversationId: string, content: string): Promise<ChatMessageDto> => {

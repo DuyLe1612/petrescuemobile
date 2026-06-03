@@ -12,7 +12,7 @@ export class ChatRepositoryImpl implements IChatRepository {
     limit?: number,
     cursor?: string,
   ): Promise<PaginatedConversations> {
-    const response = await chatApi.listConversations(cursor, limit);
+    const response = await chatApi.listConversations(limit, cursor);
     const data = response.data;
 
     if (!data) {
@@ -49,10 +49,10 @@ export class ChatRepositoryImpl implements IChatRepository {
   ): Promise<PaginatedMessages> {
     const response = await chatApi.listMessages(
       conversationId,
+      limit ?? 50,
       cursor,
       cursorSeq,
       direction,
-      limit ?? 50,
     );
     const data = response.data;
 

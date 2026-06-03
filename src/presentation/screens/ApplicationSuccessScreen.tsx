@@ -1,16 +1,13 @@
 import {
   APPLICATION_TOKENS,
-  ApplicationPanel,
-  ApplicationTopBar,
-  PrimaryButton,
-  SecondaryButton,
 } from "@/src/presentation/components/application/ui";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { type ReactNode } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar, Button, ButtonText, Card } from "@/components/ui";
 
 export default function ApplicationSuccessScreen() {
   const insets = useSafeAreaInsets();
@@ -18,7 +15,6 @@ export default function ApplicationSuccessScreen() {
   const primaryColor = useThemeColor({}, "tint");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
 
   return (
     <ScrollView
@@ -30,7 +26,7 @@ export default function ApplicationSuccessScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
-      <ApplicationTopBar title="Kết quả đăng ký" subtitle="Hồ sơ UI đã được hoàn tất" onBack={() => router.back()} />
+      <HeaderBar title="Kết quả đăng ký" subtitle="Hồ sơ UI đã được hoàn tất" onBack={() => router.back()} />
 
       <View
         style={{
@@ -42,7 +38,7 @@ export default function ApplicationSuccessScreen() {
           paddingHorizontal: 18,
         }}
       >
-        <ApplicationPanel style={{ marginTop: 0, alignItems: "center" }}>
+        <Card className="mt-0 items-center">
           <View
             style={{
               width: 72,
@@ -53,14 +49,14 @@ export default function ApplicationSuccessScreen() {
               justifyContent: "center",
             }}
           >
-            <Feather name="check-circle" size={34} color="#44b882" />
+            <Ionicons name="checkmark-circle-outline" size={34} color="#44b882" />
           </View>
 
           <Text style={{ color: textColor, fontSize: 24, fontWeight: "800", marginTop: 16 }}>
             Đăng ký thành công!
           </Text>
           <Text style={{ color: mutedColor, fontSize: 13, lineHeight: 20, textAlign: "center", marginTop: 8 }}>
-            HPA đã ghi nhận hồ sơ ứng tuyển của bạn. Bước tiếp theo chỉ là UI mô phỏng.
+            PAW HOME đã ghi nhận hồ sơ ứng tuyển của bạn. Bước tiếp theo chỉ là UI mô phỏng.
           </Text>
 
           <View
@@ -77,31 +73,47 @@ export default function ApplicationSuccessScreen() {
             <ResultRow label="Khu vực ưu tiên" value="Hà Nội, Đống Đa" />
             <ResultRow label="Trạng thái" value="Chờ đối chiếu" isLast accent="#ff9f43" />
           </View>
-        </ApplicationPanel>
+        </Card>
       </View>
 
-      <ApplicationPanel style={{ marginTop: 16 }}>
+      <Card className="mt-4">
         <StepRow
-          icon={<Feather name="check-circle" size={18} color="#44b882" />}
+          icon={<Ionicons name="checkmark-circle-outline" size={18} color="#44b882" />}
           title="Form đã lưu"
           detail="Bạn có thể mở lại giao diện này bất cứ lúc nào trong luồng demo."
         />
         <StepRow
-          icon={<MaterialCommunityIcons name="progress-clock" size={18} color="#ff9f43" />}
+          icon={<Ionicons name="time-outline" size={18} color="#ff9f43" />}
           title="Hồ sơ đang được xem xét"
           detail="Trong phiên bản thật, đội ngũ sẽ phản hồi sau khi kiểm tra thông tin."
         />
         <StepRow
-          icon={<Feather name="bell" size={18} color="#277f8f" />}
+          icon={<Ionicons name="notifications-outline" size={18} color="#277f8f" />}
           title="Nhận thông báo tiếp theo"
           detail="Các training, ca cứu hộ hoặc yêu cầu bổ sung sẽ được gửi qua mục thông báo."
           isLast
         />
-      </ApplicationPanel>
+      </Card>
 
       <View style={{ marginTop: 16, gap: 10 }}>
-        <PrimaryButton label="Về trang cá nhân" onPress={() => router.replace("/profile")} />
-        <SecondaryButton label="Xem thông báo mới" onPress={() => router.push("/news")} />
+        <Button
+          variant="solid"
+          size="xl"
+          action="primary"
+          onPress={() => router.replace("/profile")}
+          className="rounded-2xl h-12"
+        >
+          <ButtonText className="font-extrabold text-sm">Về trang cá nhân</ButtonText>
+        </Button>
+        <Button
+          variant="outline"
+          size="xl"
+          action="secondary"
+          onPress={() => router.push("/news")}
+          className="rounded-2xl h-12 text-foreground"
+        >
+          <ButtonText className="font-extrabold text-sm text-foreground">Xem thông báo mới</ButtonText>
+        </Button>
       </View>
 
       <Text style={{ color: mutedColor, fontSize: 11, textAlign: "center", marginTop: 12 }}>

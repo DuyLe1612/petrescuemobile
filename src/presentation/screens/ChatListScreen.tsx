@@ -5,10 +5,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Text,
-    View
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
 } from "react-native";
 import { ChatListItem } from "../components/chat/ChatListItem";
 import { useChats } from "../hooks/useChat";
@@ -19,7 +20,8 @@ const WS_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080")
 
 export default function ChatListScreen() {
   const router = useRouter();
-  const { data, fetchNextPage, hasNextPage, isLoading } = useChats(15);
+  const { data, fetchNextPage, hasNextPage, isLoading, isRefetching, refetch } =
+    useChats(15);
   const qc = useQueryClient();
   const socketRef = useRef<ChatSocket | null>(null);
 
@@ -76,34 +78,57 @@ export default function ChatListScreen() {
   }, [qc]);
 
   return (
-    <View className="flex-1 bg-white dark:bg-black">
+    <View className="flex-1 bg-[#f3f7fb]">
       {isLoading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0b93f6" />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#0a4c73" />
         </View>
       ) : items.length === 0 ? (
-        <View className="flex-1 justify-center items-center px-6">
-          <Feather name="message-circle" size={48} color="#cbd5e1" />
-          <Text className="text-gray-500 text-center mt-4">
-            Chưa có tin nhắn nào. Bấm vào biểu tượng tìm kiếm để bắt đầu trò
-            chuyện.
+        <View className="flex-1 items-center justify-center px-6">
+          <View className="mb-5 h-20 w-20 items-center justify-center rounded-full bg-white">
+            <Feather name="message-circle" size={36} color="#7e95a8" />
+          </View>
+          <Text className="text-center text-xl font-black text-[#16344b]">
+            Chua co cuoc tro chuyen
+          </Text>
+          <Text className="mt-3 text-center text-sm leading-6 text-[#728391]">
+            Khi ban bat dau nhan tin voi nguoi dung khac, danh sach hoi thoai se
+            hien o day.
           </Text>
         </View>
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ChatListItem
-              conversation={item}
-              onPress={(id) => router.push(`/chat/${id}` as never)}
-            />
-          )}
-          onEndReached={() => {
-            if (hasNextPage) fetchNextPage();
-          }}
-          onEndReachedThreshold={0.5}
-        />
+        <>
+          <View className="px-4 pb-3 pt-4">
+            <Text className="text-[28px] font-black text-[#15334a]">
+              Tin nhan
+            </Text>
+            <Text className="mt-1 text-sm leading-5 text-[#738492]">
+              {items.length} cuoc tro chuyen gan day
+            </Text>
+          </View>
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <ChatListItem
+                conversation={item}
+                onPress={(id) => router.push(`/chat/${id}` as never)}
+              />
+            )}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={() => void refetch()}
+                tintColor="#0a4c73"
+              />
+            }
+            onEndReached={() => {
+              if (hasNextPage) fetchNextPage();
+            }}
+            onEndReachedThreshold={0.5}
+          />
+        </>
       )}
     </View>
   );

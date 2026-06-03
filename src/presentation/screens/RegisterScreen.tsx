@@ -1,46 +1,43 @@
-import { Feather } from "@expo/vector-icons";
-import { Button, ButtonText } from "@/components/ui/button";
-import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
+import { Button, ButtonText, Input, FormField } from "@/components/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { type ComponentProps, type ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { register1 } from "@/src/infrastructure/api/generated/pet-rescue-api";
+import type {
+  AuthTokenResponseDto,
+  RegisterRequestDto,
+} from "@/src/infrastructure/api/generated/model";
+import { tokenStorage } from "@/src/infrastructure/storage/token-storage";
+import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 
 const REGISTER_TOKENS = {
-  spacing: {
-    screenX: 24,
-    top: 20,
-    section: 24,
-    field: 14,
-    inputX: 16,
-  },
-  size: {
-    backButton: 36,
-    icon: 18,
-    input: 52,
-    button: 54,
-  },
   radius: {
-    hero: 32,
-    card: 28,
-    input: 16,
-    pill: 999,
-  },
-  elevation: {
-    shadowColor: "#171717",
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
+    card: 24,
   },
 } as const;
+
+const normalizeRegisterResponse = (response: unknown) => {
+  const raw = response as {
+    data?: AuthTokenResponseDto | { data?: AuthTokenResponseDto };
+  };
+
+  if (raw?.data && "data" in raw.data && raw.data.data) {
+    return raw.data.data;
+  }
+
+  return raw?.data ?? (response as AuthTokenResponseDto | undefined);
+};
 
 export default function RegisterScreen() {
   const [fullName, setFullName] = useState("");
@@ -53,15 +50,24 @@ export default function RegisterScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [formNotice, setFormNotice] = useState<string | null>(null);
 
-  const primaryColor = useThemeColor({}, "tint");
-  const backgroundColor = useThemeColor({}, "background");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
-  const mutedColor = useThemeColor({}, "icon");
-  const mutedSurfaceColor = useThemeColor(
-    { light: "rgb(243 242 240)", dark: "rgb(42 39 36)" },
+  const insets = useSafeAreaInsets();
+  const { mutate, isPending } = useMutation({
+    mutationFn: register1,
+  });
+
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
+  const backgroundColor = useThemeColor(
+    { light: "#f6f8fc", dark: "#121212" },
     "background",
+  );
+  const cardColor = useThemeColor(
+    { light: "#ffffff", dark: "#1f1f1e" },
+    "background",
+  );
+  const mutedColor = useThemeColor({}, "icon");
+  const borderColor = useThemeColor(
+    { light: "#e2e8f0", dark: "#2d2d2c" },
+    "icon",
   );
 
   const canSubmit = useMemo(() => {
@@ -69,41 +75,85 @@ export default function RegisterScreen() {
       fullName.trim().length > 0 &&
       email.trim().length > 0 &&
       phone.trim().length > 0 &&
-      password.length >= 6 &&
-      confirmPassword.length >= 6
+      password.length >= 8 &&
+      confirmPassword.length >= 8 &&
+      !isPending
     );
-  }, [confirmPassword, email, fullName, password, phone]);
+  }, [confirmPassword, email, fullName, isPending, password, phone]);
 
   const onSubmit = () => {
     setFormError(null);
     setFormNotice(null);
 
     if (fullName.trim().length < 2) {
-      setFormError("Vui lòng nhập họ và tên hợp lệ.");
+      setFormError("Vui long nhap ho va ten hop le.");
       return;
     }
 
     if (!email.includes("@")) {
-      setFormError("Vui lòng nhập email hợp lệ.");
+      setFormError("Vui long nhap email hop le.");
       return;
     }
 
-    if (phone.trim().length < 9) {
-      setFormError("Vui lòng nhập số điện thoại hợp lệ.");
+    if (phone.replace(/\D/g, "").length < 9) {
+      setFormError("Vui long nhap so dien thoai hop le.");
       return;
     }
 
-    if (password.length < 6) {
-      setFormError("Mật khẩu phải có ít nhất 6 ký tự.");
+    if (password.length < 8) {
+      setFormError("Mat khau phai co it nhat 8 ky tu.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setFormError("Xác nhận mật khẩu chưa khớp.");
+      setFormError("Xac nhan mat khau chua khop.");
       return;
     }
 
-    setFormNotice("UI đăng ký đã sẵn sàng. Bước tiếp theo là nối API tạo tài khoản.");
+    const usernameFromEmail = email.trim().split("@")[0]?.trim() ?? "";
+    const sanitizedPhone = phone.replace(/\D/g, "");
+    const fallbackUsername = sanitizedPhone ? `user${sanitizedPhone}` : "";
+    const username = (usernameFromEmail || fallbackUsername || fullName.trim())
+      .replace(/\s+/g, "")
+      .slice(0, 50);
+
+    if (username.length < 3) {
+      setFormError("Khong the tao ten nguoi dung hop le tu thong tin dang ky.");
+      return;
+    }
+
+    const payload: RegisterRequestDto = {
+      username,
+      email: email.trim(),
+      password,
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+    };
+
+    mutate(payload, {
+      async onSuccess(response) {
+        const result = normalizeRegisterResponse(response);
+
+        if (result?.accessToken && result?.refreshToken) {
+          await tokenStorage.set(result.accessToken, result.refreshToken);
+          router.replace("/(tabs)");
+          return;
+        }
+
+        setFormNotice(
+          "Dang ky thanh cong. Vui long kiem tra email hoac dang nhap de tiep tuc.",
+        );
+        setTimeout(() => {
+          router.replace("/login");
+        }, 1200);
+      },
+      onError(error: any) {
+        setFormError(
+          error?.message ||
+            "Dang ky that bai. Vui long kiem tra lai thong tin.",
+        );
+      },
+    });
   };
 
   return (
@@ -115,186 +165,227 @@ export default function RegisterScreen() {
         bounces={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
       >
         <View
-          style={{
-            flex: 1,
-            paddingHorizontal: REGISTER_TOKENS.spacing.screenX,
-            paddingTop: 64,
-            paddingBottom: 32,
-          }}
+          style={{ flex: 1, paddingBottom: Math.max(insets.bottom + 24, 32) }}
         >
           <View
             style={{
-              borderRadius: REGISTER_TOKENS.radius.hero,
-              backgroundColor: primaryColor,
-              paddingHorizontal: REGISTER_TOKENS.spacing.screenX,
-              paddingTop: REGISTER_TOKENS.spacing.top,
-              paddingBottom: 104,
+              backgroundColor: "#0a4c73",
+              paddingTop: insets.top + 20,
+              paddingBottom: 84,
+              paddingHorizontal: 24,
+              borderBottomLeftRadius: 32,
+              borderBottomRightRadius: 32,
             }}
           >
-            <Pressable
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Quay lại"
-              style={{
-                width: REGISTER_TOKENS.size.backButton,
-                height: REGISTER_TOKENS.size.backButton,
-                borderRadius: REGISTER_TOKENS.radius.pill,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(255,255,255,0.12)",
-              }}
-            >
-              <Feather name="chevron-left" size={20} color="rgb(246 252 252)" />
-            </Pressable>
-
-            <View style={{ marginTop: REGISTER_TOKENS.spacing.section }}>
+            <View style={{ marginTop: 24 }}>
               <Text
                 style={{
-                  color: "rgb(246 252 252)",
+                  color: "white",
                   fontSize: 32,
                   fontWeight: "800",
+                  letterSpacing: -0.5,
                 }}
               >
-                Tạo tài khoản
+                Tao tai khoan
               </Text>
               <Text
                 style={{
-                  marginTop: 8,
-                  color: "rgba(246,252,252,0.8)",
-                  fontSize: 15,
+                  marginTop: 6,
+                  color: "rgba(255,255,255,0.75)",
+                  fontSize: 14,
+                  fontWeight: "500",
                 }}
               >
-                Tham gia cộng đồng yêu thú cưng.
+                Tham gia cong dong yeu thuong va cuu ho thu cung.
               </Text>
             </View>
           </View>
 
           <View
             style={{
-              marginTop: -66,
+              marginTop: -52,
+              marginHorizontal: 20,
               borderRadius: REGISTER_TOKENS.radius.card,
               backgroundColor: cardColor,
-              padding: REGISTER_TOKENS.spacing.screenX,
-              ...REGISTER_TOKENS.elevation,
+              padding: 24,
+              borderWidth: 1,
+              borderColor,
+              shadowColor: "#0f172a",
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.05,
+              shadowRadius: 20,
+              elevation: 4,
             }}
           >
-            <View style={{ gap: REGISTER_TOKENS.spacing.field }}>
-              <Field
-                label="Họ và tên"
-                required
-                value={fullName}
-                onChangeText={setFullName}
-                placeholder="Nguyễn Văn An"
-                icon="user"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+            <View style={{ gap: 16 }}>
+              <FormField label="Ho va ten" required>
+                <Input
+                  value={fullName}
+                  onChangeText={setFullName}
+                  placeholder="Nguyen Van An"
+                  style={inputStyle(borderColor)}
+                  left={
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Email"
-                required
-                value={email}
-                onChangeText={setEmail}
-                placeholder="email@gmail.com"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                icon="mail"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+              <FormField label="Email" required>
+                <Input
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="email@gmail.com"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  style={inputStyle(borderColor)}
+                  left={
+                    <Ionicons
+                      name="mail-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Số điện thoại"
-                required
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="0921 345 678"
-                keyboardType="phone-pad"
-                icon="phone"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-              />
+              <FormField label="So dien thoai" required>
+                <Input
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="0921 345 678"
+                  keyboardType="phone-pad"
+                  style={inputStyle(borderColor)}
+                  left={
+                    <Ionicons
+                      name="call-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Mật khẩu"
-                required
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Ít nhất 6 ký tự"
-                secureTextEntry={!showPassword}
-                icon="lock"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-                rightAction={
-                  <PasswordToggle
-                    visible={showPassword}
-                    onPress={() => setShowPassword((value) => !value)}
-                    color={mutedColor}
-                  />
-                }
-              />
+              <FormField label="Mat khau" required>
+                <Input
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="It nhat 8 ky tu"
+                  secureTextEntry={!showPassword}
+                  style={inputStyle(borderColor)}
+                  left={
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                  right={
+                    <Pressable
+                      onPress={() => setShowPassword((value) => !value)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showPassword ? "An mat khau" : "Hien mat khau"
+                      }
+                      hitSlop={12}
+                      style={{ paddingHorizontal: 4 }}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={18}
+                        color={mutedColor}
+                      />
+                    </Pressable>
+                  }
+                />
+              </FormField>
 
-              <Field
-                label="Xác nhận mật khẩu"
-                required
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Nhập lại mật khẩu"
-                secureTextEntry={!showConfirmPassword}
-                icon="lock"
-                textColor={textColor}
-                mutedColor={mutedColor}
-                surfaceColor={mutedSurfaceColor}
-                borderColor={borderColor}
-                rightAction={
-                  <PasswordToggle
-                    visible={showConfirmPassword}
-                    onPress={() => setShowConfirmPassword((value) => !value)}
-                    color={mutedColor}
-                  />
-                }
-              />
+              <FormField label="Xac nhan mat khau" required>
+                <Input
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Nhap lai mat khau"
+                  secureTextEntry={!showConfirmPassword}
+                  style={inputStyle(borderColor)}
+                  left={
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={mutedColor}
+                      style={{ marginRight: 8 }}
+                    />
+                  }
+                  right={
+                    <Pressable
+                      onPress={() =>
+                        setShowConfirmPassword((value) => !value)
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showConfirmPassword ? "An mat khau" : "Hien mat khau"
+                      }
+                      hitSlop={12}
+                      style={{ paddingHorizontal: 4 }}
+                    >
+                      <Ionicons
+                        name={
+                          showConfirmPassword ? "eye-off-outline" : "eye-outline"
+                        }
+                        size={18}
+                        color={mutedColor}
+                      />
+                    </Pressable>
+                  }
+                />
+              </FormField>
             </View>
 
             {formError ? (
               <MessageBox
                 text={formError}
-                backgroundColor="rgba(218,65,47,0.08)"
-                borderColor="rgba(218,65,47,0.24)"
-                textColor="rgb(218 65 47)"
+                backgroundColor="rgba(239,68,68,0.06)"
+                borderColor="rgba(239,68,68,0.15)"
+                textColor="#ef4444"
+                type="error"
               />
             ) : formNotice ? (
               <MessageBox
                 text={formNotice}
-                backgroundColor="rgba(39,127,143,0.08)"
-                borderColor="rgba(39,127,143,0.2)"
-                textColor={primaryColor}
+                backgroundColor="rgba(10, 76, 115, 0.05)"
+                borderColor="rgba(10, 76, 115, 0.12)"
+                textColor="#0a4c73"
+                type="notice"
               />
             ) : null}
 
             <Text
               style={{
-                marginTop: 14,
+                marginTop: 16,
                 color: mutedColor,
                 fontSize: 12,
                 lineHeight: 18,
+                fontWeight: "500",
               }}
             >
-              Bằng cách đăng ký, bạn đồng ý với{" "}
-              <Text style={{ color: primaryColor, fontWeight: "700" }}>Điều khoản sử dụng</Text>
-              {" "}và{" "}
-              <Text style={{ color: primaryColor, fontWeight: "700" }}>Chính sách bảo mật</Text>
-              {" "}của PA.
+              Bang cach dang ky, ban dong y voi{" "}
+              <Text style={{ color: primaryColor, fontWeight: "700" }}>
+                Dieu khoan su dung
+              </Text>{" "}
+              va{" "}
+              <Text style={{ color: primaryColor, fontWeight: "700" }}>
+                Chinh sach bao mat
+              </Text>{" "}
+              cua chung toi.
             </Text>
 
             <Button
@@ -303,28 +394,53 @@ export default function RegisterScreen() {
               action="primary"
               disabled={!canSubmit}
               onPress={onSubmit}
-              className="mt-5 rounded-2xl"
-              style={{ height: REGISTER_TOKENS.size.button }}
+              style={{
+                marginTop: 20,
+                borderRadius: 16,
+                height: 48,
+                backgroundColor: canSubmit
+                  ? "#0a4c73"
+                  : "rgba(10, 76, 115, 0.4)",
+                justifyContent: "center",
+                alignItems: "center",
+                borderWidth: 0,
+              }}
             >
-              <ButtonText className="font-bold">Tạo tài khoản</ButtonText>
+              {isPending ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <ButtonText
+                  style={{ color: "white", fontSize: 15, fontWeight: "800" }}
+                >
+                  Tao tai khoan
+                </ButtonText>
+              )}
             </Button>
 
-            <View style={{ alignItems: "center", marginTop: 14 }}>
-              <Text style={{ color: mutedColor, fontSize: 12 }}>hoặc</Text>
+            <View style={{ alignItems: "center", marginTop: 16 }}>
+              <Text style={{ color: mutedColor, fontSize: 12, fontWeight: "500" }}>
+                hoac
+              </Text>
             </View>
 
             <View
               style={{
-                marginTop: 14,
+                marginTop: 16,
                 flexDirection: "row",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: mutedColor, fontSize: 13 }}>Đã có tài khoản? </Text>
+              <Text
+                style={{ color: mutedColor, fontSize: 13, fontWeight: "500" }}
+              >
+                Da co tai khoan?{" "}
+              </Text>
               <Pressable onPress={() => router.push("/login")}>
-                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: "700" }}>
-                  Đăng nhập
+                <Text
+                  style={{ color: primaryColor, fontSize: 13, fontWeight: "700" }}
+                >
+                  Dang nhap ngay
                 </Text>
               </Pressable>
             </View>
@@ -335,91 +451,15 @@ export default function RegisterScreen() {
   );
 }
 
-type FieldProps = ComponentProps<typeof TextInput> & {
-  label: string;
-  required?: boolean;
-  icon: keyof typeof Feather.glyphMap;
-  textColor: string;
-  mutedColor: string;
-  surfaceColor: string;
-  borderColor: string;
-  rightAction?: ReactNode;
-};
-
-function Field({
-  label,
-  required = false,
-  icon,
-  textColor,
-  mutedColor,
-  surfaceColor,
-  borderColor,
-  rightAction,
-  ...inputProps
-}: FieldProps) {
-  return (
-    <View>
-      <Text
-        style={{
-          marginBottom: 8,
-          color: textColor,
-          fontSize: 13,
-          fontWeight: "700",
-        }}
-      >
-        {label}
-        {required ? <Text style={{ color: "rgb(218 65 47)" }}> *</Text> : null}
-      </Text>
-
-      <View
-        style={{
-          height: REGISTER_TOKENS.size.input,
-          borderRadius: REGISTER_TOKENS.radius.input,
-          borderWidth: 1,
-          borderColor,
-          backgroundColor: surfaceColor,
-          paddingHorizontal: REGISTER_TOKENS.spacing.inputX,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <Feather name={icon} size={REGISTER_TOKENS.size.icon} color={mutedColor} />
-        <TextInput
-          {...inputProps}
-          placeholderTextColor={mutedColor}
-          style={{
-            flex: 1,
-            color: textColor,
-            fontSize: 15,
-            paddingVertical: 0,
-          }}
-        />
-        {rightAction}
-      </View>
-    </View>
-  );
-}
-
-function PasswordToggle({
-  visible,
-  onPress,
-  color,
-}: {
-  visible: boolean;
-  onPress: () => void;
-  color: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-      hitSlop={8}
-    >
-      <Feather name={visible ? "eye" : "eye-off"} size={16} color={color} />
-    </Pressable>
-  );
+function inputStyle(borderColor: string) {
+  return {
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor,
+    paddingHorizontal: 12,
+    backgroundColor: Platform.OS === "web" ? "transparent" : undefined,
+  } as const;
 }
 
 function MessageBox({
@@ -427,25 +467,43 @@ function MessageBox({
   backgroundColor,
   borderColor,
   textColor,
+  type,
 }: {
   text: string;
   backgroundColor: string;
   borderColor: string;
   textColor: string;
+  type: "error" | "notice";
 }) {
   return (
     <View
       style={{
         marginTop: 14,
-        borderRadius: 16,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor,
         backgroundColor,
-        paddingHorizontal: 14,
+        paddingHorizontal: 16,
         paddingVertical: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
       }}
     >
-      <Text style={{ color: textColor, fontSize: 13 }}>{text}</Text>
+      <Ionicons
+        name={
+          type === "error"
+            ? "alert-circle-outline"
+            : "information-circle-outline"
+        }
+        size={16}
+        color={textColor}
+      />
+      <Text
+        style={{ color: textColor, fontSize: 13, fontWeight: "600", flex: 1 }}
+      >
+        {text}
+      </Text>
     </View>
   );
 }

@@ -5,6 +5,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 import "./../global.css";
 
@@ -35,23 +36,45 @@ export default function RootLayout() {
   return (
     <GluestackUIProvider mode="system">
       <QueryClientProvider client={queryClient}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ title: "Đăng nhập" }} />
-          <Stack.Screen name="register" options={{ title: "Đăng ký" }} />
-          <Stack.Screen name="application/index" options={{ headerShown: false }} />
-          <Stack.Screen name="application/form" options={{ headerShown: false }} />
-          <Stack.Screen name="application/success" options={{ headerShown: false }} />
-          <Stack.Screen name="my-pets/index" options={{ headerShown: false }} />
-          <Stack.Screen name="my-pets/create" options={{ headerShown: false }} />
-          <Stack.Screen name="my-pets/create-success" options={{ headerShown: false }} />
-          <Stack.Screen name="my-pets/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="my-pets/[id]/edit" options={{ headerShown: false }} />
-          <Stack.Screen name="my-pets/[id]/diary" options={{ headerShown: false }} />
-          <Stack.Screen name="pet/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="post/create" options={{ headerShown: false }} />
-          <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="chat/[id]" />
+          <Stack.Screen
+            name="login"
+            options={{
+              headerShown: true,
+              header: ({ navigation }) => (
+                <HeaderBar
+                  title="Đăng nhập"
+                  onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+                />
+              ),
+            }}
+          />
+          <Stack.Screen
+            name="register"
+            options={{
+              headerShown: true,
+              header: ({ navigation }) => (
+                <HeaderBar
+                  title="Đăng ký"
+                  onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+                />
+              ),
+            }}
+          />
+          <Stack.Screen name="application/index" />
+          <Stack.Screen name="application/form" />
+          <Stack.Screen name="application/success" />
+          <Stack.Screen name="my-pets/index" />
+          <Stack.Screen name="my-pets/create" />
+          <Stack.Screen name="my-pets/create-success" />
+          <Stack.Screen name="my-pets/[id]" />
+          <Stack.Screen name="my-pets/[id]/edit" />
+          <Stack.Screen name="my-pets/[id]/diary" />
+          <Stack.Screen name="pet/[id]" />
+          <Stack.Screen name="post/create" />
+          <Stack.Screen name="post/[id]" />
         </Stack>
       </QueryClientProvider>
 

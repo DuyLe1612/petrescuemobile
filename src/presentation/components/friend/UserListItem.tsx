@@ -14,9 +14,17 @@ interface Props {
 export const UserListItem = React.memo(({ user, actionText, onAction, variant = 'primary' }: Props) => {
   const getButtonClass = () => {
     switch (variant) {
-      case 'primary': return "bg-blue-500 rounded-full px-4 h-8";
+      case 'primary': return "rounded-full px-4 h-8";
       case 'secondary': return "bg-gray-200 dark:bg-gray-800 rounded-full px-4 h-8";
-      case 'outline': return "border border-blue-500 rounded-full px-4 h-8 bg-transparent";
+      case 'outline': return "border rounded-full px-4 h-8 bg-transparent";
+    }
+  };
+
+  const getButtonStyle = () => {
+    switch (variant) {
+      case 'primary': return { backgroundColor: '#0a4c73' };
+      case 'secondary': return {};
+      case 'outline': return { borderColor: '#0a4c73' };
     }
   };
 
@@ -24,7 +32,15 @@ export const UserListItem = React.memo(({ user, actionText, onAction, variant = 
     switch (variant) {
       case 'primary': return "text-white text-sm font-semibold";
       case 'secondary': return "text-gray-900 dark:text-gray-100 text-sm font-semibold";
-      case 'outline': return "text-blue-500 text-sm font-semibold";
+      case 'outline': return "text-sm font-semibold";
+    }
+  };
+
+  const getButtonTextStyle = () => {
+    switch (variant) {
+      case 'primary': return {};
+      case 'secondary': return {};
+      case 'outline': return { color: '#0a4c73' };
     }
   };
 
@@ -46,9 +62,10 @@ export const UserListItem = React.memo(({ user, actionText, onAction, variant = 
       
       <TouchableOpacity 
         className={`justify-center items-center ${getButtonClass()}`}
+        style={getButtonStyle()}
         onPress={() => onAction(user.userId)}
       >
-        <Text className={getButtonTextClass()}>{actionText}</Text>
+        <Text className={getButtonTextClass()} style={getButtonTextStyle()}>{actionText}</Text>
       </TouchableOpacity>
     </View>
   );

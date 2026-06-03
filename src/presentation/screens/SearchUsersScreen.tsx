@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useFriendActions, useSearchUsers } from "../hooks/useFriend";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 export default function SearchUsersScreen() {
   const router = useRouter();
@@ -32,22 +33,14 @@ export default function SearchUsersScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
-      <View className="px-5 pt-3 pb-4 border-b border-gray-100 dark:border-gray-800">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <Feather name="arrow-left" size={22} color="#0b93f6" />
-          </TouchableOpacity>
-          <View className="flex-1">
-            <Text className="text-lg font-semibold text-gray-900 dark:text-white">
-              Tìm bạn
-            </Text>
-            <Text className="text-xs text-gray-500 dark:text-gray-400">
-              Kết nối và nhắn tin ngay
-            </Text>
-          </View>
-        </View>
+      <HeaderBar
+        title="Tìm bạn"
+        subtitle="Kết nối và nhắn tin ngay"
+        onBack={() => router.back()}
+      />
 
-        <View className="mt-4 bg-gray-100 dark:bg-gray-900 rounded-2xl flex-row items-center px-4 h-12">
+      <View className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+        <View className="bg-gray-100 dark:bg-gray-900 rounded-2xl flex-row items-center px-4 h-12">
           <Feather name="search" size={18} color="#9ca3af" />
           <TextInput
             className="flex-1 ml-2 text-gray-900 dark:text-white"
@@ -98,7 +91,8 @@ export default function SearchUsersScreen() {
 
               <View className="flex-row gap-3 px-4 pb-4 pt-3">
                 <TouchableOpacity
-                  className="flex-1 bg-blue-500 rounded-full py-2 items-center"
+                  className="flex-1 rounded-full py-2 items-center"
+                  style={{ backgroundColor: '#0a4c73' }}
                   onPress={() => sendRequest.mutate(item.userId)}
                 >
                   <Text className="text-white text-sm font-semibold">
@@ -106,10 +100,11 @@ export default function SearchUsersScreen() {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 border border-blue-500 rounded-full py-2 items-center"
+                  className="flex-1 border rounded-full py-2 items-center"
+                  style={{ borderColor: '#0a4c73' }}
                   onPress={() => router.push(`/chat/${item.userId}` as never)}
                 >
-                  <Text className="text-blue-500 text-sm font-semibold">
+                  <Text className="text-sm font-semibold" style={{ color: '#0a4c73' }}>
                     Nhắn tin
                   </Text>
                 </TouchableOpacity>

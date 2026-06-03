@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { FastImage } from "@/src/presentation/components/adoption/FastImage";
 import { fetchPostDetail } from "@/src/presentation/data/post-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
@@ -7,19 +8,21 @@ import { router, useLocalSearchParams } from "expo-router";
 import type { ComponentProps } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCreateComment } from "@/src/presentation/hooks/use-post-like";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 const POST_TOKENS = {
   radius: {
-    card: 22,
+    card: 24,
     pill: 999,
     image: 18,
   },
   shadow: {
-    shadowColor: "#171717",
-    shadowOpacity: 0.08,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    elevation: 3,
   },
 } as const;
 
@@ -27,12 +30,15 @@ export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
 
-  const backgroundColor = useThemeColor({}, "background");
-  const cardColor = useThemeColor({ light: "#ffffff", dark: "#232321" }, "background");
+  const [commentText, setCommentText] = useState("");
+  const createCommentMutation = useCreateComment();
+
+  const backgroundColor = useThemeColor({ light: "#f6f8fc", dark: "#121212" }, "background");
+  const cardColor = useThemeColor({ light: "#ffffff", dark: "#1f1f1e" }, "background");
   const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
-  const borderColor = useThemeColor({ light: "rgb(233 230 227)", dark: "rgb(58 58 58)" }, "icon");
-  const primaryColor = useThemeColor({}, "tint");
+  const borderColor = useThemeColor({ light: "#e2e8f0", dark: "#2d2d2c" }, "icon");
+  const primaryColor = useThemeColor({ light: "#0a4c73", dark: "#29b6f6" }, "tint");
 
   const postQuery = useQuery({
     queryKey: ["post-detail", id],
@@ -40,6 +46,20 @@ export default function PostDetailScreen() {
   });
 
   const post = postQuery.data;
+
+  const handleSendComment = async () => {
+    if (!commentText.trim()) return;
+    try {
+      await createCommentMutation.mutateAsync({
+        postId: id,
+        payload: { content: commentText.trim() },
+      });
+      setCommentText("");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      Alert.alert("Lỗi", "Không thể gửi bình luận. Vui lòng thử lại.");
+    }
+  };
 
   if (postQuery.isLoading && !post) {
     return (
@@ -59,94 +79,95 @@ export default function PostDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: insets.top + 12,
-          paddingHorizontal: 16,
-          paddingBottom: Math.max(insets.bottom + 110, 128),
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          style={{
-            minHeight: 56,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-            style={{ width: 34, height: 34, alignItems: "center", justifyContent: "center" }}
-          >
-            <Feather name="chevron-left" size={20} color={textColor} />
-          </Pressable>
-          <Text style={{ color: textColor, fontSize: 21, fontWeight: "800" }}>Chi tiết bài viết</Text>
+      <HeaderBar
+        title="Chi tiết bài viết"
+        onBack={() => router.back()}
+        rightSlot={
           <View
             style={{
               borderRadius: POST_TOKENS.radius.pill,
-              backgroundColor: "rgba(255,130,80,0.12)",
-              paddingHorizontal: 10,
+              backgroundColor: "rgba(255,255,255,0.15)",
+              paddingHorizontal: 12,
               paddingVertical: 6,
               flexDirection: "row",
               alignItems: "center",
             }}
           >
-            <Ionicons name="pricetag-outline" size={12} color="#ff8250" />
-            <Text style={{ color: "#ff8250", fontSize: 11, fontWeight: "700", marginLeft: 5 }}>
+            <Ionicons name="pricetag-outline" size={12} color="white" />
+            <Text style={{ color: "white", fontSize: 11, fontWeight: "800", marginLeft: 6 }}>
               {post.category}
             </Text>
           </View>
-        </View>
-
+        }
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingHorizontal: 16,
+          paddingBottom: Math.max(insets.bottom + 110, 128),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         {post.alertText ? (
           <View
             style={{
-              marginTop: 12,
+              marginTop: 4,
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: "rgba(255,130,80,0.35)",
-              backgroundColor: "rgba(255,130,80,0.08)",
-              paddingHorizontal: 12,
+              borderColor: "rgba(239, 68, 68, 0.15)",
+              backgroundColor: "rgba(239, 68, 68, 0.06)",
+              paddingHorizontal: 14,
               paddingVertical: 12,
               flexDirection: "row",
+              alignItems: "center",
             }}
           >
-            <Ionicons name="alert-circle-outline" size={16} color="#ff8250" />
-            <Text style={{ color: "#ff8250", fontSize: 13, fontWeight: "600", marginLeft: 8, flex: 1 }}>
+            <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
+            <Text style={{ color: "#ef4444", fontSize: 13, fontWeight: "600", marginLeft: 8, flex: 1 }}>
               {post.alertText}
             </Text>
           </View>
         ) : null}
 
-        <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center" }}>
+        {/* User profile row */}
+        <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center" }}>
           <View
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: POST_TOKENS.radius.pill,
-              backgroundColor: post.urgent ? "#44b882" : "#2596d6",
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: post.urgent ? "rgba(239, 68, 68, 0.1)" : "rgba(10, 76, 115, 0.1)",
               alignItems: "center",
               justifyContent: "center",
-              marginRight: 10,
+              marginRight: 12,
             }}
           >
-            <Text style={{ color: "white", fontSize: 14, fontWeight: "800" }}>{post.initials}</Text>
+            <Text style={{ color: post.urgent ? "#ef4444" : "#0a4c73", fontSize: 14, fontWeight: "800" }}>{post.initials}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap" }}>
-              <Text style={{ color: textColor, fontSize: 24, fontWeight: "800" }}>{post.author}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text style={{ color: textColor, fontSize: 18, fontWeight: "900" }}>{post.author}</Text>
+              <View
+                style={{
+                  borderRadius: 12,
+                  backgroundColor: "rgba(10, 76, 115, 0.1)",
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderWidth: 1,
+                  borderColor: "rgba(10, 76, 115, 0.2)",
+                }}
+              >
+                <Text style={{ color: "#0a4c73", fontSize: 10, fontWeight: "800" }}>{post.status}</Text>
+              </View>
             </View>
-            <Text style={{ color: mutedColor, fontSize: 12, marginTop: 4 }}>
-              {post.time} <Text style={{ color: "#ff8c38" }}>{post.status}</Text>
+            <Text style={{ color: mutedColor, fontSize: 12, marginTop: 4, fontWeight: "500" }}>
+              {post.time}
             </Text>
           </View>
         </View>
 
-        <Text style={{ color: textColor, fontSize: 16, lineHeight: 24, marginTop: 14 }}>
+        <Text style={{ color: textColor, fontSize: 16, lineHeight: 24, marginTop: 16, fontWeight: "500" }}>
           {post.title}
         </Text>
 
@@ -155,7 +176,7 @@ export default function PostDetailScreen() {
             source={{ uri: post.imageUrl }}
             style={{
               width: "100%",
-              height: 310,
+              height: 260,
               borderRadius: POST_TOKENS.radius.image,
               marginTop: 14,
             }}
@@ -164,40 +185,45 @@ export default function PostDetailScreen() {
 
         <View
           style={{
-            marginTop: 12,
+            marginTop: 14,
             borderRadius: 12,
-            backgroundColor: "rgba(37,150,214,0.08)",
+            backgroundColor: "rgba(10, 76, 115, 0.05)",
             paddingHorizontal: 12,
             paddingVertical: 10,
             flexDirection: "row",
             alignItems: "center",
           }}
         >
-          <Ionicons name="location-outline" size={16} color={mutedColor} />
-          <Text style={{ color: "#3e6176", fontSize: 13, fontWeight: "600", marginLeft: 6 }}>
+          <Ionicons name="location-outline" size={16} color="#0a4c73" />
+          <Text style={{ color: "#0a4c73", fontSize: 13, fontWeight: "700", marginLeft: 6 }}>
             {post.location}
           </Text>
         </View>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-          {post.tags.map((tag) => (
-            <View
-              key={tag}
-              style={{
-                borderRadius: POST_TOKENS.radius.pill,
-                backgroundColor: "rgba(37,150,214,0.10)",
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-              }}
-            >
-              <Text style={{ color: "#2596d6", fontSize: 11, fontWeight: "700" }}>#{tag}</Text>
-            </View>
-          ))}
-        </View>
+        {post.tags && post.tags.length > 0 ? (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
+            {post.tags.map((tag) => (
+              <View
+                key={tag}
+                style={{
+                  borderRadius: 8,
+                  backgroundColor: "rgba(10, 76, 115, 0.05)",
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                }}
+              >
+                <Text style={{ color: "#0a4c73", fontSize: 11, fontWeight: "700" }}>#{tag}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View
           style={{
-            marginTop: 14,
+            marginTop: 16,
+            paddingBottom: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: borderColor,
             flexDirection: "row",
             alignItems: "center",
           }}
@@ -206,18 +232,22 @@ export default function PostDetailScreen() {
           <MetaItem icon="chatbubble-outline" label={post.commentLabel} mutedColor={mutedColor} />
         </View>
 
-        <View style={{ marginTop: 18, gap: 10 }}>
-          <Text style={{ color: textColor, fontSize: 16, fontWeight: "800" }}>Bình luận mới nhất</Text>
+        {/* Comments Section */}
+        <View style={{ marginTop: 20, gap: 12 }}>
+          <Text style={{ color: textColor, fontSize: 16, fontWeight: "900" }}>Bình luận mới nhất</Text>
+          
           {post.commentsList.length === 0 ? (
             <View
               style={{
                 borderRadius: POST_TOKENS.radius.card,
                 backgroundColor: cardColor,
-                padding: 14,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: borderColor,
                 ...POST_TOKENS.shadow,
               }}
             >
-              <Text style={{ color: mutedColor, fontSize: 13 }}>Chưa có bình luận nào từ API.</Text>
+              <Text style={{ color: mutedColor, fontSize: 13, fontWeight: "500" }}>Chưa có bình luận nào từ API.</Text>
             </View>
           ) : null}
 
@@ -227,17 +257,21 @@ export default function PostDetailScreen() {
               style={{
                 borderRadius: POST_TOKENS.radius.card,
                 backgroundColor: cardColor,
-                padding: 14,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: borderColor,
                 ...POST_TOKENS.shadow,
               }}
             >
-              <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>
-                {comment.authorUsername ?? "Người dùng"}
-              </Text>
-              <Text style={{ color: mutedColor, fontSize: 11, marginTop: 4 }}>
-                {comment.createdAt ? new Date(comment.createdAt).toLocaleString("vi-VN") : "Vừa xong"}
-              </Text>
-              <Text style={{ color: textColor, fontSize: 13, lineHeight: 20, marginTop: 8 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={{ color: textColor, fontSize: 13, fontWeight: "800" }}>
+                  {comment.authorUsername ?? "Người dùng"}
+                </Text>
+                <Text style={{ color: mutedColor, fontSize: 11, fontWeight: "500" }}>
+                  {comment.createdAt ? new Date(comment.createdAt).toLocaleString("vi-VN") : "Vừa xong"}
+                </Text>
+              </View>
+              <Text style={{ color: textColor, fontSize: 13, lineHeight: 20, marginTop: 8, fontWeight: "500" }}>
                 {comment.content ?? ""}
               </Text>
             </View>
@@ -245,6 +279,7 @@ export default function PostDetailScreen() {
         </View>
       </ScrollView>
 
+      {/* Modern Bottom Comment Bar */}
       <View
         style={{
           position: "absolute",
@@ -253,19 +288,19 @@ export default function PostDetailScreen() {
           bottom: 0,
           borderTopWidth: 1,
           borderTopColor: borderColor,
-          backgroundColor,
+          backgroundColor: backgroundColor,
           paddingHorizontal: 16,
           paddingTop: 12,
-          paddingBottom: Math.max(insets.bottom + 10, 18),
+          paddingBottom: Math.max(insets.bottom + 12, 20),
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: POST_TOKENS.radius.pill,
-              backgroundColor: primaryColor,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "#0a4c73",
               alignItems: "center",
               justifyContent: "center",
               marginRight: 10,
@@ -276,8 +311,8 @@ export default function PostDetailScreen() {
           <View
             style={{
               flex: 1,
-              height: 42,
-              borderRadius: POST_TOKENS.radius.pill,
+              height: 44,
+              borderRadius: 22,
               backgroundColor: cardColor,
               borderWidth: 1,
               borderColor,
@@ -289,24 +324,32 @@ export default function PostDetailScreen() {
             <TextInput
               placeholder="Viết bình luận..."
               placeholderTextColor={mutedColor}
-              style={{ color: textColor, fontSize: 14, paddingVertical: 0 }}
+              value={commentText}
+              onChangeText={setCommentText}
+              editable={!createCommentMutation.isPending}
+              style={{ color: textColor, fontSize: 14, paddingVertical: 0, fontWeight: "500" }}
             />
           </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Gửi bình luận"
-            onPress={() => Alert.alert("Thông báo", "Luồng gửi bình luận chưa được nối trong app này.")}
+            onPress={handleSendComment}
+            disabled={!commentText.trim() || createCommentMutation.isPending}
             style={{
               marginLeft: 10,
-              width: 38,
-              height: 38,
-              borderRadius: POST_TOKENS.radius.pill,
-              backgroundColor: primaryColor,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: commentText.trim() ? "#0a4c73" : borderColor,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="paper-plane-outline" size={18} color="white" />
+            {createCommentMutation.isPending ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Ionicons name="paper-plane-outline" size={18} color="white" />
+            )}
           </Pressable>
         </View>
       </View>
@@ -324,9 +367,9 @@ function MetaItem({
   mutedColor: string;
 }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 18 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 24 }}>
       <Ionicons name={icon} size={18} color={mutedColor} />
-      <Text style={{ color: mutedColor, fontSize: 13, marginLeft: 6 }}>{label}</Text>
+      <Text style={{ color: mutedColor, fontSize: 13, marginLeft: 6, fontWeight: "700" }}>{label}</Text>
     </View>
   );
 }

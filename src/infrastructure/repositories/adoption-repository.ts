@@ -29,7 +29,7 @@ export class ApiAdoptionRepository implements IAdoptionRepository {
 
     const response = await getByUserId(userId, {
       page: params?.page ?? 0,
-      size: params?.size ?? 20,
+      pageSize: params?.size ?? 20,
     });
 
     const items = response.data?.content ?? [];

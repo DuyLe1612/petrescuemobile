@@ -29,6 +29,36 @@ Mobile app for pet rescue with social feed, map-based discovery, and real-time c
 - Gluestack UI components
 - react-native-reanimated
 
+## Getting Started
+
+### Installation
+
+Install the project dependencies using npm:
+
+```bash
+npm install
+```
+
+### Running the Project
+
+Start the Expo development server in **Expo Go** mode:
+
+```bash
+npx expo start --go
+```
+
+#### Platform-specific instructions:
+- **Android Dev**: Press `a` in the terminal to open the app on an Android emulator or a connected device. Make sure to run `adb reverse` if your local API server needs to be accessible from the device:
+  ```bash
+  adb reverse tcp:8081 tcp:8081
+  ```
+- **iOS Dev**: Scan the QR code printed in the terminal using the iOS Camera app to open the project in Expo Go.
+
+For running the app in a **Dev Client** (which includes native modules):
+```bash
+npx expo run:android
+```
+
 ## API Client
 
 - Regenerate the OpenAPI client after backend spec changes:
@@ -62,10 +92,3 @@ See `ARCHITECTURE.md` for a compact checklist and conventions.
 - If access token expired: call refresh endpoint once, then retry pending request.
 - If refresh fails: clear storage and redirect to `login`.
 - Keep the session bootstrap in `app/_layout.tsx` with a thin hook from `src/presentation`.
-
-## Team Dev (No Mac)
-
-- Android dev: `expo start --android` for Expo Go, `expo run:android` for Dev Client.
-  adb reverse tcp:8081 tcp:8081
-- iOS dev without Mac: use EAS Build to produce a Dev Client and install via TestFlight/OTA.
-- CI/Team builds: EAS Build with shared Apple credentials (managed by EAS).

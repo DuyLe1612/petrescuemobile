@@ -2,7 +2,6 @@ import {
   LabeledInput,
   MY_PET_TOKENS,
   MyPetPanel,
-  MyPetTopBar,
   SectionCaption,
   SelectChip,
 } from "@/src/presentation/components/my-pets/ui";
@@ -14,6 +13,7 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 const SPECIES_OPTIONS = [
   { id: "dog", label: "Chó", color: "#277f8f" },
@@ -65,35 +65,35 @@ export default function MyPetCreateScreen() {
   });
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor }}
-      contentContainerStyle={{
-        paddingTop: insets.top + MY_PET_TOKENS.spacing.top,
-        paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
-        paddingBottom: Math.max(insets.bottom + 24, 32),
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <MyPetTopBar
+    <View style={{ flex: 1, backgroundColor }}>
+      <HeaderBar
         title="Thêm thú cưng"
         onBack={() => router.back()}
-        backIcon="x"
         rightSlot={
           <Pressable
             onPress={canSave ? () => createMutation.mutate() : undefined}
             style={{
               borderRadius: MY_PET_TOKENS.radius.pill,
-              backgroundColor: canSave ? "rgba(39,127,143,0.12)" : "rgba(170,170,170,0.14)",
+              backgroundColor: canSave ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)",
               paddingHorizontal: 12,
               paddingVertical: 7,
             }}
           >
-            <Text style={{ color: canSave ? primaryColor : mutedColor, fontSize: 11, fontWeight: "700" }}>
+            <Text style={{ color: canSave ? "white" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: "700" }}>
               {createMutation.isPending ? "Đang lưu" : "Lưu"}
             </Text>
           </Pressable>
         }
       />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
+          paddingBottom: Math.max(insets.bottom + 24, 32),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
 
       <MyPetPanel style={{ alignItems: "center", marginTop: 12 }}>
         <View
@@ -162,6 +162,7 @@ export default function MyPetCreateScreen() {
           multiline
         />
       </MyPetPanel>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

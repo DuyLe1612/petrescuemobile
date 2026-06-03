@@ -91,6 +91,6 @@ export const chatApi = {
   },
 
   markRead: async (conversationId: string) => {
-    return apiMarkRead(conversationId, {});
+    return apiMarkRead(conversationId);
   },
 };

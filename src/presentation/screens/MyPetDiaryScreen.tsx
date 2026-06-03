@@ -1,5 +1,6 @@
 import { FastImage } from "@/src/presentation/components/adoption/FastImage";
-import { MY_PET_TOKENS, MyPetPanel, MyPetTopBar, ToneChip } from "@/src/presentation/components/my-pets/ui";
+import { MY_PET_TOKENS, MyPetPanel, ToneChip } from "@/src/presentation/components/my-pets/ui";
+import { HeaderBar } from "@/components/ui/header-bar";
 import { fetchMyPetDetail } from "@/src/presentation/data/pet-api";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
 import { useQuery } from "@tanstack/react-query";
@@ -39,16 +40,17 @@ export default function MyPetDiaryScreen() {
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor }}
-      contentContainerStyle={{
-        paddingTop: insets.top + MY_PET_TOKENS.spacing.top,
-        paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
-        paddingBottom: Math.max(insets.bottom + 24, 32),
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <MyPetTopBar title={`Nhật ký - ${pet.name}`} onBack={() => router.back()} />
+    <View style={{ flex: 1, backgroundColor }}>
+      <HeaderBar title={`Nhật ký - ${pet.name}`} onBack={() => router.back()} />
+      <ScrollView
+        style={{ flex: 1, backgroundColor }}
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
+          paddingBottom: Math.max(insets.bottom + 24, 32),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
 
       <MyPetPanel style={{ marginTop: 12 }}>
         <Text style={{ color: textColor, fontSize: 13, fontWeight: "700" }}>Mốc gần nhất</Text>
@@ -110,6 +112,7 @@ export default function MyPetDiaryScreen() {
           </MyPetPanel>
         ))}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

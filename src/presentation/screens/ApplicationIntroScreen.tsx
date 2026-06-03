@@ -1,19 +1,17 @@
 import {
   APPLICATION_TOKENS,
-  ApplicationPanel,
-  ApplicationTopBar,
   OptionCard,
-  PrimaryButton,
   SectionCaption,
   SelectionPill,
   StatPill,
 } from "@/src/presentation/components/application/ui";
 import { useThemeColor } from "@/src/presentation/hooks/use-theme-color";
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar, Button, ButtonText, Card } from "@/components/ui";
 
 const APPLICATION_TYPES = [
   { id: "volunteer", label: "Tình nguyện viên", color: "#44b882" },
@@ -24,7 +22,6 @@ export default function ApplicationIntroScreen() {
   const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, "background");
   const primaryColor = useThemeColor({}, "tint");
-  const textColor = useThemeColor({}, "text");
   const mutedColor = useThemeColor({}, "icon");
   const [selectedType, setSelectedType] = useState<(typeof APPLICATION_TYPES)[number]["id"]>("volunteer");
 
@@ -38,7 +35,7 @@ export default function ApplicationIntroScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
-      <ApplicationTopBar
+      <HeaderBar
         title="Đăng ký / Ứng tuyển"
         subtitle="Bắt đầu với hồ sơ phù hợp nhất cho bạn"
         onBack={() => router.back()}
@@ -55,7 +52,7 @@ export default function ApplicationIntroScreen() {
         }}
       >
         <Text style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, fontWeight: "700" }}>
-          THAM GIA CÙNG HPA
+          THAM GIA CÙNG PAW HOME
         </Text>
         <Text style={{ color: "white", fontSize: 26, fontWeight: "800", marginTop: 6 }}>
           Cộng đồng tử tế cho thú cưng
@@ -78,7 +75,7 @@ export default function ApplicationIntroScreen() {
       </View>
 
       <SectionCaption label="CHỌN HÌNH THỨC" />
-      <ApplicationPanel>
+      <Card className="mt-1">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {APPLICATION_TYPES.map((item) => (
             <SelectionPill
@@ -98,44 +95,51 @@ export default function ApplicationIntroScreen() {
             accent="#44b882"
             selected={selectedType === "volunteer"}
             onPress={() => setSelectedType("volunteer")}
-            icon={<Feather name="shield" size={18} color="#44b882" />}
+            icon={<Ionicons name="shield-outline" size={18} color="#44b882" />}
           />
           <OptionCard
             title="Ứng tuyển trung tâm"
-            description="Dành cho đội nhóm hoặc cơ sở có thể tiếp nhận, chăm sóc và phối hợp cùng HPA."
+            description="Dành cho đội nhóm hoặc cơ sở có thể tiếp nhận, chăm sóc và phối hợp cùng PAW HOME."
             accent="#ff9f43"
             selected={selectedType === "center"}
             onPress={() => setSelectedType("center")}
-            icon={<MaterialCommunityIcons name="home-group-plus" size={20} color="#ff9f43" />}
+            icon={<Ionicons name="home-outline" size={18} color="#ff9f43" />}
           />
         </View>
-      </ApplicationPanel>
+      </Card>
 
       <SectionCaption label="LỘ TRÌNH" />
-      <ApplicationPanel>
+      <Card className="mt-1">
         <ProgressRow
           icon={<Ionicons name="document-text-outline" size={18} color="#ff9f43" />}
           title="Điền form cơ bản"
           detail="Thông tin liên hệ, khu vực hỗ trợ và mô tả ngắn về kinh nghiệm."
         />
         <ProgressRow
-          icon={<Feather name="check-circle" size={18} color="#44b882" />}
+          icon={<Ionicons name="checkmark-circle-outline" size={18} color="#44b882" />}
           title="Đối chiếu hồ sơ"
-          detail="Đội ngũ HPA rà soát thông tin và gắn nhãn ưu tiên phù hợp."
+          detail="Đội ngũ PAW HOME rà soát thông tin và gắn nhãn ưu tiên phù hợp."
         />
         <ProgressRow
-          icon={<MaterialCommunityIcons name="hand-heart-outline" size={20} color="#277f8f" />}
+          icon={<Ionicons name="heart-outline" size={18} color="#277f8f" />}
           title="Kết nối hoạt động"
           detail="Bạn sẽ nhận thông báo về ca cứu hộ, training hoặc điểm tiếp nhận gần nhất."
           isLast
         />
-      </ApplicationPanel>
+      </Card>
 
       <View style={{ marginTop: 16 }}>
-        <PrimaryButton
-          label={selectedType === "volunteer" ? "Bắt đầu đăng ký" : "Điền hồ sơ trung tâm"}
+        <Button
+          variant="solid"
+          size="xl"
+          action="primary"
           onPress={() => router.push("/application/form" as never)}
-        />
+          className="rounded-2xl h-12"
+        >
+          <ButtonText className="font-extrabold text-sm">
+            {selectedType === "volunteer" ? "Bắt đầu đăng ký" : "Điền hồ sơ trung tâm"}
+          </ButtonText>
+        </Button>
       </View>
 
       <Pressable onPress={() => router.push("/news")} style={{ marginTop: 12, alignItems: "center" }}>

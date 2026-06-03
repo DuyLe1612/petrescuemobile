@@ -3,7 +3,6 @@ import {
   LabeledInput,
   MY_PET_TOKENS,
   MyPetPanel,
-  MyPetTopBar,
   SectionCaption,
   SelectChip,
 } from "@/src/presentation/components/my-pets/ui";
@@ -16,6 +15,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 const HEALTH_OPTIONS = [
   { id: "good", label: "Khỏe mạnh", color: "#44b882" },
@@ -107,33 +107,33 @@ export default function MyPetEditScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
+      <HeaderBar
+        title="Cập nhật"
+        onBack={() => router.back()}
+        rightSlot={
+          <Pressable
+            onPress={canSave ? () => saveMutation.mutate() : undefined}
+            style={{
+              borderRadius: MY_PET_TOKENS.radius.pill,
+              backgroundColor: canSave ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)",
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+            }}
+          >
+            <Text style={{ color: canSave ? "white" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: "700" }}>
+              {saveMutation.isPending ? "Đang lưu" : "Lưu"}
+            </Text>
+          </Pressable>
+        }
+      />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + MY_PET_TOKENS.spacing.top,
+          paddingTop: 16,
           paddingHorizontal: MY_PET_TOKENS.spacing.screenX,
           paddingBottom: Math.max(insets.bottom + 96, 112),
         }}
         showsVerticalScrollIndicator={false}
       >
-        <MyPetTopBar
-          title="Cập nhật"
-          onBack={() => router.back()}
-          rightSlot={
-            <Pressable
-              onPress={canSave ? () => saveMutation.mutate() : undefined}
-              style={{
-                borderRadius: MY_PET_TOKENS.radius.pill,
-                backgroundColor: canSave ? "rgba(39,127,143,0.12)" : "rgba(170,170,170,0.14)",
-                paddingHorizontal: 12,
-                paddingVertical: 7,
-              }}
-            >
-              <Text style={{ color: canSave ? primaryColor : mutedColor, fontSize: 11, fontWeight: "700" }}>
-                {saveMutation.isPending ? "Đang lưu" : "Lưu"}
-              </Text>
-            </Pressable>
-          }
-        />
 
         <SectionCaption label="TÌNH TRẠNG HIỆN TẠI" />
         <MyPetPanel>

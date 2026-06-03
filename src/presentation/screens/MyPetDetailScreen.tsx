@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderBar } from "@/components/ui/header-bar";
 
 export default function MyPetDetailScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -51,50 +52,28 @@ export default function MyPetDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 116, 132) }}>
-        <View style={{ position: "relative" }}>
-          <FastImage source={{ uri: pet.imageUrl }} style={{ width: "100%", height: 240 }} />
-          <View
+      <HeaderBar
+        title="Chi tiết thú cưng"
+        onBack={() => router.back()}
+        rightSlot={
+          <Pressable
+            onPress={() => router.push({ pathname: "/my-pets/[id]/edit", params: { id: pet.id } })}
             style={{
-              position: "absolute",
-              left: 16,
-              right: 16,
-              top: insets.top + 12,
+              borderRadius: MY_PET_TOKENS.radius.pill,
+              backgroundColor: "rgba(255,255,255,0.18)",
+              paddingHorizontal: 12,
+              paddingVertical: 8,
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "space-between",
             }}
           >
-            <Pressable
-              onPress={() => router.back()}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: MY_PET_TOKENS.radius.pill,
-                backgroundColor: "rgba(0,0,0,0.28)",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Feather name="chevron-left" size={20} color="#ffffff" />
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push({ pathname: "/my-pets/[id]/edit", params: { id: pet.id } })}
-              style={{
-                borderRadius: MY_PET_TOKENS.radius.pill,
-                backgroundColor: "rgba(255,255,255,0.88)",
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              <Feather name="edit-3" size={14} color={primaryColor} />
-              <Text style={{ color: primaryColor, fontSize: 12, fontWeight: "700", marginLeft: 6 }}>Sửa</Text>
-            </Pressable>
-          </View>
-        </View>
+            <Feather name="edit-3" size={14} color="white" />
+            <Text style={{ color: "white", fontSize: 12, fontWeight: "700", marginLeft: 6 }}>Sửa</Text>
+          </Pressable>
+        }
+      />
+      <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 116, 132) }}>
+        <FastImage source={{ uri: pet.imageUrl }} style={{ width: "100%", height: 240 }} />
 
         <View
           style={{
