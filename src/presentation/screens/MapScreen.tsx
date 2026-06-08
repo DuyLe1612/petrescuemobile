@@ -1,10 +1,16 @@
-import { Input, FormField, Select } from "@/components/ui";
+import { FormField, Input, Select } from "@/components/ui";
+import type { MapMarker } from "@/src/domain/entities/map";
 import { httpAxios } from "@/src/infrastructure/api/client/http";
+import type {
+  CreateRescueCaseRequestDto,
+  CreateRescueCompletionRequestDto,
+} from "@/src/infrastructure/api/generated/model";
+import {
+  report,
+  complete as submitRescueCompleteApi,
+} from "@/src/infrastructure/api/generated/pet-rescue-api";
 import { mediaApi } from "@/src/infrastructure/api/media/media-api";
-import type { CreateRescueCaseRequestDto, CreateRescueCompletionRequestDto } from "@/src/infrastructure/api/generated/model";
-import { report, complete as submitRescueCompleteApi } from "@/src/infrastructure/api/generated/pet-rescue-api";
 import { container } from "@/src/infrastructure/di";
-import { useQueryClient } from "@tanstack/react-query";
 import { MapMarkerCard } from "@/src/presentation/components/map/MapMarkerCard";
 import { MapSidebar } from "@/src/presentation/components/map/MapSidebar";
 import {
@@ -13,12 +19,12 @@ import {
   type MapBounds,
   type MapSourceKey,
 } from "@/src/presentation/constants/map-config";
-import type { MapMarker } from "@/src/domain/entities/map";
 import { useMapMarkers } from "@/src/presentation/hooks/use-map-markers";
+import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -204,7 +210,9 @@ export default function MapScreen() {
 
   // State variables for rescue completion
   const [completeVisible, setCompleteVisible] = useState(false);
-  const [completeImages, setCompleteImages] = useState<{ uri: string; name: string; type: string }[]>([]);
+  const [completeImages, setCompleteImages] = useState<
+    { uri: string; name: string; type: string }[]
+  >([]);
   const [completeNote, setCompleteNote] = useState("");
   const [completeLocationNote, setCompleteLocationNote] = useState("");
   const [completeConfirmRescued, setCompleteConfirmRescued] = useState(false);
@@ -284,8 +292,11 @@ export default function MapScreen() {
       return [] as { label: string; value: string }[];
     return Object.entries(markerDetail)
       .filter(([key]) => isDisplayableDetailKey(key))
-      .filter(([key]) =>
-        !["imageUrl", "imageUrls", "images", "media", "attachments"].includes(key),
+      .filter(
+        ([key]) =>
+          !["imageUrl", "imageUrls", "images", "media", "attachments"].includes(
+            key,
+          ),
       )
       .map(([key, value]) => {
         const formatted = formatDetailValue(value);
@@ -298,7 +309,10 @@ export default function MapScreen() {
       );
   }, [markerDetail]);
 
-  const detailImages = useMemo(() => extractDetailImages(markerDetail), [markerDetail]);
+  const detailImages = useMemo(
+    () => extractDetailImages(markerDetail),
+    [markerDetail],
+  );
   const detailStatus =
     typeof markerDetail?.status === "string"
       ? markerDetail.status.trim().toUpperCase()
@@ -320,12 +334,15 @@ export default function MapScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") {
-        console.log("📍 [Geocoding] Tọa độ tìm địa chỉ:", latitude, longitude);
-        const addresses = await Location.reverseGeocodeAsync({ latitude, longitude });
+        console.log("[Geocoding] Tọa độ tìm địa chỉ:", latitude, longitude);
+        const addresses = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
+        });
         if (addresses && addresses.length > 0) {
           const addr = addresses[0];
-          console.log("📍 [Geocoding] Địa chỉ phân tích được:", addr);
-          
+          console.log("[Geocoding] Địa chỉ phân tích được:", addr);
+
           const resolvedProvince = addr.region || addr.city || "";
           const resolvedWard = addr.subregion || addr.street || "";
 
@@ -333,7 +350,7 @@ export default function MapScreen() {
             setProvinceName(resolvedProvince);
             // Cố gắng tìm mã tỉnh phù hợp từ danh sách nếu đã tải
             const found = provincesList.find((p) =>
-              p.name.toLowerCase().includes(resolvedProvince.toLowerCase())
+              p.name.toLowerCase().includes(resolvedProvince.toLowerCase()),
             );
             if (found) {
               setProvinceCode(found.code);
@@ -380,10 +397,7 @@ export default function MapScreen() {
         items.map((item) => ({ code: item.code, name: item.name })),
       );
     } catch (error) {
-      console.error(
-        "❌ [Province API] Error loading provinces:",
-        error,
-      );
+      console.error("❌ [Province API] Error loading provinces:", error);
       setProvincesList([]);
     }
   }, []);
@@ -400,10 +414,7 @@ export default function MapScreen() {
         data.wards.map((ward) => ({ code: ward.code, name: ward.name })),
       );
     } catch (error) {
-      console.error(
-        "❌ [Ward API] Error loading wards:",
-        error,
-      );
+      console.error("❌ [Ward API] Error loading wards:", error);
       setWardsList([]);
     } finally {
       setLoadingWards(false);
@@ -453,7 +464,11 @@ export default function MapScreen() {
 
         if (active && loc?.coords) {
           const { latitude, longitude } = loc.coords;
-          console.log("📍 [MapScreen] User current location on mount:", latitude, longitude);
+          console.log(
+            "📍 [MapScreen] User current location on mount:",
+            latitude,
+            longitude,
+          );
 
           const nextRegion: Region = {
             latitude,
@@ -510,14 +525,14 @@ export default function MapScreen() {
     }
 
     const uploaded = await Promise.all(
-      selectedImages.map((asset) =>
-        mediaApi.uploadTemp(asset, "rescue-cases"),
-      ),
+      selectedImages.map((asset) => mediaApi.uploadTemp(asset, "rescue-cases")),
     );
 
     return uploaded
       .map((item) => item?.mediaId)
-      .filter((item): item is string => typeof item === "string" && item.length > 0);
+      .filter(
+        (item): item is string => typeof item === "string" && item.length > 0,
+      );
   }, [selectedImages]);
 
   const pickCompleteImage = useCallback(async () => {
@@ -579,7 +594,7 @@ export default function MapScreen() {
     try {
       setCompleteSending(true);
       const mediaIds = await uploadCompleteImages();
-      
+
       const payload: CreateRescueCompletionRequestDto = {
         caseId: selectedMarker.id,
         verificationImageIds: mediaIds,
@@ -590,7 +605,7 @@ export default function MapScreen() {
       };
 
       await submitRescueCompleteApi(selectedMarker.id, payload);
-      
+
       // Reset form states
       setCompleteVisible(false);
       setMarkerDetailVisible(false);
@@ -601,7 +616,10 @@ export default function MapScreen() {
 
       // Invalidate queries to refresh the map markers
       await queryClient.invalidateQueries({ queryKey: ["map-markers"] });
-      Alert.alert("Thành công", "Chúc mừng! Ca cứu hộ đã hoàn thành thành công.");
+      Alert.alert(
+        "Thành công",
+        "Chúc mừng! Ca cứu hộ đã hoàn thành thành công.",
+      );
     } catch (error) {
       console.error("Failed to complete rescue case:", error);
       setCompleteError("Không thể hoàn thành ca cứu hộ. Vui lòng thử lại.");
@@ -787,7 +805,9 @@ export default function MapScreen() {
                     <Text className="text-sm">{item.emoji}</Text>
                     <Text
                       className={`text-[11px] font-extrabold uppercase tracking-wider ${
-                        active ? "text-primary-foreground" : "text-muted-foreground"
+                        active
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground"
                       }`}
                     >
                       {item.label}
@@ -903,7 +923,11 @@ export default function MapScreen() {
                   onPress={closeCreateModal}
                   className="h-8 w-8 items-center justify-center rounded-full bg-muted/60"
                 >
-                  <Ionicons name="close" size={18} className="text-muted-foreground" />
+                  <Ionicons
+                    name="close"
+                    size={18}
+                    className="text-muted-foreground"
+                  />
                 </Pressable>
               </View>
 
@@ -982,7 +1006,11 @@ export default function MapScreen() {
                   onPress={() => void pickImage()}
                   className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-4 py-6"
                 >
-                  <Ionicons name="camera" size={18} className="text-muted-foreground mr-2" />
+                  <Ionicons
+                    name="camera"
+                    size={18}
+                    className="text-muted-foreground mr-2"
+                  />
                   <Text className="text-center font-bold text-foreground text-sm">
                     Thêm ảnh từ thư viện
                   </Text>
@@ -1045,7 +1073,9 @@ export default function MapScreen() {
                   label="Phường/Xã"
                   required
                   valueName={wardName}
-                  placeholder={provinceCode ? "Chọn phường..." : "Vui lòng chọn tỉnh trước"}
+                  placeholder={
+                    provinceCode ? "Chọn phường..." : "Vui lòng chọn tỉnh trước"
+                  }
                   options={wardsList}
                   onSelect={(option) => {
                     setWardCode(option.code);
@@ -1059,9 +1089,14 @@ export default function MapScreen() {
 
                 {(provinceName || wardName) && (
                   <View className="mb-4 rounded-xl bg-primary/10 p-3 flex-row items-center">
-                    <Ionicons name="pin" size={14} className="text-primary mr-2" />
+                    <Ionicons
+                      name="pin"
+                      size={14}
+                      className="text-primary mr-2"
+                    />
                     <Text className="text-xs font-bold text-primary flex-1">
-                      Địa điểm: {[wardName, provinceName].filter(Boolean).join(", ")}
+                      Địa điểm:{" "}
+                      {[wardName, provinceName].filter(Boolean).join(", ")}
                     </Text>
                   </View>
                 )}
@@ -1098,7 +1133,13 @@ export default function MapScreen() {
                     onChangeText={setCreateContact}
                     keyboardType="phone-pad"
                     placeholder="Nhập số điện thoại"
-                    left={<Ionicons name="call" size={16} className="text-muted-foreground" />}
+                    left={
+                      <Ionicons
+                        name="call"
+                        size={16}
+                        className="text-muted-foreground"
+                      />
+                    }
                   />
                 </FormField>
               </View>
@@ -1106,7 +1147,11 @@ export default function MapScreen() {
               {/* Error Message */}
               {createError && (
                 <View className="mb-4 rounded-xl bg-destructive/10 px-3 py-2.5 flex-row items-center">
-                  <Ionicons name="alert-circle" size={16} className="text-destructive mr-2" />
+                  <Ionicons
+                    name="alert-circle"
+                    size={16}
+                    className="text-destructive mr-2"
+                  />
                   <Text className="text-xs font-bold text-destructive flex-1">
                     {createError}
                   </Text>
@@ -1130,9 +1175,7 @@ export default function MapScreen() {
                   {createSending ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text className="font-bold text-white">
-                      Gửi báo cứu hộ
-                    </Text>
+                    <Text className="font-bold text-white">Gửi báo cứu hộ</Text>
                   )}
                 </Pressable>
               </View>
@@ -1241,14 +1284,14 @@ export default function MapScreen() {
               >
                 <Text className="font-bold text-foreground text-sm">Đóng</Text>
               </Pressable>
-              {canCompleteRescue && (
-                  <Pressable
-                    onPress={openCompleteModal}
-                    className="flex-1 items-center justify-center rounded-xl bg-green-600 py-3 active:opacity-90"
-                  >
-                    <Text className="font-bold text-white text-sm">Hoàn thành</Text>
-                  </Pressable>
-                )}
+              {/* {canCompleteRescue && ( */}
+              <Pressable
+                onPress={openCompleteModal}
+                className="flex-1 items-center justify-center rounded-xl bg-green-600 py-3 active:opacity-90"
+              >
+                <Text className="font-bold text-white text-sm">Hoàn thành</Text>
+              </Pressable>
+              {/* )} */}
             </View>
           </View>
         </View>
@@ -1262,7 +1305,10 @@ export default function MapScreen() {
         onRequestClose={() => setCompleteVisible(false)}
       >
         <View className="flex-1 justify-end bg-black/40">
-          <Pressable className="flex-1" onPress={() => setCompleteVisible(false)} />
+          <Pressable
+            className="flex-1"
+            onPress={() => setCompleteVisible(false)}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             className="max-h-[92%] rounded-t-[30px] bg-card border-t border-border"
@@ -1288,7 +1334,11 @@ export default function MapScreen() {
                   onPress={() => setCompleteVisible(false)}
                   className="h-8 w-8 items-center justify-center rounded-full bg-muted/60"
                 >
-                  <Ionicons name="close" size={18} className="text-muted-foreground" />
+                  <Ionicons
+                    name="close"
+                    size={18}
+                    className="text-muted-foreground"
+                  />
                 </Pressable>
               </View>
 
@@ -1302,7 +1352,11 @@ export default function MapScreen() {
                   onPress={() => void pickCompleteImage()}
                   className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-4 py-6"
                 >
-                  <Ionicons name="camera" size={18} className="text-muted-foreground mr-2" />
+                  <Ionicons
+                    name="camera"
+                    size={18}
+                    className="text-muted-foreground mr-2"
+                  />
                   <Text className="text-center font-bold text-foreground text-sm">
                     Thêm ảnh từ thư viện
                   </Text>
@@ -1368,7 +1422,8 @@ export default function MapScreen() {
                     Xác nhận cứu hộ thành công
                   </Text>
                   <Text className="text-xs text-muted-foreground mt-1">
-                    Tôi xác nhận rằng thú cưng đã được cứu hộ an toàn và đúng thực tế.
+                    Tôi xác nhận rằng thú cưng đã được cứu hộ an toàn và đúng
+                    thực tế.
                   </Text>
                 </View>
                 <Switch
@@ -1382,7 +1437,11 @@ export default function MapScreen() {
               {/* Error Message */}
               {completeError && (
                 <View className="mb-4 rounded-xl bg-destructive/10 px-3 py-2.5 flex-row items-center">
-                  <Ionicons name="alert-circle" size={16} className="text-destructive mr-2" />
+                  <Ionicons
+                    name="alert-circle"
+                    size={16}
+                    className="text-destructive mr-2"
+                  />
                   <Text className="text-xs font-bold text-destructive flex-1">
                     {completeError}
                   </Text>

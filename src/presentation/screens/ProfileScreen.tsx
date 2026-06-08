@@ -541,17 +541,14 @@ const LoggedInProfile = () => {
           >
             <GuestMenuRow
               icon={<Ionicons name="notifications-outline" size={16} color="#0a4c73" />}
-              label="Thông báo"
+              label="Đơn nhận nuôi"
               badge="2"
               textColor={textColor}
               mutedColor={mutedColor}
               subtleSurface={subtleSurface}
               borderColor={borderColor}
               onPress={() =>
-                Alert.alert(
-                  "Thông báo",
-                  "Danh sách thông báo sẽ được kết nối ở bước tiếp theo.",
-                )
+                router.push("/my-adoption" as never)
               }
             />
             <GuestMenuRow
